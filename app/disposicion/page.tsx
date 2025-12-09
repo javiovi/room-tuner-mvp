@@ -24,59 +24,83 @@ export default function DisposicionPage() {
     <CenteredLayout>
       <Link
         href="/sala"
-        className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1"
+        className="text-xs text-accent hover:text-primary transition-colors inline-flex items-center gap-1 uppercase tracking-wide"
       >
-        ← Volver
+        {"<"} VOLVER
       </Link>
 
       <div className="space-y-3">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground text-balance">
-          ¿Dónde tenés tu equipo y tu punto de escucha?
-        </h1>
-        <p className="text-base text-muted-foreground">Elegí la opción que más se parezca a tu situación actual.</p>
+        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">{"> "}¿Dónde está tu equipo?</h1>
+        <p className="text-sm text-muted-foreground">{"// "}Elegí la opción que más se parezca</p>
       </div>
 
       <form className="space-y-8">
         <div className="space-y-4">
-          <h2 className="text-base font-semibold text-foreground">Ubicación del equipo de sonido</h2>
-          <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-accent uppercase tracking-wide">
+            [01] Ubicación del equipo de sonido
+          </h2>
+          <div className="space-y-2">
             {["Frente a la pared larga", "Frente a la pared corta", "Todavía no lo definí"].map((option) => (
               <label
                 key={option}
-                className="flex items-center gap-4 cursor-pointer p-4 rounded-2xl border border-border/60 bg-card hover:bg-muted/50 transition-all shadow-sm"
+                className={`flex items-center gap-3 cursor-pointer p-3 border-2 transition-all ${
+                  formData.ubicacionEquipo === option
+                    ? "border-primary bg-primary/10"
+                    : "border-muted-foreground/30 bg-card hover:border-primary/50"
+                }`}
               >
+                <div
+                  className={`w-4 h-4 border-2 flex items-center justify-center ${
+                    formData.ubicacionEquipo === option ? "border-primary bg-primary" : "border-muted-foreground"
+                  }`}
+                >
+                  {formData.ubicacionEquipo === option && <div className="w-2 h-2 bg-primary-foreground"></div>}
+                </div>
                 <input
                   type="radio"
                   name="ubicacionEquipo"
                   value={option}
                   checked={formData.ubicacionEquipo === option}
                   onChange={handleChange}
-                  className="w-5 h-5 accent-primary cursor-pointer"
+                  className="sr-only"
                 />
-                <span className="text-base text-foreground">{option}</span>
+                <span className="text-sm text-foreground">{option}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-base font-semibold text-foreground">Dónde te sentás normalmente</h2>
-          <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-accent uppercase tracking-wide">
+            [02] Dónde te sentás normalmente
+          </h2>
+          <div className="space-y-2">
             {["Cerca del centro de la sala", "Pegado a una pared", "En una esquina", "Voy cambiando bastante"].map(
               (option) => (
                 <label
                   key={option}
-                  className="flex items-center gap-4 cursor-pointer p-4 rounded-2xl border border-border/60 bg-card hover:bg-muted/50 transition-all shadow-sm"
+                  className={`flex items-center gap-3 cursor-pointer p-3 border-2 transition-all ${
+                    formData.dondeSientas === option
+                      ? "border-primary bg-primary/10"
+                      : "border-muted-foreground/30 bg-card hover:border-primary/50"
+                  }`}
                 >
+                  <div
+                    className={`w-4 h-4 border-2 flex items-center justify-center ${
+                      formData.dondeSientas === option ? "border-primary bg-primary" : "border-muted-foreground"
+                    }`}
+                  >
+                    {formData.dondeSientas === option && <div className="w-2 h-2 bg-primary-foreground"></div>}
+                  </div>
                   <input
                     type="radio"
                     name="dondeSientas"
                     value={option}
                     checked={formData.dondeSientas === option}
                     onChange={handleChange}
-                    className="w-5 h-5 accent-primary cursor-pointer"
+                    className="sr-only"
                   />
-                  <span className="text-base text-foreground">{option}</span>
+                  <span className="text-sm text-foreground">{option}</span>
                 </label>
               ),
             )}
@@ -86,9 +110,10 @@ export default function DisposicionPage() {
 
       <Link
         href="/muebles"
-        className="block w-full bg-primary text-primary-foreground py-4 px-6 rounded-full font-semibold text-center hover:opacity-90 transition-all active:scale-[0.98] shadow-sm"
+        className="block w-full bg-primary text-primary-foreground py-3 px-6 font-semibold text-center uppercase text-sm tracking-wide border-black hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 transition-all"
+        style={{ borderWidth: "3px", borderStyle: "solid", boxShadow: "4px 4px 0 0 rgba(0,0,0,1)" }}
       >
-        Continuar
+        [CONTINUAR]
       </Link>
     </CenteredLayout>
   )

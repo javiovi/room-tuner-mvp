@@ -8,8 +8,18 @@ interface CenteredLayoutProps {
 
 export function CenteredLayout({ children }: CenteredLayoutProps) {
   return (
-    <main className="min-h-svh flex flex-col items-center px-4 py-8 bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      <div className="max-w-md w-full glass-strong shadow-2xl shadow-primary/5 md:rounded-3xl rounded-2xl p-6 md:p-8 space-y-6 border border-border/40">
+    <main className="min-h-svh flex flex-col items-center px-4 py-6 bg-background grid-pattern">
+      <div
+        className="max-w-md w-full border-primary bg-card p-6 space-y-6 glow-border"
+        style={{ borderWidth: "3px", borderStyle: "solid" }}
+      >
+        {/* Terminal header bar */}
+        <div className="flex items-center gap-2 pb-4 border-b-2 border-primary/30">
+          <div className="w-3 h-3 bg-destructive border border-black"></div>
+          <div className="w-3 h-3 bg-yellow-400 border border-black"></div>
+          <div className="w-3 h-3 bg-primary border border-black"></div>
+          <span className="ml-2 text-xs text-muted-foreground uppercase tracking-wider">RoomTuner v1.0</span>
+        </div>
         {children}
       </div>
     </main>

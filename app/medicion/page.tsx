@@ -7,33 +7,37 @@ export default function MedicionPage() {
   return (
     <CenteredLayout>
       <div className="space-y-3 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground text-balance">
-          ¿Querés medir el ruido ambiente?
+        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">
+          {"> "}¿Querés medir el ruido ambiente?
         </h1>
-        <p className="text-base text-muted-foreground leading-relaxed">
-          Podemos usar el micrófono de tu dispositivo para tener una idea del nivel de ruido. Si preferís, podés saltear
-          este paso.
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {"// "}Podemos usar el micrófono de tu dispositivo para tener una idea del nivel de ruido.
         </p>
       </div>
 
-      <div className="space-y-4 pt-2">
+      <div className="space-y-3 pt-2">
         <Link
           href="/analizando"
-          className="block w-full bg-primary text-primary-foreground py-4 px-6 rounded-full font-semibold text-center hover:opacity-90 transition-all active:scale-[0.98] shadow-sm"
+          className="block w-full bg-primary text-primary-foreground py-3 px-6 font-semibold text-center uppercase text-sm tracking-wide border-black hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 transition-all"
+          style={{ borderWidth: "3px", borderStyle: "solid", boxShadow: "4px 4px 0 0 rgba(0,0,0,1)" }}
         >
-          Sí, medir ahora
+          [SÍ, MEDIR AHORA]
         </Link>
         <Link
           href="/analizando"
-          className="block w-full border-2 border-primary/20 bg-muted text-foreground py-4 px-6 rounded-full font-semibold text-center hover:bg-muted/80 transition-all active:scale-[0.98] shadow-sm"
+          className="block w-full bg-muted text-foreground py-3 px-6 font-semibold text-center uppercase text-sm tracking-wide border-primary/30 hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+          style={{ borderWidth: "3px", borderStyle: "solid", boxShadow: "3px 3px 0 0 rgba(0,255,156,0.2)" }}
         >
-          No, saltear este paso
+          [NO, SALTEAR]
         </Link>
       </div>
 
       <div className="pt-2 text-center">
-        <Link href="/muebles" className="text-sm text-primary hover:text-primary/80 transition-colors">
-          Volver
+        <Link
+          href="/muebles"
+          className="text-xs text-accent hover:text-primary transition-colors uppercase tracking-wide"
+        >
+          {"<"} VOLVER
         </Link>
       </div>
     </CenteredLayout>

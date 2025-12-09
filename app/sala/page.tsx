@@ -29,7 +29,6 @@ export default function SalaPage() {
 
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Save formData to global store
     router.push("/disposicion")
   }
 
@@ -37,21 +36,19 @@ export default function SalaPage() {
     <CenteredLayout>
       <Link
         href="/objetivo"
-        className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1"
+        className="text-xs text-accent hover:text-primary transition-colors inline-flex items-center gap-1 uppercase tracking-wide"
       >
-        ← Volver
+        {"<"} VOLVER
       </Link>
 
       <div className="space-y-3">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground text-balance">Contanos sobre tu sala</h1>
-        <p className="text-base text-muted-foreground">
-          No hace falta que las medidas sean perfectas, aproximadas está bien.
-        </p>
+        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">{"> "}Contanos sobre tu sala</h1>
+        <p className="text-sm text-muted-foreground">{"// "}No hace falta que las medidas sean perfectas</p>
       </div>
 
       <form className="space-y-5" onSubmit={handleContinue}>
         <div>
-          <label htmlFor="largo" className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor="largo" className="block text-xs font-semibold text-accent mb-2 uppercase tracking-wide">
             Largo (m)
           </label>
           <input
@@ -61,12 +58,12 @@ export default function SalaPage() {
             value={formData.largo}
             onChange={handleChange}
             placeholder="ej: 5"
-            className="w-full border border-border/60 rounded-2xl px-4 py-3.5 text-base bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            className="w-full border-2 border-primary/50 px-4 py-3 text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all font-mono"
           />
         </div>
 
         <div>
-          <label htmlFor="ancho" className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor="ancho" className="block text-xs font-semibold text-accent mb-2 uppercase tracking-wide">
             Ancho (m)
           </label>
           <input
@@ -76,12 +73,12 @@ export default function SalaPage() {
             value={formData.ancho}
             onChange={handleChange}
             placeholder="ej: 4"
-            className="w-full border border-border/60 rounded-2xl px-4 py-3.5 text-base bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            className="w-full border-2 border-primary/50 px-4 py-3 text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all font-mono"
           />
         </div>
 
         <div>
-          <label htmlFor="altura" className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor="altura" className="block text-xs font-semibold text-accent mb-2 uppercase tracking-wide">
             Altura (m)
           </label>
           <input
@@ -91,12 +88,12 @@ export default function SalaPage() {
             value={formData.altura}
             onChange={handleChange}
             placeholder="ej: 2.7"
-            className="w-full border border-border/60 rounded-2xl px-4 py-3.5 text-base bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            className="w-full border-2 border-primary/50 px-4 py-3 text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all font-mono"
           />
         </div>
 
         <div>
-          <label htmlFor="tipoPiso" className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor="tipoPiso" className="block text-xs font-semibold text-accent mb-2 uppercase tracking-wide">
             Tipo de piso
           </label>
           <select
@@ -104,9 +101,9 @@ export default function SalaPage() {
             name="tipoPiso"
             value={formData.tipoPiso}
             onChange={handleChange}
-            className="w-full border border-border/60 rounded-2xl px-4 py-3.5 text-base bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm appearance-none"
+            className="w-full border-2 border-primary/50 px-4 py-3 text-sm bg-muted text-foreground focus:outline-none focus:border-primary transition-all appearance-none font-mono cursor-pointer"
           >
-            <option value="">Selecciona una opción</option>
+            <option value="">{">"} Selecciona una opción</option>
             <option value="madera">Madera</option>
             <option value="ceramico">Cerámico</option>
             <option value="alfombra">Alfombra</option>
@@ -115,7 +112,7 @@ export default function SalaPage() {
         </div>
 
         <div>
-          <label htmlFor="tipoParedes" className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor="tipoParedes" className="block text-xs font-semibold text-accent mb-2 uppercase tracking-wide">
             Tipo de paredes
           </label>
           <select
@@ -123,9 +120,9 @@ export default function SalaPage() {
             name="tipoParedes"
             value={formData.tipoParedes}
             onChange={handleChange}
-            className="w-full border border-border/60 rounded-2xl px-4 py-3.5 text-base bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm appearance-none"
+            className="w-full border-2 border-primary/50 px-4 py-3 text-sm bg-muted text-foreground focus:outline-none focus:border-primary transition-all appearance-none font-mono cursor-pointer"
           >
-            <option value="">Selecciona una opción</option>
+            <option value="">{">"} Selecciona una opción</option>
             <option value="desnudas">Desnudas</option>
             <option value="cuadros">Con cuadros</option>
             <option value="bibliotecas">Con bibliotecas</option>
@@ -133,7 +130,7 @@ export default function SalaPage() {
           </select>
         </div>
 
-        <PrimaryButton type="submit">Continuar</PrimaryButton>
+        <PrimaryButton type="submit">[CONTINUAR]</PrimaryButton>
       </form>
     </CenteredLayout>
   )

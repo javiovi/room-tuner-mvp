@@ -23,41 +23,59 @@ export default function MueblesPage() {
   return (
     <CenteredLayout>
       <div className="space-y-3">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground text-balance">Muebles principales de tu sala</h1>
-        <p className="text-base text-muted-foreground">Marcá qué tenés en la sala. No hace falta ser exacto.</p>
+        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">{"> "}Muebles principales</h1>
+        <p className="text-sm text-muted-foreground">{"// "}Marcá qué tenés en la sala</p>
       </div>
 
-      <form className="space-y-3">
-        {furniture.map((item) => (
+      <form className="space-y-2">
+        {furniture.map((item, index) => (
           <label
             key={item.id}
-            className="flex items-center gap-4 p-4 border border-border/60 rounded-2xl bg-card hover:bg-muted/50 transition-all cursor-pointer shadow-sm"
+            className={`flex items-center gap-3 p-3 border-2 cursor-pointer transition-all ${
+              selected.includes(item.id)
+                ? "border-primary bg-primary/10"
+                : "border-muted-foreground/30 bg-card hover:border-primary/50"
+            }`}
           >
+            <div
+              className={`w-4 h-4 border-2 flex items-center justify-center ${
+                selected.includes(item.id) ? "border-primary bg-primary" : "border-muted-foreground"
+              }`}
+            >
+              {selected.includes(item.id) && <span className="text-primary-foreground text-xs font-bold">✓</span>}
+            </div>
             <input
               type="checkbox"
               checked={selected.includes(item.id)}
               onChange={() => toggleFurniture(item.id)}
-              className="w-5 h-5 rounded-lg accent-primary cursor-pointer"
+              className="sr-only"
             />
-            <span className="text-foreground font-medium text-base">{item.label}</span>
+            <span className="text-sm text-foreground">
+              <span className="text-accent text-xs mr-2">[{String(index + 1).padStart(2, "0")}]</span>
+              {item.label}
+            </span>
           </label>
         ))}
       </form>
 
-      <p className="text-sm text-muted-foreground text-center">
-        Más adelante podrás ajustar la posición con más detalle.
+      <p className="text-xs text-muted-foreground text-center border border-muted-foreground/30 p-2">
+        {"// "}Más adelante podrás ajustar la posición con más detalle.
       </p>
 
       <Link
         href="/medicion"
-        className="block w-full bg-primary text-primary-foreground py-4 px-6 rounded-full font-semibold text-center hover:opacity-90 transition-all active:scale-[0.98] shadow-sm"
+        className="block w-full bg-primary text-primary-foreground py-3 px-6 font-semibold text-center uppercase text-sm tracking-wide border-black hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 transition-all"
+        style={{ borderWidth: "3px", borderStyle: "solid", boxShadow: "4px 4px 0 0 rgba(0,0,0,1)" }}
       >
-        Continuar
+        [CONTINUAR]
       </Link>
 
       <div className="text-center">
-        <Link href="/disposicion" className="text-sm text-primary hover:text-primary/80 transition-colors">
-          Volver
+        <Link
+          href="/disposicion"
+          className="text-xs text-accent hover:text-primary transition-colors uppercase tracking-wide"
+        >
+          {"<"} VOLVER
         </Link>
       </div>
     </CenteredLayout>
