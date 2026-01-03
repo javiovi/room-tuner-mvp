@@ -15,15 +15,20 @@ import {
   getProductById,
   calculateTreatmentCost,
 } from "@/lib/acousticProducts"
+import { createServerClient } from "@/lib/supabase/client"
 
-const N8N_URL = process.env.N8N_ANALYZE_ROOM_WEBHOOK_URL
+const N8N_URL = process.env.N8N_WEBHOOK_URL
 
 /**
  * Analyze room and generate comprehensive report
+ * Now saves project and analysis to Supabase
  */
 export async function POST(req: Request) {
+  const startTime = Date.now()
+
   try {
     const project = (await req.json()) as RoomProject
+    const supabase = createServerClient()
 
     // Validate required fields
     if (!project.lengthM || !project.widthM || !project.heightM) {
@@ -33,7 +38,38 @@ export async function POST(req: Request) {
       )
     }
 
+    // For MVP without auth, user_id is null
+    // TODO: Replace with actual auth.uid() when auth is implemented
+
+    // Save or update project in Supabase
+    const { data: savedProject, error: projectError } = await supabase
+      .from('projects')
+      .upsert({
+        user_id: null,
+        name: 'Mi Sala',
+        goal: project.goal,
+        length_m: project.lengthM,
+        width_m: project.widthM,
+        height_m: project.heightM,
+        floor_type: project.floorType,
+        wall_type: project.wallType,
+        speaker_placement: project.speakerPlacement,
+        listening_position: project.listeningPosition,
+        furniture: project.furniture || [],
+        noise_measurement: project.noiseMeasurement,
+        status: 'analyzing',
+      })
+      .select()
+      .single()
+
+    if (projectError) {
+      console.error('Error saving project:', projectError)
+      // Continue with analysis even if save fails
+    }
+
     // If N8N webhook is configured, try to use it (for future AI enhancements)
+    let analysis: EnhancedAnalysisResponse
+
     if (N8N_URL) {
       try {
         const n8nRes = await fetch(N8N_URL, {
@@ -41,6 +77,7 @@ export async function POST(req: Request) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...project,
+            projectId: savedProject?.id,
             locale: "es-AR",
             source: "web-mvp",
             version: "0.2.0",
@@ -52,19 +89,69 @@ export async function POST(req: Request) {
           const data = await n8nRes.json()
           // If N8N returns enhanced analysis, use it
           if (data.roomMetrics) {
-            return NextResponse.json(data)
+            analysis = data
+          } else {
+            analysis = generateLocalAnalysis(project)
           }
+        } else {
+          analysis = generateLocalAnalysis(project)
         }
       } catch (n8nError) {
         console.warn("N8N webhook failed, using local analysis:", n8nError)
-        // Continue with local analysis
+        analysis = generateLocalAnalysis(project)
       }
+    } else {
+      // Generate comprehensive analysis locally
+      analysis = generateLocalAnalysis(project)
     }
 
-    // Generate comprehensive analysis locally
-    const analysis = generateLocalAnalysis(project)
+    const calculationTime = Date.now() - startTime
 
-    return NextResponse.json(analysis)
+    // Save analysis to Supabase
+    if (savedProject?.id) {
+      const { error: analysisError } = await supabase
+        .from('analyses')
+        .upsert({
+          project_id: savedProject.id,
+          summary: analysis.summary,
+          room_character: analysis.roomCharacter,
+          priority_score: analysis.priorityScore,
+          room_metrics: analysis.roomMetrics,
+          frequency_response: analysis.frequencyResponse,
+          recommendations: {
+            freeChanges: analysis.freeChanges,
+            lowBudgetChanges: analysis.lowBudgetChanges,
+            advancedChanges: analysis.advancedChanges,
+          },
+          room_diagram: analysis.roomDiagram,
+          version: '1.0',
+          calculation_time_ms: calculationTime,
+        })
+
+      if (analysisError) {
+        console.error('Error saving analysis:', analysisError)
+        // Return analysis anyway
+      }
+
+      // Update project status to completed
+      await supabase
+        .from('projects')
+        .update({ status: 'completed' })
+        .eq('id', savedProject.id)
+
+      // Add projectId to response
+      return NextResponse.json({
+        ...analysis,
+        projectId: savedProject.id,
+        generatedAt: new Date().toISOString(),
+      })
+    }
+
+    // If save failed, return analysis without projectId
+    return NextResponse.json({
+      ...analysis,
+      generatedAt: new Date().toISOString(),
+    })
   } catch (error) {
     console.error("Error analyzing room:", error)
     return NextResponse.json(
