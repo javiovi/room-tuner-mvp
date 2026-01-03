@@ -10,7 +10,7 @@ import { CenteredLayout } from "@/components/CenteredLayout"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { useRoomStore } from "@/lib/roomStore"
 
-export default function SalaPage() {
+export default function EspacioPage() {
   const router = useRouter()
   const updateProject = useRoomStore((s) => s.updateProject)
   const [formData, setFormData] = useState({
@@ -54,7 +54,7 @@ export default function SalaPage() {
 
       <div className="space-y-3">
         <h1 className="text-base md:text-lg font-bold text-primary glow-text font-mono">
-          {"> "}Contanos sobre tu sala
+          {"> "}Contanos sobre tu espacio
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground">
           {"// "}No hace falta que las medidas sean perfectas
@@ -187,8 +187,8 @@ export default function SalaPage() {
           {/* Info sobre materiales */}
           <div className="p-2 border border-accent/20 bg-accent/5">
             <p className="text-[10px] text-muted-foreground">
-              <span className="text-accent font-bold">Info:</span> Materiales duros reflejan más sonido (sala más viva),
-              materiales blandos absorben (sala más seca).
+              <span className="text-accent font-bold">Info:</span> Materiales duros reflejan más sonido (espacio más vivo),
+              materiales blandos absorben (espacio más seco).
             </p>
           </div>
         </div>

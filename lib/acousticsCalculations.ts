@@ -139,7 +139,7 @@ export function evaluateRT60(
   } else if (rt60 < range.min) {
     return {
       rating: 'problematic',
-      message: 'Sala demasiado seca, falta reverberación natural',
+      message: 'Espacio demasiado seco, falta reverberación natural',
     }
   } else if (rt60 < range.max * 1.5) {
     return {
@@ -149,7 +149,7 @@ export function evaluateRT60(
   } else {
     return {
       rating: 'problematic',
-      message: 'Sala demasiado viva, exceso de reverberación',
+      message: 'Espacio demasiado vivo, exceso de reverberación',
     }
   }
 }

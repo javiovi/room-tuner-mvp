@@ -20,7 +20,7 @@ export default function LandingPage() {
           <h1 className="text-3xl md:text-5xl font-bold text-primary glow-text leading-tight font-mono">
             {"> "}Optimizá la acústica
             <br />
-            de tu sala
+            de tu espacio
           </h1>
 
           {/* Subtitle */}
@@ -28,7 +28,7 @@ export default function LandingPage() {
             Análisis profesional en <span className="text-accent font-bold">5 minutos</span>. Sin registro, sin
             tarjeta, sin spam.
             <br />
-            Descubrí qué le falta a tu sala para sonar mejor y cuánto te costaría arreglarlo.
+            Descubrí qué le falta a tu espacio para sonar mejor y cuánto te costaría arreglarlo.
           </p>
 
           {/* Primary CTA */}
@@ -42,7 +42,7 @@ export default function LandingPage() {
                 boxShadow: "4px 4px 0 0 rgba(0,0,0,1)",
               }}
             >
-              [ANALIZAR MI SALA GRATIS]
+              [ANALIZAR MI ESPACIO GRATIS]
             </Link>
             <p className="text-[11px] text-muted-foreground mt-3">100% gratis • Sin registro • 5 minutos</p>
           </div>
@@ -70,7 +70,7 @@ export default function LandingPage() {
       <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-muted-foreground/20">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono mb-2">[¿CÓMO FUNCIONA?]</h2>
-          <p className="text-sm text-muted-foreground">Tres pasos simples para optimizar tu sala</p>
+          <p className="text-sm text-muted-foreground">Tres pasos simples para optimizar tu espacio</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -79,7 +79,7 @@ export default function LandingPage() {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-accent text-black font-bold text-xl border-2 border-black">
               01
             </div>
-            <h3 className="text-lg font-bold text-accent uppercase tracking-wide">Medí tu sala</h3>
+            <h3 className="text-lg font-bold text-accent uppercase tracking-wide">Medí tu espacio</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Dimensiones aproximadas (no hace falta ser exacto). Podés usar pasos o medir con el celu.
             </p>
@@ -121,7 +121,7 @@ export default function LandingPage() {
             <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
             <div>
               <h4 className="text-sm font-bold text-foreground">Análisis acústico profesional</h4>
-              <p className="text-xs text-muted-foreground">RT60, modos de sala, respuesta de frecuencia</p>
+              <p className="text-xs text-muted-foreground">RT60, modos del espacio, respuesta de frecuencia</p>
             </div>
           </div>
 
@@ -171,7 +171,7 @@ export default function LandingPage() {
       <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-muted-foreground/20">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono mb-2">[PARA QUÉ SIRVE]</h2>
-          <p className="text-sm text-muted-foreground">Optimizá tu sala según tu uso</p>
+          <p className="text-sm text-muted-foreground">Optimizá tu espacio según tu uso</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
@@ -210,7 +210,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-sm font-bold text-primary uppercase">Trabajar/Estudiar</h3>
             <p className="text-xs text-muted-foreground">
-              Sala seca para concentración, control de ruido, calls más claras
+              Espacio seco para concentración, control de ruido, calls más claras
             </p>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function LandingPage() {
           style={{ borderWidth: "3px", borderStyle: "solid" }}
         >
           <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono">
-            [LISTO PARA OPTIMIZAR TU SALA?]
+            [LISTO PARA OPTIMIZAR TU ESPACIO?]
           </h2>
           <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">
             Empezá ahora y en 5 minutos tenés tu análisis completo. Sin costos ocultos, sin trucos.

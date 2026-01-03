@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "RoomTuner - Mejora la acústica de tu sala",
-  description: "Optimiza el sonido de tu sala sin ser ingeniero. Te guiamos paso a paso para entender tu espacio.",
+  title: "RoomTuner - Mejora la acústica de tu espacio",
+  description: "Optimiza el sonido de tu espacio sin ser ingeniero. Te guiamos paso a paso para entenderlo mejor.",
   generator: "v0.app",
   icons: {
     icon: [

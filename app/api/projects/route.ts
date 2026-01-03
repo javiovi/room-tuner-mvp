@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       .from('projects')
       .insert({
         user_id: null,
-        name: body.name || 'Mi Sala',
+        name: body.name || 'Mi Espacio',
         goal: body.goal,
         length_m: body.lengthM,
         width_m: body.widthM,

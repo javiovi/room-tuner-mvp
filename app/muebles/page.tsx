@@ -100,7 +100,7 @@ export default function MueblesPage() {
         <div className="flex items-start justify-between gap-2">
           <div>
             <h1 className="text-base md:text-lg font-bold text-primary glow-text font-mono">
-              {"> "}Muebles en la sala
+              {"> "}Muebles en el espacio
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground">
               {"// "}Seleccioná todo lo que aplique
@@ -157,13 +157,13 @@ export default function MueblesPage() {
       {/* Info box */}
       <div className="p-3 border border-accent/20 bg-accent/5">
         <p className="text-[10px] text-muted-foreground">
-          <span className="text-accent font-bold">Tip:</span> Los muebles afectan la acústica de la sala.
+          <span className="text-accent font-bold">Tip:</span> Los muebles afectan la acústica del espacio.
           Más muebles = más absorción de sonido. Estanterías y bibliotecas ayudan a difundir el sonido.
         </p>
       </div>
 
       <PrimaryButton type="button" onClick={handleContinue}>
-        [ANALIZAR MI SALA]
+        [ANALIZAR MI ESPACIO]
       </PrimaryButton>
     </CenteredLayout>
   )

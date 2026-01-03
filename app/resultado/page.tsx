@@ -24,7 +24,7 @@ export default function ResultadoPage() {
             {"> "}Aún no hay análisis
           </h1>
           <p className="text-sm text-muted-foreground">
-            No pudimos cargar el resultado de tu sala. Probá volver a ejecutar el análisis o regresar al inicio.
+            No pudimos cargar el resultado de tu espacio. Probá volver a ejecutar el análisis o regresar al inicio.
           </p>
           <div className="pt-2">
             <Link
@@ -248,7 +248,7 @@ export default function ResultadoPage() {
             href="/objetivo"
             className="block text-xs text-primary hover:text-accent transition-colors uppercase tracking-wide"
           >
-            {"↻"} ANALIZAR OTRA SALA
+            {"↻"} ANALIZAR OTRO ESPACIO
           </Link>
           <Link
             href="/"

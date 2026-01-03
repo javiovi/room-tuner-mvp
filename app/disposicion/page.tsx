@@ -39,7 +39,7 @@ export default function DisposicionPage() {
   return (
     <CenteredLayout>
       <Link
-        href="/sala"
+        href="/espacio"
         className="text-xs text-accent hover:text-primary transition-colors inline-flex items-center gap-1 uppercase tracking-wide"
       >
         {"<"} VOLVER
@@ -106,7 +106,7 @@ export default function DisposicionPage() {
           </h2>
           <div className="space-y-2">
             {[
-              { value: "centro-sala", label: "Cerca del centro de la sala", desc: "Óptimo - menor influencia de paredes" },
+              { value: "centro-sala", label: "Cerca del centro del espacio", desc: "Óptimo - menor influencia de paredes" },
               {
                 value: "escritorio-pared",
                 label: "En escritorio contra la pared",

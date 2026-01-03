@@ -31,7 +31,7 @@ export default function ObjetivoPage() {
     <CenteredLayout>
       <div className="space-y-3 text-center">
         <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">
-          {"> "}¿Para qué querés optimizar tu sala?
+          {"> "}¿Para qué querés optimizar tu espacio?
         </h1>
         <p className="text-sm text-muted-foreground">{"// "}Elegí el objetivo principal</p>
       </div>
@@ -78,7 +78,7 @@ export default function ObjetivoPage() {
       </div>
 
       <Link
-        href="/sala"
+        href="/espacio"
         className={`block w-full py-3 px-6 font-semibold text-center uppercase text-sm tracking-wide transition-all ${
           selectedObjectiveId
             ? "border-black bg-primary text-primary-foreground hover:translate-x-0.5 hover:translate-y-0.5"

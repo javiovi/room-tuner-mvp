@@ -37,7 +37,7 @@ export default function AnalizandoPage() {
   return (
     <CenteredLayout>
       <div className="space-y-3 text-center">
-        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">{"> "}Analizando tu sala...</h1>
+        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">{"> "}Analizando tu espacio...</h1>
         <p className="text-sm text-muted-foreground leading-relaxed">{"// "}Procesando información acústica</p>
       </div>
 

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       .from('projects')
       .upsert({
         user_id: null,
-        name: 'Mi Sala',
+        name: 'Mi Espacio',
         goal: project.goal,
         length_m: project.lengthM,
         width_m: project.widthM,
@@ -323,7 +323,7 @@ function generateFreeRecommendations(
 
   // Listening position advice
   recommendations.push(
-    "Evitar punto de escucha exactamente en el centro de la sala (50% de profundidad)"
+    "Evitar punto de escucha exactamente en el centro del espacio (50% de profundidad)"
   )
 
   // Room character specific
@@ -337,14 +337,14 @@ function generateFreeRecommendations(
     recommendations.push("Abrir puertas de placares para añadir absorción difusa")
   } else if (roomCharacter === "seca") {
     recommendations.push(
-      "Remover exceso de materiales absorbentes si la sala suena muy apagada"
+      "Remover exceso de materiales absorbentes si el espacio suena muy apagado"
     )
     recommendations.push(
       "Mantener superficies duras y lisas para preservar brillo natural"
     )
   } else {
     recommendations.push(
-      "La sala tiene buen balance, enfocarse en optimizar posiciones"
+      "El espacio tiene buen balance, enfocarse en optimizar posiciones"
     )
   }
 
@@ -426,13 +426,13 @@ function generateSummary(
     (m) => m.frequency < 200 && m.severity === "high"
   )
 
-  let summary = `Análisis para sala de ${metrics.volume.toFixed(1)}m³ optimizada para ${goal}. `
-  summary += `La sala tiene carácter acústico ${characterDesc} con RT60 promedio de ${rt60.mid.toFixed(2)}s. `
+  let summary = `Análisis para espacio de ${metrics.volume.toFixed(1)}m³ optimizada para ${goal}. `
+  summary += `El espacio tiene carácter acústico ${characterDesc} con RT60 promedio de ${rt60.mid.toFixed(2)}s. `
 
   if (roomCharacter === "viva") {
     summary += `Se recomienda agregar absorción para controlar reverberación excesiva. `
   } else if (roomCharacter === "seca") {
-    summary += `La sala es muy absorbente, considerar agregar difusión para recuperar vitalidad. `
+    summary += `El espacio es muy absorbente, considerar agregar difusión para recuperar vitalidad. `
   } else {
     summary += `El balance acústico es bueno, enfocarse en tratamiento de puntos específicos. `
   }
