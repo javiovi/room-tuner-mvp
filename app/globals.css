@@ -121,8 +121,37 @@
   * {
     @apply outline-ring/50;
   }
+
+  html {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-mono;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+
+  /* Prevent horizontal overflow on all pages */
+  #__next {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Ensure all containers stay within viewport */
+  .container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
   }
 }
 
@@ -150,5 +179,43 @@
 
   .glow-border {
     box-shadow: 0 0 10px rgba(255, 149, 0, 0.3), inset 0 0 10px rgba(255, 149, 0, 0.1);
+  }
+
+  /* Utility to contain elements with box-shadow */
+  .contain-shadow {
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+
+  /* Ensure SVG responsiveness */
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent text overflow */
+  .prevent-overflow {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  /* Safe mobile spacing */
+  @media (max-width: 640px) {
+    /* Reduce tracking on mobile to prevent overflow */
+    .tracking-wide {
+      letter-spacing: 0.05em;
+    }
+
+    .tracking-wider {
+      letter-spacing: 0.075em;
+    }
+
+    /* Ensure buttons don't overflow */
+    button, a {
+      max-width: 100%;
+      overflow: hidden;
+    }
   }
 }

@@ -5,7 +5,7 @@ import { Music, Guitar, Briefcase } from "lucide-react"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Hero Section */}
       <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
         <div className="text-center space-y-6">
