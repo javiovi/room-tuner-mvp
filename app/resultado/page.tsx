@@ -10,6 +10,9 @@ import { FrequencyResponseChart } from "@/components/report/FrequencyResponseCha
 import { RoomModesChart } from "@/components/report/RoomModesChart"
 import { ProductTable } from "@/components/report/ProductTable"
 import { InteractiveRoomDiagram } from "@/components/report/InteractiveRoomDiagram"
+import { RecommendationSection } from "@/components/report/RecommendationSection"
+import { BudgetCalculator } from "@/components/report/BudgetCalculator"
+import { ActionPlan } from "@/components/report/ActionPlan"
 
 export default function ResultadoPage() {
   const analysis = useRoomStore((s) => s.analysis)
@@ -176,47 +179,55 @@ export default function ResultadoPage() {
       ),
     },
     {
-      id: "recomendaciones",
+      id: "cambios-gratis",
+      label: "Gratis",
+      badge: freeChanges.items.length,
+      content: (
+        <div className="space-y-4">
+          <RecommendationSection
+            recommendations={freeChanges}
+            icon="check"
+            accentColor="accent"
+          />
+        </div>
+      ),
+    },
+    {
+      id: "productos",
       label: "Productos",
-      badge: freeChanges.items.length + lowBudgetChanges.items.length + advancedChanges.items.length,
+      badge: lowBudgetChanges.items.length + advancedChanges.items.length,
       content: (
         <div className="space-y-6">
-          {/* Free Changes */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold text-primary uppercase tracking-wide flex items-center gap-2">
-              <span className="text-accent">[01]</span>
-              {freeChanges.title}
-            </h3>
-            <div
-              className="border-primary/30 bg-card p-4 space-y-2"
-              style={{ borderWidth: "2px", borderStyle: "solid" }}
-            >
-              {freeChanges.items.map((tip, index) => (
-                <div key={index} className="flex gap-2">
-                  <span className="text-accent text-xs font-bold">[{String(index + 1).padStart(2, "0")}]</span>
-                  <span className="text-foreground text-xs leading-relaxed">{tip}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Low Budget */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold text-yellow-400 uppercase tracking-wide flex items-center gap-2">
-              <span className="text-accent">[02]</span>
-              Bajo Presupuesto
-            </h3>
-            <ProductTable recommendations={lowBudgetChanges} />
-          </div>
+          <ProductTable recommendations={lowBudgetChanges} />
 
           {/* Advanced */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wide flex items-center gap-2">
-              <span className="text-accent">[03]</span>
-              Soluciones Avanzadas
-            </h3>
-            <ProductTable recommendations={advancedChanges} />
-          </div>
+          <ProductTable recommendations={advancedChanges} />
+        </div>
+      ),
+    },
+    {
+      id: "presupuesto",
+      label: "Presupuesto",
+      content: (
+        <div className="space-y-4">
+          <BudgetCalculator
+            lowBudgetProducts={lowBudgetChanges.items}
+            advancedProducts={advancedChanges.items}
+            currency="ARS"
+          />
+        </div>
+      ),
+    },
+    {
+      id: "plan",
+      label: "Plan",
+      content: (
+        <div className="space-y-4">
+          <ActionPlan
+            roomCharacter={roomCharacter}
+            hasBudget={true}
+          />
         </div>
       ),
     },
