@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 10,
-    fontFamily: 'Courier-Bold',
   },
   coverSubtitle: {
     fontSize: 14,
@@ -77,7 +76,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     borderBottom: `3px solid ${colors.primary}`,
     paddingBottom: 6,
-    fontFamily: 'Courier-Bold',
   },
 
   // Content sections
@@ -91,14 +89,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 8,
-    fontFamily: 'Courier-Bold',
   },
   subheading: {
     fontSize: 12,
     fontWeight: 'bold',
     color: colors.accent,
     marginBottom: 6,
-    fontFamily: 'Courier-Bold',
   },
   body: {
     fontSize: 10,
@@ -129,7 +125,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginRight: 8,
     marginBottom: 4,
-    fontFamily: 'Courier-Bold',
   },
   badgeCritical: {
     backgroundColor: '#FEE2E2',
@@ -174,7 +169,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF7ED',
     borderBottom: `2px solid ${colors.primary}`,
     fontWeight: 'bold',
-    fontFamily: 'Courier-Bold',
   },
   tableCell: {
     fontSize: 9,
@@ -218,7 +212,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.primary,
-    fontFamily: 'Courier-Bold',
   },
 })
 

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
-import { renderToStream } from '@react-pdf/renderer'
+import { renderToBuffer } from '@react-pdf/renderer'
 import { ReportPDFDocument } from '@/components/report/pdf/ReportPDFDocument'
 import type { RoomProject, EnhancedAnalysisResponse } from '@/app/types/room'
+
+// Vercel serverless function config
+export const runtime = 'nodejs'
+export const maxDuration = 60 // 60 seconds max execution
 
 /**
  * PDF Generation API
@@ -23,26 +27,18 @@ export async function POST(req: Request) {
       )
     }
 
+    console.log('[PDF] Starting PDF generation...')
+
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0]
     const filename = `roomtuner-reporte-${timestamp}.pdf`
 
-    // Render PDF document
-    const stream = await renderToStream(
+    // Render PDF document using renderToBuffer (better for serverless)
+    const buffer = await renderToBuffer(
       ReportPDFDocument({ project, analysis })
     )
 
-    // Convert stream to buffer
-    const chunks: Uint8Array[] = []
-    const reader = stream.getReader()
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      if (value) chunks.push(value)
-    }
-
-    const buffer = Buffer.concat(chunks)
+    console.log('[PDF] PDF generated successfully, size:', buffer.length, 'bytes')
 
     // Return PDF as downloadable file
     return new NextResponse(buffer, {
