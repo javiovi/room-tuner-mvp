@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Music, Guitar, Briefcase } from "lucide-react"
+import { ReportPreview } from "@/components/ReportPreview"
 
 export default function LandingPage() {
   return (
@@ -47,21 +48,9 @@ export default function LandingPage() {
             <p className="text-[11px] text-muted-foreground mt-3">100% gratis • Sin registro • 5 minutos</p>
           </div>
 
-          {/* Visual Preview */}
+          {/* Interactive Report Preview */}
           <div className="pt-8">
-            <div
-              className="border-primary/50 bg-card p-4 max-w-2xl mx-auto"
-              style={{ borderWidth: "3px", borderStyle: "solid" }}
-            >
-              <div className="aspect-video bg-muted/30 border-2 border-muted-foreground/20 flex items-center justify-center">
-                <span className="text-muted-foreground text-xs uppercase tracking-wide">
-                  [Preview del informe aquí]
-                </span>
-              </div>
-              <p className="text-[10px] text-muted-foreground text-center mt-2">
-                Ejemplo de análisis completo con métricas reales
-              </p>
-            </div>
+            <ReportPreview />
           </div>
         </div>
       </section>
