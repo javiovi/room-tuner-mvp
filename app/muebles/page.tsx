@@ -85,7 +85,7 @@ export default function MueblesPage() {
     updateProject({
       furniture: selected.length > 0 ? selected : undefined,
     })
-    router.push("/analizando")
+    router.push("/medicion")
   }
 
   const totalSelected = selected.length

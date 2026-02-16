@@ -23,6 +23,7 @@ export default function ResultadoPage() {
   const project = useRoomStore((s) => s.project)
   const updatePositions = useRoomStore((s) => s.updatePositions)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [showHeatmap, setShowHeatmap] = useState(false)
   const { t } = useT()
 
   if (!analysis) {
@@ -211,6 +212,9 @@ export default function ResultadoPage() {
         <div className="space-y-4">
           <InteractiveRoomDiagram
             diagram={roomDiagram}
+            roomModes={roomMetrics.roomModes}
+            showHeatmap={showHeatmap}
+            onToggleHeatmap={() => setShowHeatmap(prev => !prev)}
             onPositionsChange={(positions) => {
               updatePositions(
                 { speakers: positions.speakers, listeningPosition: positions.listeningPosition },

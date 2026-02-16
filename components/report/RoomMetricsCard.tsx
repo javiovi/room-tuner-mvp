@@ -44,9 +44,18 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
       </div>
 
       <div className="border-t border-border pt-3 mt-3 space-y-2">
-        <div className="flex items-center gap-1.5">
-          <h3 className="text-xs font-medium text-foreground">{t.report.metrics.rt60Title}</h3>
-          <InfoTooltip text={t.tooltips.rt60} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-xs font-medium text-foreground">{t.report.metrics.rt60Title}</h3>
+            <InfoTooltip text={t.tooltips.rt60} />
+          </div>
+          {metrics.rt60Method && (
+            <span className="text-[10px] text-muted-foreground">
+              {t.report.metrics.rt60Method} <span className="font-medium text-foreground">
+                {metrics.rt60Method === "eyring" ? t.report.metrics.rt60Eyring : t.report.metrics.rt60Sabine}
+              </span>
+            </span>
+          )}
         </div>
         <div className="grid grid-cols-3 gap-2">
           <RT60Badge label={t.report.metrics.low} value={metrics.rt60Estimate.low} tooltip={t.tooltips.rt60Low} />
@@ -54,6 +63,34 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
           <RT60Badge label={t.report.metrics.high} value={metrics.rt60Estimate.high} tooltip={t.tooltips.rt60High} />
         </div>
         <EvaluationBadge evaluation={metrics.rt60Evaluation} />
+
+        {/* Measured vs Calculated RT60 comparison */}
+        {metrics.measuredRT60 && (
+          <div className="bg-muted rounded-xl p-3 space-y-2">
+            <h4 className="text-xs font-medium text-foreground">{t.report.metrics.rt60Comparison}</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="text-center">
+                <div className="text-muted-foreground">{t.report.metrics.rt60Calculated}</div>
+                <div className="text-foreground font-semibold font-mono">{metrics.rt60Estimate.mid.toFixed(2)}s</div>
+              </div>
+              <div className="text-center">
+                <div className="text-muted-foreground">{t.report.metrics.rt60Measured}</div>
+                <div className="text-foreground font-semibold font-mono">{metrics.measuredRT60.value.toFixed(2)}s</div>
+              </div>
+            </div>
+            <div className="text-[10px] text-muted-foreground text-center">
+              {t.report.metrics.rt60MeasuredConfidence}{" "}
+              <span className={`font-medium ${
+                metrics.measuredRT60.confidence === "high" ? "text-green-600" :
+                metrics.measuredRT60.confidence === "medium" ? "text-yellow-600" :
+                "text-red-500"
+              }`}>
+                {metrics.measuredRT60.confidence === "high" ? t.report.metrics.rt60Eyring :
+                 metrics.measuredRT60.confidence === "medium" ? "Media" : "Baja"}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-border pt-3 mt-3 space-y-2">

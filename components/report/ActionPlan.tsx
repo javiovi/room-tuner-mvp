@@ -81,7 +81,7 @@ export function ActionPlan({ roomCharacter, hasBudget = false }: ActionPlanProps
       {/* Glossary */}
       <div className="border-t border-border pt-4">
         <h3 className="text-xs font-semibold text-foreground mb-2">{ap.glossaryTitle}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+        <div className="grid grid-cols-1 gap-y-1.5 text-xs text-muted-foreground">
           <GlossaryItem term={ap.glossary.equilateralTriangle} definition={ap.glossary.equilateralTriangleDef} />
           <GlossaryItem term={ap.glossary.stereoImage} definition={ap.glossary.stereoImageDef} />
           <GlossaryItem term={ap.glossary.firstReflection} definition={ap.glossary.firstReflectionDef} />

@@ -25,6 +25,15 @@ export interface RoomProject {
   noiseMeasurement?: {
     taken: boolean
     level?: "tranquilo" | "normal" | "ruidoso"
+    dbLevel?: number
+    classification?: "muy_silencioso" | "silencioso" | "normal" | "ruidoso" | "muy_ruidoso"
+  }
+
+  // Medición RT60 (test de aplauso)
+  measuredRT60?: {
+    value: number // seconds
+    method: "T20" | "T30"
+    confidence: "low" | "medium" | "high"
   }
 }
 
@@ -36,6 +45,9 @@ export interface RoomMode {
   dimension: "length" | "width" | "height" | "mixed"
   severity: "high" | "medium" | "low"
   description: string
+  nx?: number // mode number along length
+  ny?: number // mode number along width
+  nz?: number // mode number along height
 }
 
 export interface RoomMetrics {
@@ -154,6 +166,12 @@ export interface EnhancedAnalysisResponse {
       rating: "good" | "acceptable" | "problematic"
       message: string
     }
+    rt60Method?: "sabine" | "eyring"
+    measuredRT60?: {
+      value: number
+      confidence: "low" | "medium" | "high"
+    }
+    totalAbsorption: number // sabins
   }
 
   // Materials Analysis

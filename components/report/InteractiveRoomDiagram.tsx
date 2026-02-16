@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useTheme } from "next-themes"
 import { DndContext, DragEndEvent, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { Plus, X } from "lucide-react"
-import type { RoomDiagram as RoomDiagramType } from "@/app/types/room"
+import type { RoomDiagram as RoomDiagramType, RoomMode } from "@/app/types/room"
 import { useT } from "@/lib/i18n"
+import { calculateHeatmap } from "@/lib/heatmapCalculations"
+import { HeatmapOverlay } from "@/components/report/HeatmapOverlay"
 
 type FurnitureItem = {
   type: string
@@ -18,6 +20,9 @@ type FurnitureItem = {
 
 interface InteractiveRoomDiagramProps {
   diagram: RoomDiagramType
+  roomModes?: RoomMode[]
+  showHeatmap?: boolean
+  onToggleHeatmap?: () => void
   onPositionsChange?: (positions: {
     speakers: { x: number; y: number }[]
     listeningPosition: { x: number; y: number }
@@ -46,7 +51,7 @@ function DraggableItem({ id, x, y, children }: DraggableItemProps) {
   )
 }
 
-export function InteractiveRoomDiagram({ diagram, onPositionsChange }: InteractiveRoomDiagramProps) {
+export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onToggleHeatmap, onPositionsChange }: InteractiveRoomDiagramProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
   const { t } = useT()
@@ -152,6 +157,11 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
   const treatmentColors = { absorber: svgColors.primary, diffuser: svgColors.listening, bass_trap: isDark ? "#FF453A" : "#FF3B30" }
   const priorityOpacity = { high: 1, medium: 0.7, low: 0.4 }
 
+  const heatmapGrid = useMemo(() => {
+    if (!showHeatmap || !roomModes || roomModes.length === 0) return null
+    return calculateHeatmap(length, width, roomModes, { resolution: 20 })
+  }, [showHeatmap, roomModes, length, width])
+
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3">
       <div className="flex items-start justify-between gap-2">
@@ -159,7 +169,21 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
           <h2 className="text-sm font-semibold text-foreground">{t.report.diagram.interactiveTitle}</h2>
           <p className="text-xs text-muted-foreground mt-1">{t.report.diagram.interactiveDesc}</p>
         </div>
-        <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex-shrink-0">{t.report.diagram.editableBadge}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {roomModes && onToggleHeatmap && (
+            <button
+              onClick={onToggleHeatmap}
+              className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
+                showHeatmap
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {t.report.diagram.heatmapToggle}
+            </button>
+          )}
+          <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">{t.report.diagram.editableBadge}</span>
+        </div>
       </div>
 
       <DndContext onDragEnd={handleDragEnd}>
@@ -176,6 +200,11 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
             </g>
             <text x={padding + (width * scale) / 2} y={padding - 10} textAnchor="middle" fill={svgColors.dimText} fontSize="12" fontFamily="monospace">{width.toFixed(1)}m</text>
             <text x={padding - 10} y={padding + (length * scale) / 2} textAnchor="middle" fill={svgColors.dimText} fontSize="12" fontFamily="monospace" transform={`rotate(-90, ${padding - 10}, ${padding + (length * scale) / 2})`}>{length.toFixed(1)}m</text>
+
+            {/* Heatmap overlay (between background and interactive elements) */}
+            {heatmapGrid && (
+              <HeatmapOverlay grid={heatmapGrid} roomWidth={width} roomLength={length} scale={scale} padding={padding} />
+            )}
 
             {/* Furniture (draggable) */}
             {furniture.map((item, idx) => {
@@ -237,6 +266,12 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.bassTrap}</span></div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.absorber}</span></div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.diffuser}</span></div>
+        {showHeatmap && (
+          <>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: "rgba(255,0,0,0.5)" }}></div><span className="text-muted-foreground">{t.report.diagram.heatmapHigh}</span></div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: "rgba(0,0,255,0.5)" }}></div><span className="text-muted-foreground">{t.report.diagram.heatmapLow}</span></div>
+          </>
+        )}
       </div>
 
       {/* Furniture panel */}

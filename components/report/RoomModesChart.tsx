@@ -21,7 +21,7 @@ export function RoomModesChart({ modes }: RoomModesChartProps) {
     cursor: isDark ? "#3A3A3C" : "#E5E5EA",
   }
 
-  const displayModes = modes.filter(m => m.frequency < 300).slice(0, 15)
+  const displayModes = modes.filter(m => m.frequency < 300).slice(0, 25)
 
   const severityToValue = (severity: RoomMode["severity"]): number => {
     switch (severity) {
@@ -121,6 +121,24 @@ export function RoomModesChart({ modes }: RoomModesChartProps) {
         })}
       </div>
 
+      {/* Tangential + Oblique counts */}
+      {displayModes.some(m => m.type === "tangential" || m.type === "oblique") && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="text-center p-2 bg-muted rounded-xl">
+            <div className="text-xs text-muted-foreground">{t.report.modes.tangentialLabel}</div>
+            <div className="text-lg font-semibold text-foreground font-mono">
+              {displayModes.filter(m => m.type === "tangential").length}
+            </div>
+          </div>
+          <div className="text-center p-2 bg-muted rounded-xl">
+            <div className="text-xs text-muted-foreground">{t.report.modes.obliqueLabel}</div>
+            <div className="text-lg font-semibold text-foreground font-mono">
+              {displayModes.filter(m => m.type === "oblique").length}
+            </div>
+          </div>
+        </div>
+      )}
+
       {displayModes.filter(m => m.severity === "high").length > 0 && (
         <div className="mt-3 p-3 rounded-xl border border-destructive/20 bg-destructive/5">
           <h3 className="text-xs font-medium text-destructive mb-2">{t.report.modes.criticalTitle}</h3>
@@ -143,15 +161,18 @@ export function RoomModesChart({ modes }: RoomModesChartProps) {
 
 function CustomTooltip({ active, payload }: any) {
   if (!active || !payload || !payload[0]) return null
-  const mode = payload[0].payload as RoomMode
+  const mode = payload[0].payload as RoomMode & { nx?: number; ny?: number; nz?: number }
   const severityLabels = { high: "Alta", medium: "Media", low: "Baja" }
   const dimensionLabels = { length: "Longitudinal", width: "Transversal", height: "Vertical", mixed: "Mixto" }
+  const typeLabels = { axial: "Axial", tangential: "Tangencial", oblique: "Oblicuo" }
 
   return (
     <div className="bg-card rounded-xl card-shadow-lg border border-border p-3 space-y-1">
       <p className="text-xs font-semibold text-primary font-mono">{mode.frequency.toFixed(1)} Hz</p>
       <p className="text-xs text-foreground">{mode.description}</p>
-      <p className="text-xs text-muted-foreground">Tipo: {dimensionLabels[mode.dimension]}</p>
+      <p className="text-xs text-muted-foreground">
+        {typeLabels[mode.type]} · {dimensionLabels[mode.dimension]}
+      </p>
       <p className={`text-xs font-medium ${
         mode.severity === "high" ? "text-destructive" : mode.severity === "medium" ? "text-yellow-600 dark:text-yellow-400" : "text-primary"
       }`}>

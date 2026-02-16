@@ -4,7 +4,7 @@ import {
   calculateRoomModes,
   calculateRoomMetrics,
   calculateTotalAbsorption,
-  estimateRT60ByBand,
+  estimateRT60SmartByBand,
   evaluateRT60,
   determineRoomCharacter,
   estimateFrequencyResponse,
@@ -177,8 +177,10 @@ async function generateLocalAnalysis(project: RoomProject): Promise<EnhancedAnal
   // === STEP 3: Calculate absorption ===
   const absorption = calculateTotalAbsorption(project)
 
-  // === STEP 4: Estimate RT60 ===
-  const rt60 = estimateRT60ByBand(metrics.volume, absorption)
+  // === STEP 4: Estimate RT60 (Sabine or Eyring based on absorption level) ===
+  const rt60Result = estimateRT60SmartByBand(metrics.volume, absorption, metrics.surfaceArea)
+  const rt60 = { low: rt60Result.low, mid: rt60Result.mid, high: rt60Result.high }
+  const rt60Method = rt60Result.method
   const rt60Eval = evaluateRT60(rt60.mid, goal || "music")
 
   // === STEP 5: Determine room character ===
@@ -278,6 +280,11 @@ async function generateLocalAnalysis(project: RoomProject): Promise<EnhancedAnal
       roomModes,
       rt60Estimate: rt60,
       rt60Evaluation: rt60Eval,
+      rt60Method,
+      measuredRT60: project.measuredRT60 ? {
+        value: project.measuredRT60.value,
+        confidence: project.measuredRT60.confidence,
+      } : undefined,
       totalAbsorption: absorption.average,
     },
 

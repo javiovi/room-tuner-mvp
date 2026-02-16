@@ -14,12 +14,16 @@ export interface RoomMode {
   dimension: 'length' | 'width' | 'height' | 'mixed'
   severity: 'high' | 'medium' | 'low'
   description: string
+  nx?: number
+  ny?: number
+  nz?: number
 }
 
 /**
- * Calculate axial room modes (most significant)
- * Formula: f = (n * c) / (2 * L)
- * where n = mode number, c = speed of sound, L = dimension
+ * Calculate room modes: axial, tangential, and oblique
+ * Axial: f = n*c / (2*L) — strongest (~0dB reference)
+ * Tangential: f = (c/2) * sqrt((nx/Lx)² + (ny/Ly)²) — ~3dB weaker
+ * Oblique: f = (c/2) * sqrt((nx/Lx)² + (ny/Ly)² + (nz/Lz)²) — ~6dB weaker
  */
 export function calculateRoomModes(
   length: number,
@@ -27,46 +31,101 @@ export function calculateRoomModes(
   height: number
 ): RoomMode[] {
   const modes: RoomMode[] = []
+  const MAX_FREQ = 500
+  const MAX_N = 5
 
-  // Calculate first 5 modes for each dimension (axial modes)
-  for (let n = 1; n <= 5; n++) {
-    // Length modes
-    const lengthFreq = (n * SPEED_OF_SOUND) / (2 * length)
-    modes.push({
-      frequency: Math.round(lengthFreq * 10) / 10,
-      type: 'axial',
-      dimension: 'length',
-      severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
-      description: `${n}° modo longitudinal (${length}m)`
-    })
+  // Helper to round frequency
+  const roundFreq = (f: number) => Math.round(f * 10) / 10
 
-    // Width modes
-    const widthFreq = (n * SPEED_OF_SOUND) / (2 * width)
-    modes.push({
-      frequency: Math.round(widthFreq * 10) / 10,
-      type: 'axial',
-      dimension: 'width',
-      severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
-      description: `${n}° modo transversal (${width}m)`
-    })
+  // AXIAL modes (one dimension varies, others = 0)
+  for (let n = 1; n <= MAX_N; n++) {
+    const fL = (n * SPEED_OF_SOUND) / (2 * length)
+    if (fL < MAX_FREQ) {
+      modes.push({
+        frequency: roundFreq(fL), type: 'axial', dimension: 'length',
+        severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
+        description: `${n}° modo longitudinal (${length}m)`,
+        nx: n, ny: 0, nz: 0,
+      })
+    }
 
-    // Height modes
-    const heightFreq = (n * SPEED_OF_SOUND) / (2 * height)
-    modes.push({
-      frequency: Math.round(heightFreq * 10) / 10,
-      type: 'axial',
-      dimension: 'height',
-      severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
-      description: `${n}° modo vertical (${height}m)`
-    })
+    const fW = (n * SPEED_OF_SOUND) / (2 * width)
+    if (fW < MAX_FREQ) {
+      modes.push({
+        frequency: roundFreq(fW), type: 'axial', dimension: 'width',
+        severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
+        description: `${n}° modo transversal (${width}m)`,
+        nx: 0, ny: n, nz: 0,
+      })
+    }
+
+    const fH = (n * SPEED_OF_SOUND) / (2 * height)
+    if (fH < MAX_FREQ) {
+      modes.push({
+        frequency: roundFreq(fH), type: 'axial', dimension: 'height',
+        severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
+        description: `${n}° modo vertical (${height}m)`,
+        nx: 0, ny: 0, nz: n,
+      })
+    }
   }
 
-  // Sort by frequency and remove duplicates within 5Hz
+  // TANGENTIAL modes (two dimensions vary, one = 0)
+  const tangentialPairs: Array<{ dims: [number, number], labels: [string, string], indices: 'xy' | 'xz' | 'yz' }> = [
+    { dims: [length, width], labels: ['length', 'width'], indices: 'xy' },
+    { dims: [length, height], labels: ['length', 'height'], indices: 'xz' },
+    { dims: [width, height], labels: ['width', 'height'], indices: 'yz' },
+  ]
+
+  for (const pair of tangentialPairs) {
+    for (let n1 = 1; n1 <= MAX_N; n1++) {
+      for (let n2 = 1; n2 <= MAX_N; n2++) {
+        const f = (SPEED_OF_SOUND / 2) * Math.sqrt(
+          (n1 / pair.dims[0]) ** 2 + (n2 / pair.dims[1]) ** 2
+        )
+        if (f >= MAX_FREQ) continue
+
+        const maxN = Math.max(n1, n2)
+        const severity: 'high' | 'medium' | 'low' = maxN === 1 ? 'medium' : 'low'
+        const nx = pair.indices === 'yz' ? 0 : n1
+        const ny = pair.indices === 'xz' ? 0 : (pair.indices === 'xy' ? n2 : n1)
+        const nz = pair.indices === 'xy' ? 0 : n2
+
+        modes.push({
+          frequency: roundFreq(f), type: 'tangential', dimension: 'mixed',
+          severity,
+          description: `Tangencial (${nx},${ny},${nz})`,
+          nx, ny, nz,
+        })
+      }
+    }
+  }
+
+  // OBLIQUE modes (all three dimensions vary)
+  for (let nx = 1; nx <= MAX_N; nx++) {
+    for (let ny = 1; ny <= MAX_N; ny++) {
+      for (let nz = 1; nz <= MAX_N; nz++) {
+        const f = (SPEED_OF_SOUND / 2) * Math.sqrt(
+          (nx / length) ** 2 + (ny / width) ** 2 + (nz / height) ** 2
+        )
+        if (f >= MAX_FREQ) continue
+
+        modes.push({
+          frequency: roundFreq(f), type: 'oblique', dimension: 'mixed',
+          severity: 'low',
+          description: `Oblicuo (${nx},${ny},${nz})`,
+          nx, ny, nz,
+        })
+      }
+    }
+  }
+
+  // Sort by frequency and deduplicate within 3Hz
   return modes
     .sort((a, b) => a.frequency - b.frequency)
     .filter((mode, index, arr) => {
       if (index === 0) return true
-      return Math.abs(mode.frequency - arr[index - 1].frequency) > 5
+      return Math.abs(mode.frequency - arr[index - 1].frequency) > 3
     })
 }
 
@@ -96,6 +155,38 @@ export function estimateRT60(
 }
 
 /**
+ * Estimate RT60 using Eyring equation (more accurate for high-absorption rooms)
+ * RT60 = -0.161 * V / (S * ln(1 - ā))
+ * where ā = average absorption coefficient = A / S
+ */
+export function estimateRT60Eyring(
+  volume: number,
+  totalAbsorption: number,
+  totalSurfaceArea: number
+): number {
+  const alphaBar = totalAbsorption / totalSurfaceArea
+  if (alphaBar >= 0.99) return 0.05 // essentially anechoic
+  if (alphaBar <= 0) return 10 // fully reflective
+  const rt60 = -0.161 * volume / (totalSurfaceArea * Math.log(1 - alphaBar))
+  return Math.round(rt60 * 100) / 100
+}
+
+/**
+ * Smart RT60 estimation: uses Eyring when average absorption > 0.2, Sabine otherwise
+ */
+export function estimateRT60Smart(
+  volume: number,
+  totalAbsorption: number,
+  totalSurfaceArea: number
+): { value: number; method: 'sabine' | 'eyring' } {
+  const alphaBar = totalAbsorption / totalSurfaceArea
+  if (alphaBar > 0.2) {
+    return { value: estimateRT60Eyring(volume, totalAbsorption, totalSurfaceArea), method: 'eyring' }
+  }
+  return { value: estimateRT60(volume, totalAbsorption), method: 'sabine' }
+}
+
+/**
  * Calculate RT60 for different frequency bands
  */
 export function estimateRT60ByBand(
@@ -110,6 +201,31 @@ export function estimateRT60ByBand(
     low: estimateRT60(volume, absorption.low),
     mid: estimateRT60(volume, absorption.mid),
     high: estimateRT60(volume, absorption.high),
+  }
+}
+
+/**
+ * Smart RT60 by band: uses Eyring or Sabine per band based on absorption level
+ */
+export function estimateRT60SmartByBand(
+  volume: number,
+  absorption: { low: number; mid: number; high: number },
+  totalSurfaceArea: number
+): {
+  low: number
+  mid: number
+  high: number
+  method: 'sabine' | 'eyring'
+} {
+  const low = estimateRT60Smart(volume, absorption.low, totalSurfaceArea)
+  const mid = estimateRT60Smart(volume, absorption.mid, totalSurfaceArea)
+  const high = estimateRT60Smart(volume, absorption.high, totalSurfaceArea)
+  // Report method based on mid band (most representative)
+  return {
+    low: low.value,
+    mid: mid.value,
+    high: high.value,
+    method: mid.method,
   }
 }
 

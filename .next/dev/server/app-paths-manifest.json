@@ -3,6 +3,7 @@
   "/api/analyze-room/route": "app/api/analyze-room/route.js",
   "/disposicion/page": "app/disposicion/page.js",
   "/espacio/page": "app/espacio/page.js",
+  "/medicion/page": "app/medicion/page.js",
   "/muebles/page": "app/muebles/page.js",
   "/objetivo/page": "app/objetivo/page.js",
   "/page": "app/page.js",
