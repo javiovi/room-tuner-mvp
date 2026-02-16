@@ -20,31 +20,76 @@ export const en: Translations = {
   },
 
   landing: {
-    heroTitle1: "Optimize the acoustics",
-    heroTitle2: "of your space",
-    heroSubtitle: "Professional analysis in minutes. Discover what's missing and how much it costs to fix it.",
-    ctaDemo: "Try free demo",
-    ctaStart: "Start demo",
-    previewPlaceholder: "Interactive analysis preview",
+    // Hero
+    heroH1: "Acoustic diagnosis & plan",
+    heroH1Highlight: "for your space",
+    heroSubtitle: "In minutes, I'll tell you what to move and what to buy (if needed) to make your room sound better.",
+
+    // Mode selector
+    modeTitle: "Choose your mode",
+    modeMusic: "Music Lover",
+    modeStudio: "Home Studio",
+    modeWork: "Work / Calls",
+    modeMusicDesc: "Optimize your room to enjoy music with the best possible sound.",
+    modeStudioDesc: "Control acoustics for recording, mixing, or playing with clarity.",
+    modeWorkDesc: "Reduce echo on video calls and improve focus.",
+
+    // Mode-specific bullets
+    bulletMusic1: "Better speaker placement",
+    bulletMusic2: "Clear, controlled bass",
+    bulletMusic3: "Budget-based plan",
+    bulletStudio1: "Uncolored monitoring",
+    bulletStudio2: "Fewer early reflections",
+    bulletStudio3: "Prioritized treatment",
+    bulletWork1: "Less voice echo",
+    bulletWork2: "Lower background noise",
+    bulletWork3: "Better speech clarity",
+
+    // CTAs
+    ctaStart: "Start analysis",
+    ctaExample: "See report example",
+
+    // Free vs Paid
+    freeVsPaidTitle: "Free vs Full Report",
+    freeTitle: "Free (no login)",
+    paidTitle: "Full report",
+    freeItem1: "General diagnosis",
+    freeItem2: "Top 3 free changes",
+    freeItem3: "1 priority recommendation",
+    freeItem4: "Approximate budget range",
+    paidItem1: "Full report with tabs",
+    paidItem2: "Interactive diagram + placement",
+    paidItem3: "Product list with prices",
+    paidItem4: "Downloadable PDF",
+    paidMicrocopy: "Pay once per project. Keep the PDF.",
+
+    // How it works
     howItWorks: "How it works",
-    step1Title: "Measure your space",
-    step1Desc: "Approximate dimensions, materials and furniture layout.",
-    step2Title: "We analyze",
-    step2Desc: "We calculate RT60, room modes, frequency response and more.",
-    step3Title: "Your report",
-    step3Desc: "Recommendations, products with real prices and action plan.",
-    forWhom: "Who is it for",
-    usecaseMusic: "Listening to music",
-    usecaseMusicDesc: "Sweet spot, stereo balance, bass control",
-    usecaseProduce: "Playing or producing",
-    usecaseProduceDesc: "Controlled acoustics, no echoes, clear monitoring",
-    usecaseWork: "Working or studying",
-    usecaseWorkDesc: "Focus, noise control, clear calls",
+    step1Title: "Tell me about your space",
+    step1Desc: "Dimensions, materials, and furniture layout.",
+    step2Title: "Measure (optional) with mic",
+    step2Desc: "Ambient noise and clap test for real data.",
+    step3Title: "Get the plan + PDF",
+    step3Desc: "Recommendations, products with prices, and step-by-step action plan.",
+
+    // Report example
     reportExample: "Report example",
     reportExampleDesc: "Sample data from a real space",
+
+    // Methodology
+    methodologyTitle: "See methodology (Pro mode)",
+    methodologyItem1: "We estimate RT60 with clap test (approx)",
+    methodologyItem2: "We detect theoretical modes by dimensions",
+    methodologyItem3: "We prioritize early reflections / bass buildup",
+    methodologyItem4: "Recommendations by budget",
+    methodologyDisclaimer: "Device microphone measurements are approximate; the goal is to guide decisions.",
+
+    // Final CTA
     finalCtaTitle: "Try with your space",
-    finalCtaDesc: "The demo is free. In 5 minutes you'll have a complete analysis of your room.",
-    footerTagline: "RoomTuner · Interactive acoustic analysis",
+    finalCtaDesc: "In 5 minutes you'll have a complete analysis of your room.",
+
+    // Footer
+    footerTagline: "RoomTuner \u00b7 Interactive acoustic analysis",
     footerDisclaimer: "Calculations are estimates based on standard acoustic formulas.",
   },
 

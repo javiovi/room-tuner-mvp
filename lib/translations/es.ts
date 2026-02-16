@@ -18,30 +18,75 @@ export const es = {
   },
 
   landing: {
-    heroTitle1: "Optimiz\u00e1 la ac\u00fastica",
-    heroTitle2: "de tu espacio",
-    heroSubtitle: "An\u00e1lisis profesional en minutos. Descubr\u00ed qu\u00e9 le falta y cu\u00e1nto cuesta arreglarlo.",
-    ctaDemo: "Probar demo gratis",
-    ctaStart: "Empezar demo",
-    previewPlaceholder: "Vista previa del an\u00e1lisis interactivo",
+    // Hero
+    heroH1: "Diagn\u00f3stico y plan ac\u00fastico",
+    heroH1Highlight: "para tu espacio",
+    heroSubtitle: "En minutos te digo qu\u00e9 mover y qu\u00e9 comprar (si hace falta) para que tu sala suene mejor.",
+
+    // Mode selector
+    modeTitle: "Eleg\u00ed tu modo",
+    modeMusic: "Mel\u00f3mano",
+    modeStudio: "Home Studio",
+    modeWork: "Trabajo / Calls",
+    modeMusicDesc: "Optimiz\u00e1 tu sala para disfrutar m\u00fasica con el mejor sonido posible.",
+    modeStudioDesc: "Control\u00e1 la ac\u00fastica para grabar, mezclar o tocar con claridad.",
+    modeWorkDesc: "Reduc\u00ed eco en videollamadas y mejor\u00e1 la concentraci\u00f3n.",
+
+    // Mode-specific bullets
+    bulletMusic1: "Mejor ubicaci\u00f3n de parlantes",
+    bulletMusic2: "Graves controlados y claros",
+    bulletMusic3: "Plan por presupuesto",
+    bulletStudio1: "Monitoreo sin coloraci\u00f3n",
+    bulletStudio2: "Menos reflexiones tempranas",
+    bulletStudio3: "Tratamiento priorizado",
+    bulletWork1: "Menos eco en voz",
+    bulletWork2: "Menor ruido de fondo",
+    bulletWork3: "Mejor inteligibilidad",
+
+    // CTAs
+    ctaStart: "Empezar an\u00e1lisis",
+    ctaExample: "Ver ejemplo de informe",
+
+    // Free vs Paid
+    freeVsPaidTitle: "Gratis vs Informe completo",
+    freeTitle: "Gratis (sin login)",
+    paidTitle: "Informe completo",
+    freeItem1: "Diagn\u00f3stico general",
+    freeItem2: "Top 3 cambios gratis",
+    freeItem3: "1 recomendaci\u00f3n prioritaria",
+    freeItem4: "Rango de presupuesto aprox.",
+    paidItem1: "Informe completo con tabs",
+    paidItem2: "Diagrama interactivo + placement",
+    paidItem3: "Lista de productos con precios",
+    paidItem4: "PDF descargable",
+    paidMicrocopy: "Pag\u00e1s una vez por proyecto. Te llev\u00e1s el PDF.",
+
+    // How it works
     howItWorks: "C\u00f3mo funciona",
-    step1Title: "Med\u00ed tu espacio",
-    step1Desc: "Dimensiones aproximadas, materiales y disposici\u00f3n de muebles.",
-    step2Title: "Analizamos",
-    step2Desc: "Calculamos RT60, modos de sala, respuesta de frecuencia y m\u00e1s.",
-    step3Title: "Tu informe",
-    step3Desc: "Recomendaciones, productos con precios reales y plan de acci\u00f3n.",
-    forWhom: "Para qui\u00e9n es",
-    usecaseMusic: "Escuchar m\u00fasica",
-    usecaseMusicDesc: "Sweet spot, balance stereo, control de graves",
-    usecaseProduce: "Tocar o producir",
-    usecaseProduceDesc: "Ac\u00fastica controlada, sin ecos, monitoreo claro",
-    usecaseWork: "Trabajar o estudiar",
-    usecaseWorkDesc: "Concentraci\u00f3n, control de ruido, calls claras",
+    step1Title: "Contame tu espacio",
+    step1Desc: "Dimensiones, materiales y disposici\u00f3n de muebles.",
+    step2Title: "Med\u00ed (opcional) con micr\u00f3fono",
+    step2Desc: "Ruido ambiente y test de aplauso para datos reales.",
+    step3Title: "Recib\u00ed el plan + PDF",
+    step3Desc: "Recomendaciones, productos con precios y plan de acci\u00f3n paso a paso.",
+
+    // Report example
     reportExample: "Ejemplo de informe",
     reportExampleDesc: "Datos de ejemplo con un espacio real",
+
+    // Methodology
+    methodologyTitle: "Ver metodolog\u00eda (modo Pro)",
+    methodologyItem1: "Estimamos RT60 con clap test (aprox)",
+    methodologyItem2: "Detectamos modos te\u00f3ricos por dimensiones",
+    methodologyItem3: "Priorizamos early reflections / bass buildup",
+    methodologyItem4: "Recomendaciones por presupuesto",
+    methodologyDisclaimer: "Las mediciones con micr\u00f3fono del dispositivo son aproximadas; el objetivo es orientar decisiones.",
+
+    // Final CTA
     finalCtaTitle: "Prob\u00e1 con tu espacio",
-    finalCtaDesc: "La demo es gratuita. En 5 minutos ten\u00e9s un an\u00e1lisis completo de tu sala.",
+    finalCtaDesc: "En 5 minutos ten\u00e9s un an\u00e1lisis completo de tu sala.",
+
+    // Footer
     footerTagline: "RoomTuner \u00b7 An\u00e1lisis ac\u00fastico interactivo",
     footerDisclaimer: "Los c\u00e1lculos son estimaciones basadas en f\u00f3rmulas ac\u00fasticas est\u00e1ndar.",
   },

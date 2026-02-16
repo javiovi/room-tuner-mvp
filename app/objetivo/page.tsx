@@ -1,16 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Check } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 
+const VALID_MODES = ["music", "instrument", "work"] as const
+
 export default function ObjetivoPage() {
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<string | null>(null)
   const setGoal = useRoomStore((s) => s.setGoal)
   const { t } = useT()
+
+  // Pre-set goal from landing page mode selection (stored in localStorage)
+  useEffect(() => {
+    const stored = localStorage.getItem("roomtuner_mode")
+    if (stored && VALID_MODES.includes(stored as any) && !selectedObjectiveId) {
+      setSelectedObjectiveId(stored)
+      setGoal(stored as "music" | "instrument" | "work")
+      localStorage.removeItem("roomtuner_mode")
+    }
+  }, [])
 
   const objectives = [
     { id: "music", title: t.objetivo.musicTitle, description: t.objetivo.musicDesc },
