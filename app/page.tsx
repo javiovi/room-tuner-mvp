@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Music, Guitar, Briefcase, ChevronDown, Check, Ruler, Mic, FileText } from "lucide-react"
+import { Music, Guitar, Briefcase, ChevronDown, Check, Ruler, BarChart3, FileText, Lock } from "lucide-react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { LanguageToggle } from "@/components/LanguageToggle"
 import { ReportPreview } from "@/components/ReportPreview"
@@ -22,6 +22,14 @@ export default function LandingPage() {
   const [selectedMode, setSelectedMode] = useState<Mode>("music")
   const [methodOpen, setMethodOpen] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
+
+  // Restore mode from localStorage if previously selected
+  useEffect(() => {
+    const stored = localStorage.getItem("roomtuner_mode")
+    if (stored && (stored === "music" || stored === "instrument" || stored === "work")) {
+      setSelectedMode(stored)
+    }
+  }, [])
 
   const modes: { key: Mode; label: string; desc: string; bullets: string[] }[] = [
     {
@@ -147,14 +155,17 @@ export default function LandingPage() {
 
       {/* ── FREE vs PAID ── */}
       <section className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
-        <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-2">
           {t.landing.freeVsPaidTitle}
         </h2>
+        <p className="text-sm text-muted-foreground text-center mb-6">
+          {t.landing.freeVsPaidSubtitle}
+        </p>
         <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {/* Free */}
-          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3 flex flex-col">
             <h3 className="text-sm font-semibold text-foreground">{t.landing.freeTitle}</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 flex-1">
               {[t.landing.freeItem1, t.landing.freeItem2, t.landing.freeItem3, t.landing.freeItem4].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" strokeWidth={2.5} />
@@ -162,11 +173,17 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
+            <button
+              onClick={handleStart}
+              className="w-full mt-2 py-2.5 px-4 text-xs font-semibold rounded-xl border border-primary text-primary hover:bg-primary/5 transition-colors"
+            >
+              {t.landing.freeCta}
+            </button>
           </div>
           {/* Paid */}
-          <div className="bg-card rounded-2xl card-shadow border-2 border-primary/30 p-5 space-y-3 relative">
+          <div className="bg-card rounded-2xl card-shadow border-2 border-primary/30 p-5 space-y-3 flex flex-col">
             <h3 className="text-sm font-semibold text-foreground">{t.landing.paidTitle}</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 flex-1">
               {[t.landing.paidItem1, t.landing.paidItem2, t.landing.paidItem3, t.landing.paidItem4].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-foreground">
                   <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" strokeWidth={2.5} />
@@ -174,9 +191,13 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-muted-foreground italic pt-1 border-t border-border">
-              {t.landing.paidMicrocopy}
-            </p>
+            <button
+              onClick={() => alert(t.landing.paidComingSoon)}
+              className="w-full mt-2 py-2.5 px-4 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              {t.landing.paidCta}
+            </button>
           </div>
         </div>
       </section>
@@ -189,7 +210,7 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-5 max-w-2xl mx-auto">
           {[
             { step: "01", Icon: Ruler, title: t.landing.step1Title, desc: t.landing.step1Desc },
-            { step: "02", Icon: Mic, title: t.landing.step2Title, desc: t.landing.step2Desc },
+            { step: "02", Icon: BarChart3, title: t.landing.step2Title, desc: t.landing.step2Desc },
             { step: "03", Icon: FileText, title: t.landing.step3Title, desc: t.landing.step3Desc },
           ].map((s) => (
             <div key={s.step} className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-2 text-center">
