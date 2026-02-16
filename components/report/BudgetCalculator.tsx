@@ -14,8 +14,8 @@ interface BudgetCalculatorProps {
 export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency = "ARS" }: BudgetCalculatorProps) {
   const allProducts = [...lowBudgetProducts, ...advancedProducts]
   const [selected, setSelected] = useState<Map<string, number>>(new Map())
-  const [activeCurrency, setActiveCurrency] = useState<"USD" | "ARS">(currency)
-  const { t } = useT()
+  const { t, locale } = useT()
+  const activeCurrency = locale === "en" ? "USD" : "ARS"
 
   const handleQuantityChange = (productId: string, delta: number) => {
     setSelected(prev => {
@@ -35,29 +35,9 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
 
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{t.report.budget.title}</h2>
-          <p className="text-xs text-muted-foreground mt-1">{t.report.budget.description}</p>
-        </div>
-        <div className="flex bg-muted rounded-lg p-0.5">
-          <button
-            onClick={() => setActiveCurrency("ARS")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeCurrency === "ARS" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            ARS
-          </button>
-          <button
-            onClick={() => setActiveCurrency("USD")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeCurrency === "USD" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            USD
-          </button>
-        </div>
+      <div>
+        <h2 className="text-sm font-semibold text-foreground">{t.report.budget.title}</h2>
+        <p className="text-xs text-muted-foreground mt-1">{t.report.budget.description}</p>
       </div>
 
       <div className="space-y-2 max-h-96 overflow-y-auto">

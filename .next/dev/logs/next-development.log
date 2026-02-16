@@ -329,3 +329,40 @@
 [02:57:41.704] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
 [02:57:41.704] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
 [02:57:41.974] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3001/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771264558454}
+[04:45:14.706] Server  LOG     [PDF] Starting PDF generation...
+[04:45:15.131] Server  LOG     [PDF] PDF generated successfully, size: 26238 "bytes"
+[04:59:24.299] Server  LOG      ✓ Compiled in 211ms
+[05:01:02.733] Server  LOG      ✓ Compiled in 190ms
+[05:01:12.341] Server  LOG      ✓ Compiled in 176ms
+[05:01:19.546] Server  LOG      ✓ Compiled in 617ms
+[05:01:19.701] Browser ERROR   uncaughtError: ReferenceError: DollarSign is not defined
+[05:01:30.667] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[05:01:30.674] Server  LOG      ✓ Compiled in 112ms
+[05:01:31.745] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3001/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771271987300}
+[05:01:34.273] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[05:01:34.273] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/resultado","route":"/resultado"}
+[05:01:34.273] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3001/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771271989949}
+[05:01:59.340] Server  LOG      ✓ Compiled in 94ms
+[05:02:24.831] Server  LOG      ✓ Compiled in 88ms
+[05:07:58.389] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3001/","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272374871}
+[05:08:01.493] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/objetivo color: rgb(120, 120, 120) color: inherit {"dp":"/objetivo","o":"http://localhost:3001/objetivo","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272377976}
+[05:09:50.104] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/espacio color: rgb(120, 120, 120) color: inherit {"dp":"/espacio","o":"http://localhost:3001/espacio","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272486585}
+[05:10:12.653] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/disposicion color: rgb(120, 120, 120) color: inherit {"dp":"/disposicion","o":"http://localhost:3001/disposicion","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272509135}
+[05:10:16.646] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/muebles color: rgb(120, 120, 120) color: inherit {"dp":"/muebles","o":"http://localhost:3001/muebles","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272513130}
+[05:10:29.418] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/medicion color: rgb(120, 120, 120) color: inherit {"dp":"/medicion","o":"http://localhost:3001/medicion","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272525902}
+[05:10:31.749] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/analizando color: rgb(120, 120, 120) color: inherit {"dp":"/analizando","o":"http://localhost:3001/analizando","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272528233}
+[05:10:32.327] Server  ERROR   Error saving project: {}
+[05:10:32.332] Server  ERROR   Error saving project: {}
+[05:10:33.553] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
+[05:10:33.556] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
+[05:10:33.561] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
+[05:10:33.563] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
+[05:10:34.018] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
+[05:10:34.020] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
+[05:10:34.021] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
+[05:10:34.035] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
+[05:10:34.036] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
+[05:10:34.036] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
+[05:10:34.326] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3001/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771272530808}
+[05:18:00.231] Server  LOG      ✓ Compiled in 195ms
+[05:18:01.945] Server  LOG      ✓ Compiled in 119ms

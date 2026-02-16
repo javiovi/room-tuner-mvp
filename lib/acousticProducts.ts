@@ -8,7 +8,8 @@ export interface AcousticProduct {
   priceUSD: number
   priceARS: number
   supplier: string
-  link: string
+  link: string       // Amazon / manufacturer link (for EN)
+  linkML: string     // MercadoLibre search URL (for ES)
   absorptionCoefficient?: number     // At 1kHz
   coverage?: number                  // m² per unit
   thickness?: number                 // cm
@@ -26,6 +27,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 12000,
     supplier: 'Amazon / MercadoLibre',
     link: 'https://www.amazon.com/s?k=acoustic+foam+panels',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=panel+espuma+acustica+5cm',
     absorptionCoefficient: 0.65,
     coverage: 0.36,
     thickness: 5,
@@ -40,6 +42,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 18000,
     supplier: 'Amazon / MercadoLibre',
     link: 'https://www.amazon.com/s?k=thick+acoustic+foam',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=panel+espuma+acustica+10cm',
     absorptionCoefficient: 0.80,
     coverage: 0.36,
     thickness: 10,
@@ -54,6 +57,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 45000,
     supplier: 'ATS Acoustics / Local',
     link: 'https://www.atsacoustics.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=panel+acustico+fibra+vidrio+tela',
     absorptionCoefficient: 0.85,
     coverage: 0.72,
     thickness: 5,
@@ -68,6 +72,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 85000,
     supplier: 'GIK Acoustics / ATS',
     link: 'https://www.gikacoustics.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=panel+acustico+profesional+10cm',
     absorptionCoefficient: 0.95,
     coverage: 0.72,
     thickness: 10,
@@ -82,6 +87,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 120000,
     supplier: 'Acoustics First',
     link: 'https://www.acousticsfirst.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=panel+acustico+techo+cloud',
     absorptionCoefficient: 0.95,
     coverage: 1.44,
     thickness: 10,
@@ -98,6 +104,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 65000,
     supplier: 'GIK Acoustics / Primacoustic',
     link: 'https://www.gikacoustics.com/product/gik-acoustics-tri-trap/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=trampa+graves+esquina+acustica',
     absorptionCoefficient: 0.75,
     installation: 'moderate',
     description: 'Corner-mounted bass trap for low frequency control. Treats problematic room modes.'
@@ -110,6 +117,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 120000,
     supplier: 'GIK Acoustics',
     link: 'https://www.gikacoustics.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=bass+trap+esquina+120cm',
     absorptionCoefficient: 0.85,
     installation: 'moderate',
     description: 'Full-height corner bass trap. Maximum low-frequency absorption for serious rooms.'
@@ -122,6 +130,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 95000,
     supplier: 'GIK Acoustics / Real Traps',
     link: 'https://www.gikacoustics.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=trampa+graves+soffit+acustico',
     absorptionCoefficient: 0.90,
     installation: 'moderate',
     description: 'Wall-ceiling junction trap. Treats bass buildup at boundaries.'
@@ -134,6 +143,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 180000,
     supplier: 'GIK Acoustics / Artnovion',
     link: 'https://www.gikacoustics.com/product/gik-acoustics-monster-bass-trap-flexrange-technology/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=absorber+membrana+graves+acustico',
     absorptionCoefficient: 0.95,
     installation: 'professional',
     description: 'Tuned membrane absorber for specific low frequencies. Professional-grade solution.'
@@ -148,6 +158,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 85000,
     supplier: 'Acoustics First / Vicoustic',
     link: 'https://www.acousticsfirst.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=difusor+acustico+QRD',
     installation: 'moderate',
     description: 'Quadratic residue diffuser. Scatters sound evenly without absorbing energy.'
   },
@@ -159,6 +170,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 140000,
     supplier: 'Acoustics First / RPG',
     link: 'https://www.rpgacoustic.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=difusor+acustico+grande',
     installation: 'moderate',
     description: 'Large diffuser for rear wall. Creates spacious, natural sound field.'
   },
@@ -170,6 +182,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 95000,
     supplier: 'Acoustics First / DIY',
     link: 'https://www.acousticsfirst.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=difusor+skyline+acustico',
     installation: 'moderate',
     description: '2D diffuser with multi-directional scattering. Great for mixing positions.'
   },
@@ -181,6 +194,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 110000,
     supplier: 'Vicoustic / RPG',
     link: 'https://www.vicoustic.com/',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=difusor+acustico+cilindrico',
     installation: 'moderate',
     description: 'Curved poly diffuser. Broadband diffusion with modern aesthetics.'
   },
@@ -193,7 +207,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 80,
     priceARS: 80000,
     supplier: 'IKEA / Local stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=thick+area+rug+5x7',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=alfombra+pelo+grueso+1.5x2',
     absorptionCoefficient: 0.30,
     coverage: 3,
     installation: 'easy',
@@ -206,7 +221,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 150,
     priceARS: 150000,
     supplier: 'IKEA / Local stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=thick+area+rug+8x10',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=alfombra+pelo+grueso+2x3',
     absorptionCoefficient: 0.35,
     coverage: 6,
     installation: 'easy',
@@ -219,7 +235,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 280,
     priceARS: 280000,
     supplier: 'Specialty carpet stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=thick+area+rug+10x13',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=alfombra+gruesa+grande+3x4',
     absorptionCoefficient: 0.40,
     coverage: 12,
     installation: 'easy',
@@ -234,7 +251,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 15,
     priceARS: 15000,
     supplier: 'Local fabric stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=light+curtain+fabric',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=cortina+liviana+tela',
     absorptionCoefficient: 0.25,
     installation: 'easy',
     description: 'Light fabric curtain. Basic window treatment for high-frequency control.'
@@ -246,7 +264,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 25,
     priceARS: 25000,
     supplier: 'Local fabric stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=medium+weight+curtain',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=cortina+gruesa+blackout',
     absorptionCoefficient: 0.40,
     installation: 'easy',
     description: 'Heavier curtain fabric. Better absorption across frequency range.'
@@ -258,7 +277,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 40,
     priceARS: 40000,
     supplier: 'Acoustic specialty stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=heavy+acoustic+curtain',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=cortina+acustica+pesada',
     absorptionCoefficient: 0.55,
     installation: 'easy',
     description: 'Multi-layer acoustic curtain. Excellent for window and door treatment.'
@@ -270,7 +290,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 55,
     priceARS: 55000,
     supplier: 'Acoustic specialty stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=blackout+acoustic+curtain',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=cortina+blackout+acustica',
     absorptionCoefficient: 0.65,
     installation: 'easy',
     description: 'Premium curtain with blackout and acoustic properties. Blocks light and sound.'
@@ -284,7 +305,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 25,
     priceARS: 25000,
     supplier: 'Hardware stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=door+seal+kit+weatherstripping',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=burletes+puerta+antiruido',
     installation: 'easy',
     description: 'Rubber seal for door gaps. Reduces sound leakage and external noise.'
   },
@@ -295,7 +317,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 60,
     priceARS: 60000,
     supplier: 'DIY / Custom',
-    link: '',
+    link: 'https://www.amazon.com/s?k=window+plug+soundproof+insert',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=panel+ventana+aislante+acustico',
     absorptionCoefficient: 0.80,
     installation: 'moderate',
     description: 'Removable insulated plug for windows. Dramatically reduces noise when needed.'
@@ -308,6 +331,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 35000,
     supplier: 'Amazon / Music stores',
     link: 'https://www.amazon.com/s?k=speaker+isolation+pads',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=pads+aislacion+monitores',
     installation: 'easy',
     description: 'Foam/rubber pads to decouple speakers from surfaces. Tightens bass response.'
   },
@@ -319,6 +343,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 50000,
     supplier: 'Music/Audio stores',
     link: 'https://www.amazon.com/s?k=bass+shaker',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=bass+shaker+transductor',
     installation: 'moderate',
     description: 'Adds tactile bass feel without acoustic bass problems. Mounts to furniture.'
   },
@@ -330,6 +355,7 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceARS: 80000,
     supplier: 'Amazon / MiniDSP',
     link: 'https://www.minidsp.com/products/acoustic-measurement/umik-1',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=microfono+medicion+acustica+USB',
     installation: 'easy',
     description: 'Calibrated mic for room measurements. Use with REW software to measure actual performance.'
   },
@@ -340,7 +366,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 12,
     priceARS: 12000,
     supplier: 'Hardware stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=acoustic+sealant+caulk',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=sellador+acustico+flexible',
     installation: 'easy',
     description: 'Flexible sealant for gaps and cracks. Prevents sound leaks through small openings.'
   },
@@ -351,7 +378,8 @@ export const acousticProductsDB: AcousticProduct[] = [
     priceUSD: 35,
     priceARS: 35000,
     supplier: 'Acoustic specialty stores',
-    link: '',
+    link: 'https://www.amazon.com/s?k=mass+loaded+vinyl+soundproofing',
+    linkML: 'https://www.mercadolibre.com.ar/search?q=vinilo+cargado+masa+acustico',
     installation: 'professional',
     description: 'Heavy vinyl barrier for soundproofing walls. Blocks sound transmission.'
   },

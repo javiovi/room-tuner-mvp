@@ -18,39 +18,43 @@ interface ActionPlanProps {
 }
 
 export function ActionPlan({ roomCharacter, hasBudget = false }: ActionPlanProps) {
-  const { t } = useT()
+  const { t, locale } = useT()
   const ap = t.report.actionPlan
+  const isES = locale === "es"
+
+  // Cost helper: shows ARS for ES, USD for EN
+  const cost = (ars: string, usd: string) => isES ? ars : usd
 
   const quickWins: ActionItem[] = [
     { title: ap.optimizeListening, description: ap.optimizeListeningDesc, priority: "high", cost: ap.costFree, impact: ap.optimizeListeningImpact },
     { title: ap.adjustSpeakers, description: ap.adjustSpeakersDesc, priority: "high", cost: ap.costFree, impact: ap.adjustSpeakersImpact },
   ]
   if (roomCharacter === "viva") {
-    quickWins.push({ title: ap.addRug, description: ap.addRugDesc, priority: "high", cost: "~ARS $50k", impact: ap.addRugImpact })
+    quickWins.push({ title: ap.addRug, description: ap.addRugDesc, priority: "high", cost: cost("~ARS $50.000", "~$50"), impact: ap.addRugImpact })
   }
 
   const mediumTerm: ActionItem[] = []
   if (roomCharacter === "viva") {
     mediumTerm.push(
-      { title: ap.installAbsorbers, description: ap.installAbsorbersDesc, priority: "high", cost: "~ARS $60-90k", impact: ap.installAbsorbersImpact },
-      { title: ap.bassTraps, description: ap.bassTrapsDesc, priority: "high", cost: "~ARS $120-240k", impact: ap.bassTrapsImpact },
+      { title: ap.installAbsorbers, description: ap.installAbsorbersDesc, priority: "high", cost: cost("~ARS $60.000-90.000", "~$60-90"), impact: ap.installAbsorbersImpact },
+      { title: ap.bassTraps, description: ap.bassTrapsDesc, priority: "high", cost: cost("~ARS $120.000-240.000", "~$120-240"), impact: ap.bassTrapsImpact },
     )
   } else if (roomCharacter === "equilibrada") {
     mediumTerm.push(
-      { title: ap.selectiveTreatment, description: ap.selectiveTreatmentDesc, priority: "medium", cost: "~ARS $30-60k", impact: ap.selectiveTreatmentImpact },
-      { title: ap.bassTrapsCorners, description: ap.bassTrapsCornersDesc, priority: "medium", cost: "~ARS $120k", impact: ap.bassTrapsCornersImpact },
+      { title: ap.selectiveTreatment, description: ap.selectiveTreatmentDesc, priority: "medium", cost: cost("~ARS $30.000-60.000", "~$30-60"), impact: ap.selectiveTreatmentImpact },
+      { title: ap.bassTrapsCorners, description: ap.bassTrapsCornersDesc, priority: "medium", cost: cost("~ARS $120.000", "~$120"), impact: ap.bassTrapsCornersImpact },
     )
   } else {
-    mediumTerm.push({ title: ap.addDiffusion, description: ap.addDiffusionDesc, priority: "medium", cost: "~ARS $80-150k", impact: ap.addDiffusionImpact })
+    mediumTerm.push({ title: ap.addDiffusion, description: ap.addDiffusionDesc, priority: "medium", cost: cost("~ARS $80.000-150.000", "~$80-150"), impact: ap.addDiffusionImpact })
   }
 
   const longTerm: ActionItem[] = [
-    { title: ap.measurement, description: ap.measurementDesc, priority: "medium", cost: "~ARS $80k", impact: ap.measurementImpact },
+    { title: ap.measurement, description: ap.measurementDesc, priority: "medium", cost: cost("~ARS $80.000", "~$80"), impact: ap.measurementImpact },
   ]
   if (hasBudget) {
     longTerm.push(
-      { title: ap.proTreatment, description: ap.proTreatmentDesc, priority: "low", cost: "~USD $1000-2000", impact: ap.proTreatmentImpact },
-      { title: ap.ceilingClouds, description: ap.ceilingCloudsDesc, priority: "low", cost: "~USD $300-600", impact: ap.ceilingCloudsImpact },
+      { title: ap.proTreatment, description: ap.proTreatmentDesc, priority: "low", cost: cost("~ARS $1.000.000-2.000.000", "~$1,000-2,000"), impact: ap.proTreatmentImpact },
+      { title: ap.ceilingClouds, description: ap.ceilingCloudsDesc, priority: "low", cost: cost("~ARS $300.000-600.000", "~$300-600"), impact: ap.ceilingCloudsImpact },
     )
   }
 

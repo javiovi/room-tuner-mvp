@@ -1,7 +1,6 @@
 /**
- * PDF Report Document
- * Generates a downloadable PDF version of the room analysis report
- * Styled to match the retro orange brutalist theme
+ * PDF Report Document — Modern, Complete, Bilingual
+ * Generates a professional PDF of the room analysis report
  */
 
 import React from 'react'
@@ -11,774 +10,761 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
   Link,
   Svg,
   Rect,
   Circle,
 } from '@react-pdf/renderer'
-import type { EnhancedAnalysisResponse, RoomProject } from '@/app/types/room'
+import type { EnhancedAnalysisResponse, RoomProject, ProductRecommendation } from '@/app/types/room'
 
-// Register fonts (using system fonts)
-// Note: For custom fonts, you'd need to register them here
-
-// Retro orange color palette matching the web theme
-const colors = {
-  primary: '#FF8C42',      // Retro orange
-  accent: '#FFB366',       // Lighter orange
-  background: '#0A0A0A',   // Near black
-  card: '#1A1A1A',         // Dark gray
-  foreground: '#E5E5E5',   // Light gray text
-  muted: '#6B7280',        // Muted gray
-  destructive: '#EF4444',  // Red for critical
+// Clean professional color palette
+const c = {
+  primary: '#111827',
+  secondary: '#374151',
+  body: '#4B5563',
+  muted: '#9CA3AF',
+  accent: '#2563EB',
+  success: '#059669',
+  warning: '#D97706',
+  danger: '#DC2626',
+  bgLight: '#F9FAFB',
+  border: '#E5E7EB',
+  white: '#FFFFFF',
 }
 
-// PDF Styles matching retro theme
-const styles = StyleSheet.create({
-  // Page layout
-  page: {
-    backgroundColor: '#FFFFFF',
-    padding: 40,
-    fontFamily: 'Courier',
-  },
+const s = StyleSheet.create({
+  page: { backgroundColor: c.white, paddingTop: 36, paddingBottom: 50, paddingHorizontal: 40, fontFamily: 'Helvetica' },
+  footer: { position: 'absolute', bottom: 20, left: 40, right: 40, flexDirection: 'row', justifyContent: 'space-between', fontSize: 7, color: c.muted },
 
-  // Cover page
-  coverPage: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%',
-  },
-  coverTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 10,
-  },
-  coverSubtitle: {
-    fontSize: 14,
-    color: colors.muted,
-    marginBottom: 40,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  coverInfo: {
-    fontSize: 12,
-    color: colors.foreground,
-    marginBottom: 8,
-  },
+  // Cover
+  coverWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  coverBrand: { fontSize: 28, fontWeight: 'bold', color: c.primary, letterSpacing: 1 },
+  coverSub: { fontSize: 11, color: c.muted, marginTop: 4, letterSpacing: 2, textTransform: 'uppercase' },
+  coverInfoBlock: { marginTop: 32, alignItems: 'center' },
+  coverInfo: { fontSize: 10, color: c.body, marginBottom: 5 },
+  coverBadgeRow: { flexDirection: 'row', marginTop: 20, gap: 8 },
+  coverSummary: { marginTop: 28, paddingHorizontal: 30, maxWidth: 460 },
 
-  // Section headers
-  sectionHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginTop: 20,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    borderBottomWidth: 3,
-    borderBottomColor: colors.primary,
-    borderBottomStyle: 'solid',
-    paddingBottom: 6,
-  },
+  // Section
+  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: c.primary, marginBottom: 10, paddingBottom: 5, borderBottomWidth: 1.5, borderBottomColor: c.primary, borderBottomStyle: 'solid' },
+  subTitle: { fontSize: 10, fontWeight: 'bold', color: c.secondary, marginBottom: 6, marginTop: 10 },
+  body: { fontSize: 9, color: c.body, lineHeight: 1.5 },
+  small: { fontSize: 8, color: c.muted, lineHeight: 1.4 },
+  bodyBold: { fontSize: 9, fontWeight: 'bold', color: c.primary },
 
-  // Content sections
-  section: {
-    marginBottom: 16,
-  },
+  // Cards & grids
+  card: { backgroundColor: c.bgLight, borderWidth: 0.5, borderColor: c.border, borderStyle: 'solid', borderRadius: 4, padding: 10, marginBottom: 8 },
+  metricsRow: { flexDirection: 'row', gap: 6, marginBottom: 6 },
+  metricBox: { flex: 1, backgroundColor: c.bgLight, borderWidth: 0.5, borderColor: c.border, borderStyle: 'solid', borderRadius: 4, padding: 8 },
+  metricLabel: { fontSize: 7, color: c.muted, textTransform: 'uppercase', marginBottom: 3 },
+  metricValue: { fontSize: 12, fontWeight: 'bold', color: c.primary },
+  metricUnit: { fontSize: 8, color: c.muted },
 
-  // Text styles
-  heading: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 8,
-  },
-  subheading: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.accent,
-    marginBottom: 6,
-  },
-  body: {
-    fontSize: 10,
-    color: '#1A1A1A',
-    lineHeight: 1.6,
-    marginBottom: 8,
-  },
-  small: {
-    fontSize: 9,
-    color: colors.muted,
-    lineHeight: 1.5,
-  },
-
-  // Boxes and cards
-  card: {
-    borderWidth: 3,
-    borderColor: colors.primary,
-    borderStyle: 'solid',
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: '#FAFAFA',
-  },
-
-  // Badges and labels
-  badge: {
-    padding: '4px 8px',
-    fontSize: 8,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  badgeCritical: {
-    backgroundColor: '#FEE2E2',
-    color: colors.destructive,
-    borderWidth: 2,
-    borderColor: colors.destructive,
-    borderStyle: 'solid',
-  },
-  badgeWarning: {
-    backgroundColor: '#FEF3C7',
-    color: '#D97706',
-    borderWidth: 2,
-    borderColor: '#D97706',
-    borderStyle: 'solid',
-  },
-  badgeInfo: {
-    backgroundColor: '#FFF7ED',
-    color: colors.primary,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderStyle: 'solid',
-  },
-
-  // Lists
-  listItem: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginBottom: 6,
-    fontSize: 10,
-  },
-  bullet: {
-    marginRight: 8,
-    color: colors.primary,
-    fontWeight: 'bold',
-  },
+  // Badges
+  badge: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: 10, fontSize: 8, fontWeight: 'bold' },
+  badgeDanger: { backgroundColor: '#FEE2E2', color: c.danger },
+  badgeWarning: { backgroundColor: '#FEF3C7', color: c.warning },
+  badgeSuccess: { backgroundColor: '#D1FAE5', color: c.success },
+  badgeInfo: { backgroundColor: '#DBEAFE', color: c.accent },
 
   // Tables
-  table: {
-    width: '100%',
-    marginBottom: 12,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottom: '1px solid #E5E5E5',
-    paddingVertical: 6,
-  },
-  tableHeader: {
-    backgroundColor: '#FFF7ED',
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
-    borderBottomStyle: 'solid',
-    fontWeight: 'bold',
-  },
-  tableCell: {
-    fontSize: 9,
-    padding: 4,
-  },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: c.border, borderBottomStyle: 'solid', paddingVertical: 4, alignItems: 'center' },
+  tableHeader: { backgroundColor: c.bgLight, borderBottomWidth: 1, borderBottomColor: c.primary, borderBottomStyle: 'solid' },
+  tableCell: { fontSize: 8, color: c.body, paddingHorizontal: 3 },
+  tableCellBold: { fontSize: 8, fontWeight: 'bold', color: c.primary, paddingHorizontal: 3 },
 
-  // Footer
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    textAlign: 'center',
-    fontSize: 8,
-    color: colors.muted,
-    borderTop: '1px solid #E5E5E5',
-    paddingTop: 10,
-  },
+  // List
+  listItem: { flexDirection: 'row', marginBottom: 4 },
+  bullet: { fontSize: 9, color: c.accent, marginRight: 6, fontWeight: 'bold' },
 
-  // Metrics grid
-  metricsGrid: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  metricBox: {
-    flex: '1 1 45%',
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderStyle: 'solid',
-    padding: 8,
-    backgroundColor: '#FAFAFA',
-    margin: 4,
-  },
-  metricLabel: {
-    fontSize: 8,
-    color: colors.muted,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  metricValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-
-  // Links
-  link: {
-    color: colors.primary,
-    textDecoration: 'underline',
-  },
+  // RT60 bar
+  barBg: { height: 8, backgroundColor: c.border, borderRadius: 4, flex: 1 },
+  barFill: { height: 8, borderRadius: 4 },
 
   // Diagram
-  diagramContainer: {
-    width: '100%',
-    height: 400,
-    marginVertical: 20,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderStyle: 'solid',
-    backgroundColor: '#FAFAFA',
-    padding: 20,
-  },
-  diagramLegend: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-    gap: 10,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 5,
-  },
-  legendText: {
-    fontSize: 8,
-    color: '#1A1A1A',
-  },
+  diagramBox: { width: '100%', height: 320, borderWidth: 0.5, borderColor: c.border, borderStyle: 'solid', borderRadius: 4, backgroundColor: c.bgLight, padding: 15, marginVertical: 8 },
+  legendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 },
+  legendItem: { flexDirection: 'row', alignItems: 'center' },
+  legendDot: { width: 8, height: 8, borderRadius: 4, marginRight: 4 },
+  legendText: { fontSize: 7, color: c.body },
+
+  // Link
+  link: { color: c.accent, textDecoration: 'underline', fontSize: 8 },
 })
+
+// ─── i18n dictionary ───
+function getLabels(locale: string) {
+  const isEN = locale === 'en'
+  return {
+    reportTitle: isEN ? 'Acoustic Analysis Report' : 'Informe de Analisis Acustico',
+    space: isEN ? 'Space' : 'Espacio',
+    volume: isEN ? 'Volume' : 'Volumen',
+    character: isEN ? 'Character' : 'Caracter',
+    date: isEN ? 'Date' : 'Fecha',
+    critical: isEN ? 'Critical' : 'Criticos',
+    improvements: isEN ? 'Improvements' : 'Mejoras',
+    optimizations: isEN ? 'Optimizations' : 'Optimizaciones',
+    summary: isEN ? 'Executive Summary' : 'Resumen Ejecutivo',
+    acousticAnalysis: isEN ? 'Acoustic Analysis' : 'Analisis Acustico',
+    roomMetrics: isEN ? 'Room Metrics' : 'Metricas del Espacio',
+    surfaceArea: isEN ? 'Surface Area' : 'Area Superficie',
+    floorArea: isEN ? 'Floor Area' : 'Area Piso',
+    absorption: isEN ? 'Absorption' : 'Absorcion Total',
+    proportions: isEN ? 'Proportions' : 'Proporciones',
+    rt60: isEN ? 'Reverb Time (RT60)' : 'Tiempo de Reverberacion (RT60)',
+    rt60Method: isEN ? 'Method' : 'Metodo',
+    rt60Estimated: isEN ? 'Estimated' : 'Estimado',
+    rt60Measured: isEN ? 'Measured (clap test)' : 'Medido (test de aplauso)',
+    confidence: isEN ? 'Confidence' : 'Confianza',
+    bass: isEN ? 'Bass (63-250 Hz)' : 'Graves (63-250 Hz)',
+    mids: isEN ? 'Mids (500-2k Hz)' : 'Medios (500-2k Hz)',
+    highs: isEN ? 'Highs (4k-16k Hz)' : 'Agudos (4k-16k Hz)',
+    target: isEN ? 'target' : 'objetivo',
+    good: isEN ? 'Good' : 'Bueno',
+    acceptable: isEN ? 'Acceptable' : 'Aceptable',
+    poor: isEN ? 'Poor' : 'Pobre',
+    problematic: isEN ? 'Problematic' : 'Problematico',
+    noiseLevel: isEN ? 'Ambient Noise' : 'Ruido Ambiente',
+    materialsBreakdown: isEN ? 'Absorption by Surface' : 'Absorcion por Superficie',
+    floor: isEN ? 'Floor' : 'Piso',
+    walls: isEN ? 'Walls' : 'Paredes',
+    ceiling: isEN ? 'Ceiling' : 'Techo',
+    furniture: isEN ? 'Furniture' : 'Muebles',
+    roomModes: isEN ? 'Room Modes (Resonances)' : 'Modos de Sala (Resonancias)',
+    frequency: isEN ? 'Frequency' : 'Frecuencia',
+    type: isEN ? 'Type' : 'Tipo',
+    dimension: isEN ? 'Dimension' : 'Dimension',
+    severity: isEN ? 'Severity' : 'Severidad',
+    mode: isEN ? 'Mode' : 'Modo',
+    axial: isEN ? 'Axial' : 'Axial',
+    tangential: isEN ? 'Tangential' : 'Tangencial',
+    oblique: isEN ? 'Oblique' : 'Oblicuo',
+    high: isEN ? 'High' : 'Alta',
+    medium: isEN ? 'Medium' : 'Media',
+    low: isEN ? 'Low' : 'Baja',
+    length: isEN ? 'Length' : 'Largo',
+    width: isEN ? 'Width' : 'Ancho',
+    height: isEN ? 'Height' : 'Alto',
+    mixed: isEN ? 'Mixed' : 'Mixto',
+    frequencyIssues: isEN ? 'Frequency Issues Detected' : 'Problemas de Frecuencia Detectados',
+    positionDiagram: isEN ? '2D Position Diagram' : 'Diagrama de Posiciones 2D',
+    speakers: isEN ? 'Speakers' : 'Parlantes',
+    sweetSpot: isEN ? 'Optimal listening position' : 'Posicion de escucha optima',
+    bassTraps: isEN ? 'Bass traps' : 'Trampas de graves',
+    absorbers: isEN ? 'Absorber panels' : 'Paneles absorbentes',
+    diffusers: isEN ? 'Diffusers' : 'Difusores',
+    treatmentPlan: isEN ? 'Treatment Plan' : 'Plan de Tratamiento',
+    wall: isEN ? 'Wall' : 'Pared',
+    priority: isEN ? 'Priority' : 'Prioridad',
+    freeChanges: isEN ? 'Free Changes' : 'Cambios Gratuitos',
+    freeChangesDesc: isEN ? 'Implement these changes this week at no cost:' : 'Implementa estos cambios esta semana sin gastar dinero:',
+    recommendedProducts: isEN ? 'Recommended Products' : 'Productos Recomendados',
+    product: isEN ? 'Product' : 'Producto',
+    qty: isEN ? 'Qty' : 'Cant.',
+    price: isEN ? 'Price' : 'Precio',
+    total: isEN ? 'Total' : 'Total',
+    estimatedBudget: isEN ? 'Estimated budget' : 'Presupuesto estimado',
+    advancedTreatment: isEN ? 'Advanced Treatment' : 'Tratamiento Avanzado',
+    actionPlan: isEN ? 'Action Plan' : 'Plan de Accion',
+    week1: isEN ? 'Week 1 — Quick Wins' : 'Semana 1 — Quick Wins',
+    month1: isEN ? 'Month 1-3 — Gradual Improvements' : 'Mes 1-3 — Mejoras Graduales',
+    month6: isEN ? '6+ Months — Final Optimization' : '6+ Meses — Optimizacion Final',
+    disclaimer: isEN ? 'Disclaimer & Resources' : 'Disclaimer y Recursos',
+    disclaimerTitle: isEN ? 'Important' : 'Importante',
+    disclaimerText: isEN
+      ? 'This analysis is an estimate based on standard acoustic calculations. For professional results, measurements with specialized equipment (measurement microphone + REW software) are recommended.'
+      : 'Este analisis es una estimacion basada en calculos acusticos estandar. Para resultados profesionales, se recomienda realizar mediciones con equipamiento especializado (microfono de medicion + software REW).',
+    resources: isEN ? 'Recommended Resources' : 'Recursos Recomendados',
+    nextSteps: isEN ? 'Next Steps' : 'Proximos Pasos',
+    nextStepsList: isEN
+      ? ['Start with free changes', 'Buy products gradually', 'Implement changes and listen', 'Adjust as needed', 'Consider professional measurement']
+      : ['Comenza con los cambios gratuitos', 'Compra productos de forma gradual', 'Implementa cambios y escucha', 'Ajusta segun necesites', 'Considera medicion profesional'],
+    madeWith: isEN ? 'Made with care' : 'Hecho con cuidado',
+    page: isEN ? 'Page' : 'Pagina',
+    endOfReport: isEN ? 'End of report' : 'Fin del reporte',
+    clickProducts: isEN ? 'Click products to see updated prices' : 'Click en los productos para ver precios actualizados',
+    noiseClassification: isEN
+      ? { muy_silencioso: 'Very quiet', silencioso: 'Quiet', normal: 'Normal', ruidoso: 'Noisy', muy_ruidoso: 'Very noisy' }
+      : { muy_silencioso: 'Muy silencioso', silencioso: 'Silencioso', normal: 'Normal', ruidoso: 'Ruidoso', muy_ruidoso: 'Muy ruidoso' },
+    placement: isEN ? 'Placement' : 'Ubicacion',
+    impact: isEN ? 'Impact' : 'Impacto',
+    install: isEN ? 'Install' : 'Instalacion',
+    installLabels: isEN
+      ? { easy: 'Easy', moderate: 'Moderate', professional: 'Professional' }
+      : { easy: 'Facil', moderate: 'Moderada', professional: 'Profesional' },
+    front: isEN ? 'Front' : 'Frontal',
+    back: isEN ? 'Back' : 'Trasera',
+    left: isEN ? 'Left' : 'Izquierda',
+    right: isEN ? 'Right' : 'Derecha',
+    absorber: isEN ? 'Absorber' : 'Absorbente',
+    diffuser: isEN ? 'Diffuser' : 'Difusor',
+    bass_trap: isEN ? 'Bass Trap' : 'Trampa de Graves',
+    generatedWith: isEN ? 'Generated with RoomTuner' : 'Generado con RoomTuner',
+  }
+}
+
+// ─── Helpers ───
+function formatPrice(price: number, currency: string) {
+  if (currency === 'USD') return `$${price.toLocaleString('en-US')}`
+  return `ARS $${price.toLocaleString('es-AR')}`
+}
+
+function severityColor(sev: string) {
+  return sev === 'high' ? c.danger : sev === 'medium' ? c.warning : c.success
+}
+
+function ratingBadgeStyle(rating: string) {
+  if (rating === 'good') return s.badgeSuccess
+  if (rating === 'acceptable') return s.badgeWarning
+  return s.badgeDanger
+}
+
+// ─── Sub-components ───
+
+function Footer({ page, total, label }: { page: number; total: number; label: string }) {
+  return (
+    <View style={s.footer} fixed>
+      <Text>{label}</Text>
+      <Text>{page}/{total}</Text>
+    </View>
+  )
+}
+
+function MetricBox({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <View style={s.metricBox}>
+      <Text style={s.metricLabel}>{label}</Text>
+      <Text style={s.metricValue}>{value}{unit && <Text style={s.metricUnit}> {unit}</Text>}</Text>
+    </View>
+  )
+}
+
+function RT60Bar({ label, value, target, color }: { label: string; value: number; target: number; color: string }) {
+  const pct = Math.min((value / (target * 2)) * 100, 100)
+  const isOver = value > target
+  return (
+    <View style={{ marginBottom: 6 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
+        <Text style={s.small}>{label}</Text>
+        <Text style={[s.small, { fontWeight: 'bold', color: isOver ? c.danger : c.success }]}>{value.toFixed(2)}s</Text>
+      </View>
+      <View style={s.barBg}>
+        <View style={[s.barFill, { width: `${pct}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  )
+}
+
+function ProductTableSection({ items, currency, l }: { items: ProductRecommendation[]; currency: string; l: ReturnType<typeof getLabels> }) {
+  return (
+    <View>
+      <View style={[s.tableRow, s.tableHeader]}>
+        <Text style={[s.tableCellBold, { flex: 3 }]}>{l.product}</Text>
+        <Text style={[s.tableCellBold, { flex: 0.7, textAlign: 'center' }]}>{l.qty}</Text>
+        <Text style={[s.tableCellBold, { flex: 1.3, textAlign: 'right' }]}>{l.price}</Text>
+        <Text style={[s.tableCellBold, { flex: 1.3, textAlign: 'right' }]}>{l.total}</Text>
+      </View>
+      {items.map((item, idx) => (
+        <View key={idx} style={s.tableRow}>
+          {item.link ? (
+            <Link src={item.link} style={[s.link, { flex: 3 }]}>
+              <Text>{item.product}</Text>
+            </Link>
+          ) : (
+            <Text style={[s.tableCell, { flex: 3 }]}>{item.product}</Text>
+          )}
+          <Text style={[s.tableCell, { flex: 0.7, textAlign: 'center' }]}>{item.quantity}</Text>
+          <Text style={[s.tableCell, { flex: 1.3, textAlign: 'right' }]}>{formatPrice(item.unitPrice, currency)}</Text>
+          <Text style={[s.tableCell, { flex: 1.3, textAlign: 'right' }]}>{formatPrice(item.totalPrice, currency)}</Text>
+        </View>
+      ))}
+    </View>
+  )
+}
+
+// ─── Main Document ───
 
 interface ReportPDFDocumentProps {
   project: RoomProject
   analysis: EnhancedAnalysisResponse
+  locale: string
 }
 
-export function ReportPDFDocument({ project, analysis }: ReportPDFDocumentProps) {
+export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocumentProps) {
+  const l = getLabels(locale)
+  const isEN = locale === 'en'
+  const currency = isEN ? 'USD' : 'ARS'
+
   const {
     summary,
     roomCharacter,
     priorityScore,
     roomMetrics,
+    materialsAnalysis,
     frequencyResponse,
     freeChanges,
     lowBudgetChanges,
     advancedChanges,
+    roomDiagram,
     generatedAt,
   } = analysis
 
   const totalIssues = priorityScore.critical + priorityScore.improvements
+  const hasAdvanced = advancedChanges.items.length > 0
+  const totalPages = hasAdvanced ? 7 : 6
+
+  // Group modes by type
+  const axialModes = roomMetrics.roomModes.filter(m => m.type === 'axial')
+  const tangentialModes = roomMetrics.roomModes.filter(m => m.type === 'tangential')
+  const obliqueModes = roomMetrics.roomModes.filter(m => m.type === 'oblique')
+
+  // Frequency issues
+  const freqIssues = frequencyResponse.filter(fp => fp.issue && fp.description)
+
+  // Date formatting
+  const dateStr = new Date(generatedAt).toLocaleDateString(isEN ? 'en-US' : 'es-AR', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  })
+
+  // RT60 targets for comparison
+  const rt60Targets = { low: 0.5, mid: 0.4, high: 0.35 }
 
   return (
     <Document>
-      {/* Cover Page */}
-      <Page size="A4" style={styles.page}>
-        <View style={styles.coverPage}>
-          <Text style={styles.coverTitle}>{"> ROOMTUNER"}</Text>
-          <Text style={styles.coverSubtitle}>ANÁLISIS ACÚSTICO COMPLETO</Text>
+      {/* ═══ PAGE 1: COVER ═══ */}
+      <Page size="A4" style={s.page}>
+        <View style={s.coverWrap}>
+          <Text style={s.coverBrand}>RoomTuner</Text>
+          <Text style={s.coverSub}>{l.reportTitle}</Text>
 
-          <View style={{ marginTop: 40 }}>
-            <Text style={styles.coverInfo}>
-              Espacio: {project.lengthM}m × {project.widthM}m × {project.heightM}m
+          <View style={s.coverInfoBlock}>
+            <Text style={s.coverInfo}>
+              {l.space}: {project.lengthM}m x {project.widthM}m x {project.heightM}m
             </Text>
-            <Text style={styles.coverInfo}>
-              Volumen: {roomMetrics.volume.toFixed(1)} m³
+            <Text style={s.coverInfo}>
+              {l.volume}: {roomMetrics.volume.toFixed(1)} m3
             </Text>
-            <Text style={styles.coverInfo}>
-              Carácter: {roomCharacter.toUpperCase()}
+            <Text style={s.coverInfo}>
+              {l.character}: {roomCharacter.charAt(0).toUpperCase() + roomCharacter.slice(1)}
             </Text>
-            <Text style={styles.coverInfo}>
-              Fecha: {new Date(generatedAt).toLocaleDateString('es-AR')}
-            </Text>
+            <Text style={s.coverInfo}>{l.date}: {dateStr}</Text>
           </View>
 
           {totalIssues > 0 && (
-            <View style={{ marginTop: 30 }}>
-              <Text style={[styles.body, { textAlign: 'center' }]}>
-                {totalIssues} punto{totalIssues > 1 ? 's' : ''} detectado{totalIssues > 1 ? 's' : ''}
-              </Text>
+            <View style={s.coverBadgeRow}>
+              {priorityScore.critical > 0 && (
+                <View style={[s.badge, s.badgeDanger]}>
+                  <Text>{priorityScore.critical} {l.critical}</Text>
+                </View>
+              )}
+              {priorityScore.improvements > 0 && (
+                <View style={[s.badge, s.badgeWarning]}>
+                  <Text>{priorityScore.improvements} {l.improvements}</Text>
+                </View>
+              )}
+              {priorityScore.optimizations > 0 && (
+                <View style={[s.badge, s.badgeInfo]}>
+                  <Text>{priorityScore.optimizations} {l.optimizations}</Text>
+                </View>
+              )}
             </View>
           )}
-        </View>
 
-        <View style={styles.footer}>
-          <Text>Generado con RoomTuner MVP • roomtuner.app</Text>
+          <View style={s.coverSummary}>
+            <Text style={[s.body, { textAlign: 'center', lineHeight: 1.6 }]}>{summary}</Text>
+          </View>
         </View>
+        <Footer page={1} total={totalPages} label={l.generatedWith} />
       </Page>
 
-      {/* Executive Summary */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[RESUMEN EJECUTIVO]</Text>
+      {/* ═══ PAGE 2: ACOUSTIC ANALYSIS ═══ */}
+      <Page size="A4" style={s.page}>
+        <Text style={s.sectionTitle}>{l.acousticAnalysis}</Text>
 
-        {/* Priority Badges */}
-        <View style={{ flexDirection: 'row', marginBottom: 12 }}>
-          {priorityScore.critical > 0 && (
-            <View style={[styles.badge, styles.badgeCritical]}>
-              <Text>{priorityScore.critical} CRÍTICO{priorityScore.critical > 1 ? 'S' : ''}</Text>
+        {/* Metrics grid */}
+        <Text style={s.subTitle}>{l.roomMetrics}</Text>
+        <View style={s.metricsRow}>
+          <MetricBox label={l.volume} value={roomMetrics.volume.toFixed(1)} unit="m3" />
+          <MetricBox label={l.surfaceArea} value={roomMetrics.surfaceArea.toFixed(1)} unit="m2" />
+          <MetricBox label={l.floorArea} value={roomMetrics.floorArea.toFixed(1)} unit="m2" />
+        </View>
+        <View style={s.metricsRow}>
+          <MetricBox label={l.absorption} value={roomMetrics.totalAbsorption.toFixed(1)} unit="sabins" />
+          <MetricBox label={l.character} value={roomCharacter.charAt(0).toUpperCase() + roomCharacter.slice(1)} />
+          <View style={s.metricBox}>
+            <Text style={s.metricLabel}>{l.proportions}</Text>
+            <View style={[s.badge, ratingBadgeStyle(roomMetrics.ratios.rating), { alignSelf: 'flex-start', marginTop: 2 }]}>
+              <Text>{roomMetrics.ratios.rating === 'good' ? l.good : roomMetrics.ratios.rating === 'acceptable' ? l.acceptable : l.poor}</Text>
             </View>
-          )}
-          {priorityScore.improvements > 0 && (
-            <View style={[styles.badge, styles.badgeWarning]}>
-              <Text>{priorityScore.improvements} MEJORA{priorityScore.improvements > 1 ? 'S' : ''}</Text>
-            </View>
-          )}
-          {priorityScore.optimizations > 0 && (
-            <View style={[styles.badge, styles.badgeInfo]}>
-              <Text>{priorityScore.optimizations} OPTIMIZACION{priorityScore.optimizations > 1 ? 'ES' : ''}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Summary Text */}
-        <View style={styles.card}>
-          <Text style={styles.body}>{summary}</Text>
-        </View>
-
-        {/* Room Metrics */}
-        <Text style={styles.heading}>MÉTRICAS DEL ESPACIO</Text>
-        <View style={styles.metricsGrid}>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>Volumen</Text>
-            <Text style={styles.metricValue}>{roomMetrics.volume.toFixed(1)} m³</Text>
-          </View>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>Área Superficie</Text>
-            <Text style={styles.metricValue}>{roomMetrics.surfaceArea.toFixed(1)} m²</Text>
-          </View>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>Área Piso</Text>
-            <Text style={styles.metricValue}>{roomMetrics.floorArea.toFixed(1)} m²</Text>
-          </View>
-          <View style={styles.metricBox}>
-            <Text style={styles.metricLabel}>Absorción Total</Text>
-            <Text style={styles.metricValue}>{roomMetrics.totalAbsorption.toFixed(1)} sabins</Text>
           </View>
         </View>
 
-        <View style={styles.footer}>
-          <Text>Página 2 • Análisis estimado para referencia</Text>
-        </View>
-      </Page>
-
-      {/* Room Analysis */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[ANÁLISIS ACÚSTICO]</Text>
-
-        {/* RT60 Estimates */}
-        <Text style={styles.heading}>TIEMPO DE REVERBERACIÓN (RT60)</Text>
-        <View style={styles.card}>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.body}>
-              Graves (63-250 Hz): {roomMetrics.rt60Estimate.low.toFixed(2)}s {roomMetrics.rt60Estimate.low > 0.6 ? '⚠️ ALTO' : '✓'}
-            </Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.body}>
-              Medios (500-2k Hz): {roomMetrics.rt60Estimate.mid.toFixed(2)}s {roomMetrics.rt60Estimate.mid > 0.5 ? '⚠️ ALTO' : '✓'}
-            </Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.body}>
-              Agudos (4k-16k Hz): {roomMetrics.rt60Estimate.high.toFixed(2)}s {roomMetrics.rt60Estimate.high > 0.4 ? '⚠️ ALTO' : '✓'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Room Modes */}
-        <Text style={styles.heading}>MODOS DE SALA (RESONANCIAS)</Text>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Frecuencia</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Tipo</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Dimensión</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Severidad</Text>
-          </View>
-          {roomMetrics.roomModes.slice(0, 10).map((mode, idx) => (
-            <View key={idx} style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{mode.frequency.toFixed(0)} Hz</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{mode.type}</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{mode.dimension}</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>
-                {mode.severity === 'high' ? '🔴 Alta' : mode.severity === 'medium' ? '🟡 Media' : '🟢 Baja'}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.footer}>
-          <Text>Página 3 • Los primeros 10 modos más significativos</Text>
-        </View>
-      </Page>
-
-      {/* Room Diagram 2D */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[DIAGRAMA DE POSICIONES 2D]</Text>
-
-        <Text style={styles.body}>
-          Vista superior de tu espacio con posiciones optimizadas:
+        {/* RT60 */}
+        <Text style={s.subTitle}>
+          {l.rt60}
+          {roomMetrics.rt60Method && <Text style={s.small}> ({roomMetrics.rt60Method === 'eyring' ? 'Eyring' : 'Sabine'})</Text>}
         </Text>
+        <View style={s.card}>
+          <RT60Bar label={l.bass} value={roomMetrics.rt60Estimate.low} target={rt60Targets.low} color={roomMetrics.rt60Estimate.low > rt60Targets.low ? c.danger : c.success} />
+          <RT60Bar label={l.mids} value={roomMetrics.rt60Estimate.mid} target={rt60Targets.mid} color={roomMetrics.rt60Estimate.mid > rt60Targets.mid ? c.warning : c.success} />
+          <RT60Bar label={l.highs} value={roomMetrics.rt60Estimate.high} target={rt60Targets.high} color={roomMetrics.rt60Estimate.high > rt60Targets.high ? c.warning : c.success} />
 
-        <View style={styles.diagramContainer}>
-          <Svg width="100%" height="350" viewBox="0 0 400 350">
+          <Text style={[s.small, { marginTop: 4 }]}>
+            {roomMetrics.rt60Evaluation.message}
+          </Text>
+
+          {/* Measured RT60 comparison */}
+          {roomMetrics.measuredRT60 && (
+            <View style={{ marginTop: 8, padding: 6, backgroundColor: '#EFF6FF', borderRadius: 4 }}>
+              <Text style={[s.small, { fontWeight: 'bold', color: c.accent }]}>
+                {l.rt60Measured}: {roomMetrics.measuredRT60.value.toFixed(2)}s
+                {'  '}({l.confidence}: {roomMetrics.measuredRT60.confidence})
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Noise measurement */}
+        {project.noiseMeasurement?.taken && (
+          <>
+            <Text style={s.subTitle}>{l.noiseLevel}</Text>
+            <View style={s.card}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {project.noiseMeasurement.dbLevel != null && (
+                  <Text style={s.bodyBold}>{project.noiseMeasurement.dbLevel.toFixed(0)} dB</Text>
+                )}
+                {project.noiseMeasurement.classification && (
+                  <View style={[s.badge, project.noiseMeasurement.classification === 'ruidoso' || project.noiseMeasurement.classification === 'muy_ruidoso' ? s.badgeDanger : project.noiseMeasurement.classification === 'normal' ? s.badgeWarning : s.badgeSuccess]}>
+                    <Text>{l.noiseClassification[project.noiseMeasurement.classification as keyof typeof l.noiseClassification] || project.noiseMeasurement.classification}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Materials absorption */}
+        <Text style={s.subTitle}>{l.materialsBreakdown}</Text>
+        <View style={s.card}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+            <Text style={s.small}>{l.floor}</Text>
+            <Text style={[s.small, { fontWeight: 'bold' }]}>{(materialsAnalysis.floorAbsorption * 100).toFixed(0)}%</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+            <Text style={s.small}>{l.walls}</Text>
+            <Text style={[s.small, { fontWeight: 'bold' }]}>{(materialsAnalysis.wallAbsorption * 100).toFixed(0)}%</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+            <Text style={s.small}>{l.ceiling}</Text>
+            <Text style={[s.small, { fontWeight: 'bold' }]}>{(materialsAnalysis.ceilingAbsorption * 100).toFixed(0)}%</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={s.small}>{l.furniture}</Text>
+            <Text style={[s.small, { fontWeight: 'bold' }]}>{materialsAnalysis.furnitureContribution.toFixed(1)} sabins</Text>
+          </View>
+        </View>
+
+        <Footer page={2} total={totalPages} label={l.generatedWith} />
+      </Page>
+
+      {/* ═══ PAGE 3: ROOM MODES + FREQUENCY ═══ */}
+      <Page size="A4" style={s.page}>
+        <Text style={s.sectionTitle}>{l.roomModes}</Text>
+
+        {/* Mode count summary */}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+          <View style={[s.badge, s.badgeInfo]}><Text>{l.axial}: {axialModes.length}</Text></View>
+          <View style={[s.badge, s.badgeWarning]}><Text>{l.tangential}: {tangentialModes.length}</Text></View>
+          <View style={[s.badge, s.badgeSuccess]}><Text>{l.oblique}: {obliqueModes.length}</Text></View>
+        </View>
+
+        {/* Modes table — show up to 20 most severe */}
+        <View>
+          <View style={[s.tableRow, s.tableHeader]}>
+            <Text style={[s.tableCellBold, { flex: 1 }]}>{l.frequency}</Text>
+            <Text style={[s.tableCellBold, { flex: 1 }]}>{l.type}</Text>
+            <Text style={[s.tableCellBold, { flex: 0.8 }]}>{l.mode}</Text>
+            <Text style={[s.tableCellBold, { flex: 1 }]}>{l.dimension}</Text>
+            <Text style={[s.tableCellBold, { flex: 0.8 }]}>{l.severity}</Text>
+          </View>
+          {roomMetrics.roomModes
+            .sort((a, b) => {
+              const sevOrder = { high: 0, medium: 1, low: 2 }
+              return (sevOrder[a.severity] - sevOrder[b.severity]) || (a.frequency - b.frequency)
+            })
+            .slice(0, 20)
+            .map((mode, idx) => {
+              const typeLabel = mode.type === 'axial' ? l.axial : mode.type === 'tangential' ? l.tangential : l.oblique
+              const dimLabel = mode.dimension === 'length' ? l.length : mode.dimension === 'width' ? l.width : mode.dimension === 'height' ? l.height : l.mixed
+              const sevLabel = mode.severity === 'high' ? l.high : mode.severity === 'medium' ? l.medium : l.low
+              const modeStr = `(${mode.nx ?? 0},${mode.ny ?? 0},${mode.nz ?? 0})`
+              return (
+                <View key={idx} style={s.tableRow}>
+                  <Text style={[s.tableCellBold, { flex: 1 }]}>{mode.frequency.toFixed(0)} Hz</Text>
+                  <Text style={[s.tableCell, { flex: 1 }]}>{typeLabel}</Text>
+                  <Text style={[s.tableCell, { flex: 0.8 }]}>{modeStr}</Text>
+                  <Text style={[s.tableCell, { flex: 1 }]}>{dimLabel}</Text>
+                  <Text style={[s.tableCell, { flex: 0.8, color: severityColor(mode.severity), fontWeight: 'bold' }]}>{sevLabel}</Text>
+                </View>
+              )
+            })}
+        </View>
+
+        {/* Proportions info */}
+        <View style={[s.card, { marginTop: 10 }]}>
+          <Text style={s.small}>
+            {l.proportions}: {roomMetrics.ratios.lengthWidth.toFixed(2)} : {roomMetrics.ratios.lengthHeight.toFixed(2)} : {roomMetrics.ratios.widthHeight.toFixed(2)}
+          </Text>
+          <Text style={[s.small, { marginTop: 2 }]}>{roomMetrics.ratios.message}</Text>
+        </View>
+
+        {/* Frequency issues */}
+        {freqIssues.length > 0 && (
+          <>
+            <Text style={[s.subTitle, { marginTop: 10 }]}>{l.frequencyIssues}</Text>
+            {freqIssues.slice(0, 6).map((fp, idx) => (
+              <View key={idx} style={s.listItem}>
+                <Text style={s.bullet}>{fp.frequency} Hz</Text>
+                <Text style={s.body}>{fp.description}</Text>
+              </View>
+            ))}
+          </>
+        )}
+
+        <Footer page={3} total={totalPages} label={l.generatedWith} />
+      </Page>
+
+      {/* ═══ PAGE 4: DIAGRAM ═══ */}
+      <Page size="A4" style={s.page}>
+        <Text style={s.sectionTitle}>{l.positionDiagram}</Text>
+
+        <View style={s.diagramBox}>
+          <Svg width="100%" height="290" viewBox="0 0 400 290">
             {/* Room outline */}
-            <Rect
-              x="50"
-              y="50"
-              width="300"
-              height="250"
-              fill="none"
-              stroke={colors.foreground}
-              strokeWidth="2"
-            />
+            <Rect x="40" y="20" width="320" height="250" fill="none" stroke={c.secondary} strokeWidth="1.5" />
 
             {/* Dimension labels */}
-            <Text x="200" y="35" fontSize="10" textAnchor="middle" fill={colors.muted}>
+            <Text x="200" y="14" fontSize="9" textAnchor="middle" fill={c.muted}>
               {project.lengthM}m
             </Text>
-            <Text x="365" y="175" fontSize="10" textAnchor="start" fill={colors.muted}>
+            <Text x="370" y="145" fontSize="9" textAnchor="start" fill={c.muted}>
               {project.widthM}m
             </Text>
 
             {/* Speakers */}
-            {analysis.roomDiagram?.floorPlan?.speakerPositions?.map((speaker, idx) => {
-              const x = 50 + (speaker.x / project.widthM) * 300
-              const y = 50 + (speaker.y / project.lengthM) * 250
+            {roomDiagram?.floorPlan?.speakerPositions?.map((sp, idx) => {
+              const x = 40 + (sp.x / project.widthM!) * 320
+              const y = 20 + (sp.y / project.lengthM!) * 250
               return (
-                <React.Fragment key={`speaker-${idx}`}>
-                  <Rect
-                    x={x - 8}
-                    y={y - 8}
-                    width="16"
-                    height="16"
-                    fill={colors.primary}
-                    stroke="#000"
-                    strokeWidth="1"
-                  />
-                  <Text x={x} y={y - 15} fontSize="8" textAnchor="middle" fill={colors.primary}>
-                    S{idx + 1}
-                  </Text>
+                <React.Fragment key={`sp-${idx}`}>
+                  <Rect x={x - 7} y={y - 7} width="14" height="14" fill={c.accent} stroke={c.primary} strokeWidth="0.5" />
+                  <Text x={x} y={y - 12} fontSize="7" textAnchor="middle" fill={c.accent}>S{idx + 1}</Text>
                 </React.Fragment>
               )
             })}
 
-            {/* Listening Position */}
-            {analysis.roomDiagram?.floorPlan?.listeningPosition && (() => {
-              const lp = analysis.roomDiagram.floorPlan.listeningPosition
-              const x = 50 + (lp.x / project.widthM) * 300
-              const y = 50 + (lp.y / project.lengthM) * 250
+            {/* Listening position */}
+            {roomDiagram?.floorPlan?.listeningPosition && (() => {
+              const lp = roomDiagram.floorPlan.listeningPosition
+              const x = 40 + (lp.x / project.widthM!) * 320
+              const y = 20 + (lp.y / project.lengthM!) * 250
               return (
                 <React.Fragment>
-                  <Circle
-                    cx={x}
-                    cy={y}
-                    r="10"
-                    fill={colors.accent}
-                    stroke="#000"
-                    strokeWidth="1"
-                  />
-                  <Text x={x} y={y - 18} fontSize="8" textAnchor="middle" fill={colors.accent}>
-                    SWEET SPOT
-                  </Text>
+                  <Circle cx={x} cy={y} r="9" fill={c.success} stroke={c.primary} strokeWidth="0.5" />
+                  <Text x={x} y={y - 14} fontSize="7" textAnchor="middle" fill={c.success}>SWEET SPOT</Text>
                 </React.Fragment>
               )
             })()}
 
             {/* Treatment positions */}
-            {analysis.roomDiagram?.treatmentPlan?.slice(0, 4).map((treatment, idx) => {
-              const x = 50 + treatment.position.x * 300
-              const y = 50 + treatment.position.y * 250
+            {roomDiagram?.treatmentPlan?.map((t, idx) => {
+              const x = 40 + t.position.x * 320
+              const y = 20 + t.position.y * 250
+              const fill = t.type === 'bass_trap' ? c.danger : t.type === 'diffuser' ? c.warning : c.success
               return (
-                <Circle
-                  key={`treatment-${idx}`}
-                  cx={x}
-                  cy={y}
-                  r="6"
-                  fill={treatment.type === 'bass_trap' ? '#EF4444' : '#10B981'}
-                  opacity="0.7"
-                />
+                <Circle key={`t-${idx}`} cx={x} cy={y} r="5" fill={fill} opacity={0.6} />
               )
             })}
           </Svg>
         </View>
 
         {/* Legend */}
-        <View style={styles.diagramLegend}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-            <Text style={styles.legendText}>Parlantes (S1, S2)</Text>
+        <View style={s.legendRow}>
+          <View style={s.legendItem}>
+            <View style={[s.legendDot, { backgroundColor: c.accent }]} />
+            <Text style={s.legendText}>{l.speakers}</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: colors.accent }]} />
-            <Text style={styles.legendText}>Posición de escucha óptima</Text>
+          <View style={s.legendItem}>
+            <View style={[s.legendDot, { backgroundColor: c.success }]} />
+            <Text style={s.legendText}>{l.sweetSpot}</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-            <Text style={styles.legendText}>Trampas de graves (esquinas)</Text>
+          <View style={s.legendItem}>
+            <View style={[s.legendDot, { backgroundColor: c.danger }]} />
+            <Text style={s.legendText}>{l.bassTraps}</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-            <Text style={styles.legendText}>Paneles absorbentes</Text>
+          <View style={s.legendItem}>
+            <View style={[s.legendDot, { backgroundColor: c.success, opacity: 0.6 }]} />
+            <Text style={s.legendText}>{l.absorbers}</Text>
+          </View>
+          <View style={s.legendItem}>
+            <View style={[s.legendDot, { backgroundColor: c.warning }]} />
+            <Text style={s.legendText}>{l.diffusers}</Text>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.small}>
-            💡 Tip: El "sweet spot" es la posición ideal de escucha. Evitá el centro exacto de la sala (50%)
-            para minimizar problemas de modos de sala. La posición óptima suele estar entre 36-42% de la profundidad.
-          </Text>
-        </View>
-
-        <View style={styles.footer}>
-          <Text>Página 4 • Diagrama simplificado para referencia</Text>
-        </View>
-      </Page>
-
-      {/* Free Recommendations */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[CAMBIOS GRATUITOS]</Text>
-        <Text style={styles.body}>
-          Implementá estos cambios esta semana sin gastar dinero:
-        </Text>
-
-        <View style={styles.section}>
-          {freeChanges.items.map((item, idx) => (
-            <View key={idx} style={styles.listItem}>
-              <Text style={styles.bullet}>[{idx + 1}]</Text>
-              <Text style={styles.body}>{item}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.footer}>
-          <Text>Página 5 • Comenzá con los cambios más accesibles</Text>
-        </View>
-      </Page>
-
-      {/* Product Recommendations */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[PRODUCTOS RECOMENDADOS]</Text>
-
-        {/* Low Budget */}
-        <Text style={styles.heading}>{lowBudgetChanges.title}</Text>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, { flex: 2 }]}>Producto</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Cant.</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Precio</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Total</Text>
-          </View>
-          {lowBudgetChanges.items.slice(0, 8).map((item, idx) => (
-            <View key={idx} style={styles.tableRow}>
-              {item.link ? (
-                <Link src={item.link} style={[styles.tableCell, styles.link, { flex: 2 }]}>
-                  <Text>{item.product}</Text>
-                </Link>
-              ) : (
-                <Text style={[styles.tableCell, { flex: 2 }]}>{item.product}</Text>
-              )}
-              <Text style={[styles.tableCell, { flex: 1 }]}>{item.quantity}</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>
-                ${item.unitPrice.toLocaleString()}
-              </Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>
-                ${item.totalPrice.toLocaleString()}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.body}>
-            Presupuesto estimado: ${lowBudgetChanges.totalEstimatedCost.min.toLocaleString()} -
-            ${lowBudgetChanges.totalEstimatedCost.max.toLocaleString()} {lowBudgetChanges.totalEstimatedCost.currency}
-          </Text>
-        </View>
-
-        <View style={styles.footer}>
-          <Text>Página 6 • Hacé click en los productos para ver precios actualizados</Text>
-        </View>
-      </Page>
-
-      {/* Advanced Recommendations */}
-      {advancedChanges.items.length > 0 && (
-        <Page size="A4" style={styles.page}>
-          <Text style={styles.sectionHeader}>[TRATAMIENTO AVANZADO]</Text>
-
-          <Text style={styles.heading}>{advancedChanges.title}</Text>
-          <View style={styles.table}>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, { flex: 2 }]}>Producto</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>Cant.</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>Precio</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>Total</Text>
-            </View>
-            {advancedChanges.items.slice(0, 8).map((item, idx) => (
-              <View key={idx} style={styles.tableRow}>
-                {item.link ? (
-                  <Link src={item.link} style={[styles.tableCell, styles.link, { flex: 2 }]}>
-                    <Text>{item.product}</Text>
-                  </Link>
-                ) : (
-                  <Text style={[styles.tableCell, { flex: 2 }]}>{item.product}</Text>
-                )}
-                <Text style={[styles.tableCell, { flex: 1 }]}>{item.quantity}</Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>
-                  ${item.unitPrice.toLocaleString()}
-                </Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>
-                  ${item.totalPrice.toLocaleString()}
-                </Text>
+        {/* Treatment plan list */}
+        {roomDiagram?.treatmentPlan && roomDiagram.treatmentPlan.length > 0 && (
+          <>
+            <Text style={[s.subTitle, { marginTop: 12 }]}>{l.treatmentPlan}</Text>
+            <View>
+              <View style={[s.tableRow, s.tableHeader]}>
+                <Text style={[s.tableCellBold, { flex: 1.5 }]}>{l.type}</Text>
+                <Text style={[s.tableCellBold, { flex: 1 }]}>{l.wall}</Text>
+                <Text style={[s.tableCellBold, { flex: 1 }]}>{l.priority}</Text>
               </View>
-            ))}
-          </View>
+              {roomDiagram.treatmentPlan.map((t, idx) => {
+                const typeLabel = t.type === 'bass_trap' ? l.bass_trap : t.type === 'absorber' ? l.absorber : l.diffuser
+                const wallLabel = t.wall === 'front' ? l.front : t.wall === 'back' ? l.back : t.wall === 'left' ? l.left : t.wall === 'right' ? l.right : l.ceiling
+                const prioLabel = t.priority === 'high' ? l.high : t.priority === 'medium' ? l.medium : l.low
+                return (
+                  <View key={idx} style={s.tableRow}>
+                    <Text style={[s.tableCell, { flex: 1.5 }]}>{typeLabel}</Text>
+                    <Text style={[s.tableCell, { flex: 1 }]}>{wallLabel}</Text>
+                    <Text style={[s.tableCell, { flex: 1, color: severityColor(t.priority), fontWeight: 'bold' }]}>{prioLabel}</Text>
+                  </View>
+                )
+              })}
+            </View>
+          </>
+        )}
 
-          <View style={styles.card}>
-            <Text style={styles.body}>
-              Presupuesto estimado: ${advancedChanges.totalEstimatedCost.min.toLocaleString()} -
-              ${advancedChanges.totalEstimatedCost.max.toLocaleString()} {advancedChanges.totalEstimatedCost.currency}
-            </Text>
-          </View>
-
-          <View style={styles.footer}>
-            <Text>Página 7 • Para resultados profesionales</Text>
-          </View>
-        </Page>
-      )}
-
-      {/* Action Plan */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[PLAN DE ACCIÓN]</Text>
-
-        <Text style={styles.heading}>SEMANA 1 - QUICK WINS</Text>
-        <View style={styles.card}>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[1]</Text>
-            <Text style={styles.body}>Optimizar posición de escucha (38% de profundidad)</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[2]</Text>
-            <Text style={styles.body}>Añadir alfombras gruesas en centro de sala</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[3]</Text>
-            <Text style={styles.body}>Reorganizar muebles para difusión</Text>
-          </View>
-        </View>
-
-        <Text style={styles.heading}>MES 1-3 - MEJORAS GRADUALES</Text>
-        <View style={styles.card}>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[4]</Text>
-            <Text style={styles.body}>Instalar paneles absorbentes en primeros reflejos</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[5]</Text>
-            <Text style={styles.body}>Agregar trampas de graves en esquinas</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[6]</Text>
-            <Text style={styles.body}>Cortinas gruesas en ventanas</Text>
-          </View>
-        </View>
-
-        <Text style={styles.heading}>6+ MESES - OPTIMIZACIÓN FINAL</Text>
-        <View style={styles.card}>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[7]</Text>
-            <Text style={styles.body}>Tratamiento completo first reflection points</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[8]</Text>
-            <Text style={styles.body}>Difusores en pared trasera</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>[9]</Text>
-            <Text style={styles.body}>Medición con micrófono profesional</Text>
-          </View>
-        </View>
-
-        <View style={styles.footer}>
-          <Text>Página 8 • Implementación gradual recomendada</Text>
-        </View>
+        <Footer page={4} total={totalPages} label={l.generatedWith} />
       </Page>
 
-      {/* Final Page */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionHeader}>[DISCLAIMER & RECURSOS]</Text>
-
-        <View style={styles.card}>
-          <Text style={styles.heading}>IMPORTANTE</Text>
-          <Text style={styles.body}>
-            Este análisis es una estimación basada en cálculos acústicos estándar.
-            Para resultados profesionales, se recomienda realizar mediciones con equipamiento
-            especializado (micrófono de medición + software REW).
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.heading}>RECURSOS RECOMENDADOS</Text>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.body}>REW (Room EQ Wizard) - Software gratuito de medición</Text>
+      {/* ═══ PAGE 5: FREE CHANGES + LOW BUDGET PRODUCTS ═══ */}
+      <Page size="A4" style={s.page}>
+        {/* Free changes */}
+        <Text style={s.sectionTitle}>{l.freeChanges}</Text>
+        <Text style={[s.body, { marginBottom: 8 }]}>{l.freeChangesDesc}</Text>
+        {freeChanges.items.map((item, idx) => (
+          <View key={idx} style={s.listItem}>
+            <Text style={s.bullet}>{idx + 1}.</Text>
+            <Text style={s.body}>{item}</Text>
           </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.body}>Micrófono UMIK-1 - Medición calibrada económica</Text>
+        ))}
+
+        {/* Low budget products */}
+        <Text style={[s.sectionTitle, { marginTop: 16 }]}>{l.recommendedProducts}</Text>
+        <Text style={[s.small, { marginBottom: 4 }]}>{lowBudgetChanges.title}</Text>
+        <ProductTableSection items={lowBudgetChanges.items} currency={currency} l={l} />
+
+        <View style={[s.card, { marginTop: 8 }]}>
+          <Text style={s.bodyBold}>
+            {l.estimatedBudget}: {formatPrice(lowBudgetChanges.totalEstimatedCost.min, currency)} - {formatPrice(lowBudgetChanges.totalEstimatedCost.max, currency)}
+          </Text>
+          <Text style={[s.small, { marginTop: 2 }]}>{l.clickProducts}</Text>
+        </View>
+
+        <Footer page={5} total={totalPages} label={l.generatedWith} />
+      </Page>
+
+      {/* ═══ PAGE 6: ADVANCED PRODUCTS + ACTION PLAN ═══ */}
+      <Page size="A4" style={s.page}>
+        {hasAdvanced && (
+          <>
+            <Text style={s.sectionTitle}>{l.advancedTreatment}</Text>
+            <Text style={[s.small, { marginBottom: 4 }]}>{advancedChanges.title}</Text>
+            <ProductTableSection items={advancedChanges.items} currency={currency} l={l} />
+
+            <View style={[s.card, { marginTop: 8 }]}>
+              <Text style={s.bodyBold}>
+                {l.estimatedBudget}: {formatPrice(advancedChanges.totalEstimatedCost.min, currency)} - {formatPrice(advancedChanges.totalEstimatedCost.max, currency)}
+              </Text>
+            </View>
+          </>
+        )}
+
+        {/* Action plan */}
+        <Text style={[s.sectionTitle, { marginTop: hasAdvanced ? 14 : 0 }]}>{l.actionPlan}</Text>
+
+        <Text style={s.subTitle}>{l.week1}</Text>
+        <View style={s.card}>
+          {freeChanges.items.slice(0, 3).map((item, idx) => (
+            <View key={idx} style={s.listItem}>
+              <Text style={s.bullet}>{idx + 1}.</Text>
+              <Text style={s.body}>{item}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={s.subTitle}>{l.month1}</Text>
+        <View style={s.card}>
+          {lowBudgetChanges.items.slice(0, 3).map((item, idx) => (
+            <View key={idx} style={s.listItem}>
+              <Text style={s.bullet}>{idx + 4}.</Text>
+              <Text style={s.body}>{item.product} — {item.placement}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={s.subTitle}>{l.month6}</Text>
+        <View style={s.card}>
+          {(hasAdvanced ? advancedChanges.items.slice(0, 3) : lowBudgetChanges.items.slice(3, 6)).map((item, idx) => (
+            <View key={idx} style={s.listItem}>
+              <Text style={s.bullet}>{idx + 7}.</Text>
+              <Text style={s.body}>{item.product} — {item.placement}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Footer page={6} total={totalPages} label={l.generatedWith} />
+      </Page>
+
+      {/* ═══ PAGE 7: DISCLAIMER ═══ */}
+      <Page size="A4" style={s.page}>
+        <Text style={s.sectionTitle}>{l.disclaimer}</Text>
+
+        <View style={s.card}>
+          <Text style={s.bodyBold}>{l.disclaimerTitle}</Text>
+          <Text style={[s.body, { marginTop: 4 }]}>{l.disclaimerText}</Text>
+        </View>
+
+        <Text style={[s.subTitle, { marginTop: 8 }]}>{l.resources}</Text>
+        <View style={s.card}>
+          <View style={s.listItem}>
+            <Text style={s.bullet}>1.</Text>
+            <Text style={s.body}>REW (Room EQ Wizard) — {isEN ? 'Free measurement software' : 'Software gratuito de medicion'}</Text>
           </View>
-          <View style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.body}>MercadoLibre Argentina - Productos acústicos locales</Text>
+          <View style={s.listItem}>
+            <Text style={s.bullet}>2.</Text>
+            <Text style={s.body}>UMIK-1 — {isEN ? 'Affordable calibrated microphone' : 'Microfono calibrado economico'}</Text>
+          </View>
+          <View style={s.listItem}>
+            <Text style={s.bullet}>3.</Text>
+            <Text style={s.body}>{isEN ? 'Amazon — Acoustic products' : 'MercadoLibre Argentina — Productos acusticos locales'}</Text>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.heading}>PRÓXIMOS PASOS</Text>
-          <Text style={styles.body}>
-            1. Comenzá con los cambios gratuitos{'\n'}
-            2. Comprá productos de forma gradual{'\n'}
-            3. Implementá cambios y escuchá los resultados{'\n'}
-            4. Ajustá según necesites{'\n'}
-            5. Considerá medición profesional para fine-tuning
+        <Text style={[s.subTitle, { marginTop: 8 }]}>{l.nextSteps}</Text>
+        <View style={s.card}>
+          {l.nextStepsList.map((step, idx) => (
+            <View key={idx} style={s.listItem}>
+              <Text style={s.bullet}>{idx + 1}.</Text>
+              <Text style={s.body}>{step}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ marginTop: 30, alignItems: 'center' }}>
+          <Text style={[s.body, { textAlign: 'center', color: c.accent }]}>
+            roomtuner.app
+          </Text>
+          <Text style={[s.small, { textAlign: 'center', marginTop: 4 }]}>
+            {l.madeWith} — {l.endOfReport}
           </Text>
         </View>
 
-        <View style={{ marginTop: 40, alignItems: 'center' }}>
-          <Text style={[styles.body, { textAlign: 'center', color: colors.primary }]}>
-            ¿Preguntas o feedback?
-          </Text>
-          <Text style={[styles.small, { textAlign: 'center', marginTop: 8 }]}>
-            roomtuner.app • Hecho con ❤️ en Argentina
-          </Text>
-        </View>
-
-        <View style={styles.footer}>
-          <Text>Fin del reporte • RoomTuner MVP v1.0</Text>
-        </View>
+        <Footer page={totalPages} total={totalPages} label={l.generatedWith} />
       </Page>
     </Document>
   )

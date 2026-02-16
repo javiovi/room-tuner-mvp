@@ -14,9 +14,10 @@ export const maxDuration = 60 // 60 seconds max execution
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { project, analysis } = body as {
+    const { project, analysis, locale = "es" } = body as {
       project: RoomProject
       analysis: EnhancedAnalysisResponse
+      locale?: string
     }
 
     // Validate required data
@@ -31,11 +32,11 @@ export async function POST(req: Request) {
 
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0]
-    const filename = `roomtuner-reporte-${timestamp}.pdf`
+    const filename = `roomtuner-${locale === "en" ? "report" : "reporte"}-${timestamp}.pdf`
 
     // Render PDF document using renderToBuffer (better for serverless)
     const buffer = await renderToBuffer(
-      ReportPDFDocument({ project, analysis })
+      ReportPDFDocument({ project, analysis, locale })
     )
 
     console.log('[PDF] PDF generated successfully, size:', buffer.length, 'bytes')

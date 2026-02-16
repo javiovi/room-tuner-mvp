@@ -154,9 +154,10 @@ export async function enrichProductWithRealPrice(
     }
   }
 
-  // Fallback to database prices
+  // Fallback to database prices, use linkML as fallback link for ES
   return {
     ...product,
+    link: product.linkML || product.link,
     priceSource: 'database',
   }
 }

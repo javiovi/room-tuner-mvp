@@ -17,10 +17,11 @@ export default function AnalizandoPage() {
   useEffect(() => {
     const run = async () => {
       try {
+        const locale = localStorage.getItem("locale") || "es"
         const res = await fetch("/api/analyze-room", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(project),
+          body: JSON.stringify({ ...project, locale }),
         })
 
         const data = await res.json()

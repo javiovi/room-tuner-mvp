@@ -63,6 +63,7 @@ export default function ResultadoPage() {
         body: JSON.stringify({
           project,
           analysis,
+          locale: localStorage.getItem("locale") || "es",
         }),
       })
 
@@ -74,7 +75,8 @@ export default function ResultadoPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `roomtuner-reporte-${new Date().toISOString().split('T')[0]}.pdf`
+      const loc = localStorage.getItem("locale") || "es"
+      a.download = `roomtuner-${loc === "en" ? "report" : "reporte"}-${new Date().toISOString().split('T')[0]}.pdf`
       document.body.appendChild(a)
       a.click()
 
@@ -258,7 +260,6 @@ export default function ResultadoPage() {
           <BudgetCalculator
             lowBudgetProducts={lowBudgetChanges.items}
             advancedProducts={advancedChanges.items}
-            currency="ARS"
           />
         </div>
       ),

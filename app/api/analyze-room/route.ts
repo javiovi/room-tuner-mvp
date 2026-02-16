@@ -28,7 +28,9 @@ export async function POST(req: Request) {
   const startTime = Date.now()
 
   try {
-    const project = (await req.json()) as RoomProject
+    const body = await req.json()
+    const locale = body.locale || "es"
+    const project = body as RoomProject
     const supabase = createServerClient()
 
     // Validate required fields
@@ -92,18 +94,18 @@ export async function POST(req: Request) {
           if (data.roomMetrics) {
             analysis = data
           } else {
-            analysis = await generateLocalAnalysis(project)
+            analysis = await generateLocalAnalysis(project, locale)
           }
         } else {
-          analysis = await generateLocalAnalysis(project)
+          analysis = await generateLocalAnalysis(project, locale)
         }
       } catch (n8nError) {
         console.warn("N8N webhook failed, using local analysis:", n8nError)
-        analysis = await generateLocalAnalysis(project)
+        analysis = await generateLocalAnalysis(project, locale)
       }
     } else {
       // Generate comprehensive analysis locally
-      analysis = await generateLocalAnalysis(project)
+      analysis = await generateLocalAnalysis(project, locale)
     }
 
     const calculationTime = Date.now() - startTime
@@ -165,7 +167,9 @@ export async function POST(req: Request) {
 /**
  * Generate comprehensive analysis using local calculations
  */
-async function generateLocalAnalysis(project: RoomProject): Promise<EnhancedAnalysisResponse> {
+async function generateLocalAnalysis(project: RoomProject, locale: string = "es"): Promise<EnhancedAnalysisResponse> {
+  const currency: "USD" | "ARS" = locale === "en" ? "USD" : "ARS"
+  const isES = locale !== "en"
   const { lengthM = 0, widthM = 0, heightM = 0, goal } = project
 
   // === STEP 1: Calculate room metrics ===
@@ -217,25 +221,28 @@ async function generateLocalAnalysis(project: RoomProject): Promise<EnhancedAnal
     "low"
   )
 
-  // Enrich some products with real ML prices (limit to 4 to keep analysis fast)
+  // Enrich products with real ML prices only for Spanish locale
   const productsToEnrich = lowBudgetRecs
     .slice(0, 4)
     .map(r => getProductById(r.productId))
     .filter(Boolean) as any[]
 
-  const enrichedProducts = await enrichProductsWithRealPrices(productsToEnrich, {
-    useServer: true,
-    batchSize: 2,
-    delay: 300
-  }).catch(err => {
-    console.warn('[Analysis] Failed to enrich products with real prices:', err)
-    return productsToEnrich // Fallback to database prices
-  })
+  let enrichedProducts = productsToEnrich
+  if (isES) {
+    enrichedProducts = await enrichProductsWithRealPrices(productsToEnrich, {
+      useServer: true,
+      batchSize: 2,
+      delay: 300
+    }).catch(err => {
+      console.warn('[Analysis] Failed to enrich products with real prices:', err)
+      return productsToEnrich
+    })
+  }
 
-  const lowBudgetProducts = convertToProductRecommendations(lowBudgetRecs, "ARS", enrichedProducts)
+  const lowBudgetProducts = convertToProductRecommendations(lowBudgetRecs, currency, isES, isES ? enrichedProducts : undefined)
   const lowBudgetCost = calculateTreatmentCost(
     lowBudgetRecs.map((r) => ({ id: r.productId, quantity: r.quantity })),
-    "ARS"
+    currency
   )
 
   // Advanced recommendations
@@ -245,10 +252,10 @@ async function generateLocalAnalysis(project: RoomProject): Promise<EnhancedAnal
     roomCharacter,
     "advanced"
   )
-  const advancedProducts = convertToProductRecommendations(advancedRecs, "USD")
+  const advancedProducts = convertToProductRecommendations(advancedRecs, currency, isES)
   const advancedCost = calculateTreatmentCost(
     advancedRecs.map((r) => ({ id: r.productId, quantity: r.quantity })),
-    "USD"
+    currency
   )
 
   // === STEP 9: Generate summary ===
@@ -299,26 +306,26 @@ async function generateLocalAnalysis(project: RoomProject): Promise<EnhancedAnal
     frequencyResponse,
 
     freeChanges: {
-      title: "Cambios sin gastar dinero",
+      title: isES ? "Cambios sin gastar dinero" : "Free changes (no cost)",
       items: freeRecommendations,
     },
 
     lowBudgetChanges: {
-      title: "Mejoras con bajo presupuesto (ARS $50k-150k)",
+      title: isES ? "Mejoras con bajo presupuesto" : "Low budget improvements",
       totalEstimatedCost: {
         min: Math.round(lowBudgetCost * 0.7),
         max: Math.round(lowBudgetCost * 1.2),
-        currency: "ARS",
+        currency,
       },
       items: lowBudgetProducts,
     },
 
     advancedChanges: {
-      title: "Soluciones avanzadas (USD $500-2000)",
+      title: isES ? "Soluciones avanzadas" : "Advanced solutions",
       totalEstimatedCost: {
         min: Math.round(advancedCost * 0.8),
         max: Math.round(advancedCost * 1.3),
-        currency: "USD",
+        currency,
       },
       items: advancedProducts,
     },
@@ -393,15 +400,16 @@ function generateFreeRecommendations(
 
 /**
  * Convert product recommendations to full product objects
- * Optionally use enriched products with real ML prices
+ * Uses locale to determine currency, links, and price enrichment
  */
 function convertToProductRecommendations(
   recommendations: ReturnType<typeof generateProductRecommendations>,
   currency: "USD" | "ARS",
+  isES: boolean,
   enrichedProducts?: any[]
 ): ProductRecommendation[] {
   return recommendations.map((rec) => {
-    // Try to find enriched product first
+    // Try to find enriched product first (only for ES/ML)
     const enriched = enrichedProducts?.find(p => p.id === rec.productId)
     const product = enriched || getProductById(rec.productId)
 
@@ -409,9 +417,13 @@ function convertToProductRecommendations(
       throw new Error(`Product not found: ${rec.productId}`)
     }
 
-    // Use real price if available from ML, otherwise use database price
     const unitPrice = currency === "USD" ? product.priceUSD : product.priceARS
     const totalPrice = unitPrice * rec.quantity
+
+    // ES: use ML link (enriched or fallback), EN: use Amazon/manufacturer link
+    const productLink = isES
+      ? (product.link || product.linkML || '')
+      : (getProductById(rec.productId)?.link || product.link || '')
 
     return {
       productId: rec.productId,
@@ -422,7 +434,7 @@ function convertToProductRecommendations(
       totalPrice,
       currency,
       supplier: product.supplier,
-      link: product.link,
+      link: productLink,
       placement: rec.placement,
       impactLevel: rec.priority,
       installation: product.installation,
