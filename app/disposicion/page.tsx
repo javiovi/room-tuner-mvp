@@ -9,10 +9,12 @@ import { ChevronLeft } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { useRoomStore } from "@/lib/roomStore"
+import { useT } from "@/lib/i18n"
 
 export default function DisposicionPage() {
   const router = useRouter()
   const updateProject = useRoomStore((s) => s.updateProject)
+  const { t } = useT()
   const [formData, setFormData] = useState({
     ubicacionEquipo: "",
     dondeSientas: "",
@@ -37,6 +39,22 @@ export default function DisposicionPage() {
     router.push("/muebles")
   }
 
+  const speakerOptions = [
+    { value: "pared-larga-centrado", label: t.disposicion.longWall, desc: t.disposicion.longWallDesc },
+    { value: "pared-corta-centrado", label: t.disposicion.shortWall, desc: t.disposicion.shortWallDesc },
+    { value: "esquina", label: t.disposicion.corner, desc: t.disposicion.cornerDesc },
+    { value: "pared-lateral", label: t.disposicion.sideWall, desc: t.disposicion.sideWallDesc },
+    { value: "indefinido", label: t.disposicion.undecided, desc: t.disposicion.undecidedDesc },
+  ]
+
+  const listeningOptions = [
+    { value: "centro-sala", label: t.disposicion.centerRoom, desc: t.disposicion.centerRoomDesc },
+    { value: "escritorio-pared", label: t.disposicion.deskWall, desc: t.disposicion.deskWallDesc },
+    { value: "sillon-pared-posterior", label: t.disposicion.sofaBack, desc: t.disposicion.sofaBackDesc },
+    { value: "esquina", label: t.disposicion.cornerListen, desc: t.disposicion.cornerListenDesc },
+    { value: "variable", label: t.disposicion.variable, desc: t.disposicion.variableDesc },
+  ]
+
   return (
     <CenteredLayout>
       <Link
@@ -44,27 +62,21 @@ export default function DisposicionPage() {
         className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
       >
         <ChevronLeft className="w-4 h-4" />
-        Volver
+        {t.common.back}
       </Link>
 
       <div className="space-y-3">
-        <h1 className="text-base md:text-lg font-semibold text-foreground">Dónde está tu equipo?</h1>
-        <p className="text-xs md:text-sm text-muted-foreground">Elegí la opción que más se parezca</p>
+        <h1 className="text-base md:text-lg font-semibold text-foreground leading-snug">{t.disposicion.title}</h1>
+        <p className="text-xs md:text-sm text-muted-foreground">{t.disposicion.subtitle}</p>
       </div>
 
       <form className="space-y-8" onSubmit={handleContinue}>
         <div className="space-y-4">
           <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
-            Ubicación del equipo de sonido / parlantes
+            {t.disposicion.speakerTitle}
           </h2>
           <div className="space-y-2">
-            {[
-              { value: "pared-larga-centrado", label: "Centrado en pared larga", desc: "Mejor balance stereo" },
-              { value: "pared-corta-centrado", label: "Centrado en pared corta", desc: "Más profundidad sonora" },
-              { value: "esquina", label: "En una esquina", desc: "Maximiza graves (puede causar problemas)" },
-              { value: "pared-lateral", label: "Sobre pared lateral", desc: "Setup no convencional" },
-              { value: "indefinido", label: "Todavía no lo definí", desc: "Te sugeriremos la mejor opción" },
-            ].map((option) => (
+            {speakerOptions.map((option) => (
               <label
                 key={option.value}
                 className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition-all touch-manipulation ${
@@ -97,34 +109,16 @@ export default function DisposicionPage() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Tip: La pared larga es generalmente la mejor opción para distribución stereo balanceada.
+            {t.common.tip} {t.disposicion.speakerTip}
           </p>
         </div>
 
         <div className="space-y-4">
           <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
-            Dónde te sentás normalmente para escuchar
+            {t.disposicion.listeningTitle}
           </h2>
           <div className="space-y-2">
-            {[
-              { value: "centro-sala", label: "Cerca del centro del espacio", desc: "Óptimo - menor influencia de paredes" },
-              {
-                value: "escritorio-pared",
-                label: "En escritorio contra la pared",
-                desc: "Común en home studios - puede necesitar tratamiento",
-              },
-              {
-                value: "sillon-pared-posterior",
-                label: "Sillón/sofá pegado a pared posterior",
-                desc: "Puede generar reflexiones tempranas",
-              },
-              { value: "esquina", label: "En una esquina", desc: "Aumenta graves - no ideal" },
-              {
-                value: "variable",
-                label: "Voy cambiando de posición",
-                desc: "Dificulta optimización - recomendamos punto fijo",
-              },
-            ].map((option) => (
+            {listeningOptions.map((option) => (
               <label
                 key={option.value}
                 className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition-all touch-manipulation ${
@@ -158,13 +152,12 @@ export default function DisposicionPage() {
 
           <div className="p-3 bg-muted rounded-xl">
             <p className="text-xs text-muted-foreground">
-              <span className="text-foreground font-medium">Info:</span> El punto de escucha ideal forma un triángulo equilátero con
-              los parlantes. Evitá paredes cercanas a tu espalda.
+              <span className="text-foreground font-medium">{t.common.info}</span> {t.disposicion.listeningInfo}
             </p>
           </div>
         </div>
 
-        <PrimaryButton type="submit">Continuar</PrimaryButton>
+        <PrimaryButton type="submit">{t.common.next}</PrimaryButton>
       </form>
     </CenteredLayout>
   )

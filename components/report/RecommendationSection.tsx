@@ -2,6 +2,7 @@
 
 import type { RecommendationBlock } from "@/app/types/room"
 import { Check } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 interface RecommendationSectionProps {
   recommendations: RecommendationBlock
@@ -14,6 +15,7 @@ export function RecommendationSection({
   icon = "check",
 }: RecommendationSectionProps) {
   const { title, items } = recommendations
+  const { t } = useT()
 
   if (!items || items.length === 0) {
     return null
@@ -42,7 +44,7 @@ export function RecommendationSection({
 
       <div className="mt-4 p-3 bg-muted rounded-xl">
         <p className="text-xs text-muted-foreground">
-          <span className="text-foreground font-medium">Tip:</span> Implementá estos cambios de forma progresiva y medí el impacto antes de hacer más ajustes.
+          <span className="text-foreground font-medium">{t.report.recommendations.tipLabel}</span> {t.report.recommendations.tipText}
         </p>
       </div>
     </div>

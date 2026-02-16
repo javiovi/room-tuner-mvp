@@ -4,13 +4,24 @@ import { useState } from "react"
 import { useTheme } from "next-themes"
 import { DndContext, DragEndEvent, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
+import { Plus, X } from "lucide-react"
 import type { RoomDiagram as RoomDiagramType } from "@/app/types/room"
+import { useT } from "@/lib/i18n"
+
+type FurnitureItem = {
+  type: string
+  x: number
+  y: number
+  width: number
+  length: number
+}
 
 interface InteractiveRoomDiagramProps {
   diagram: RoomDiagramType
   onPositionsChange?: (positions: {
     speakers: { x: number; y: number }[]
     listeningPosition: { x: number; y: number }
+    furnitureLayout?: FurnitureItem[]
   }) => void
 }
 
@@ -38,11 +49,13 @@ function DraggableItem({ id, x, y, children }: DraggableItemProps) {
 export function InteractiveRoomDiagram({ diagram, onPositionsChange }: InteractiveRoomDiagramProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const { t } = useT()
   const { floorPlan, treatmentPlan } = diagram
   const { width, length } = floorPlan
 
   const [speakerPositions, setSpeakerPositions] = useState(floorPlan.speakerPositions)
   const [listeningPosition, setListeningPosition] = useState(floorPlan.listeningPosition)
+  const [furniture, setFurniture] = useState<FurnitureItem[]>(floorPlan.furnitureLayout ?? [])
 
   const padding = 40
   const scale = 50
@@ -59,8 +72,16 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
     roomStroke: isDark ? "#48484A" : "#C7C7CC",
     grid: isDark ? "#3A3A3C" : "#E5E5EA",
     dimText: isDark ? "#98989D" : "#8E8E93",
-    primary: isDark ? "#FF9F0A" : "#FF9500",
-    listening: isDark ? "#FFD60A" : "#FFCC00",
+    primary: isDark ? "#BF5AF2" : "#AF52DE",
+    listening: isDark ? "#64D2FF" : "#32ADE6",
+  }
+
+  const notifyChange = (
+    speakers: { x: number; y: number }[],
+    listening: { x: number; y: number },
+    furn: FurnitureItem[]
+  ) => {
+    onPositionsChange?.({ speakers, listeningPosition: listening, furnitureLayout: furn })
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -70,18 +91,63 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
       const newPos = { x: toNormalizedX(toSvgX(speakerPositions[0].x) + delta.x), y: toNormalizedY(toSvgY(speakerPositions[0].y) + delta.y) }
       const newSpeakers = [newPos, speakerPositions[1]]
       setSpeakerPositions(newSpeakers)
-      onPositionsChange?.({ speakers: newSpeakers, listeningPosition })
+      notifyChange(newSpeakers, listeningPosition, furniture)
     } else if (id === "speaker-right") {
       const newPos = { x: toNormalizedX(toSvgX(speakerPositions[1].x) + delta.x), y: toNormalizedY(toSvgY(speakerPositions[1].y) + delta.y) }
       const newSpeakers = [speakerPositions[0], newPos]
       setSpeakerPositions(newSpeakers)
-      onPositionsChange?.({ speakers: newSpeakers, listeningPosition })
+      notifyChange(newSpeakers, listeningPosition, furniture)
     } else if (id === "listening-position") {
       const newPos = { x: toNormalizedX(toSvgX(listeningPosition.x) + delta.x), y: toNormalizedY(toSvgY(listeningPosition.y) + delta.y) }
       setListeningPosition(newPos)
-      onPositionsChange?.({ speakers: speakerPositions, listeningPosition: newPos })
+      notifyChange(speakerPositions, newPos, furniture)
+    } else if (id.startsWith("furniture-")) {
+      const idx = parseInt(id.replace("furniture-", ""), 10)
+      const item = furniture[idx]
+      if (!item) return
+      const newPos = {
+        ...item,
+        x: toNormalizedX(toSvgX(item.x) + delta.x),
+        y: toNormalizedY(toSvgY(item.y) + delta.y),
+      }
+      const newFurniture = [...furniture]
+      newFurniture[idx] = newPos
+      setFurniture(newFurniture)
+      notifyChange(speakerPositions, listeningPosition, newFurniture)
     }
   }
+
+  const addFurniture = (type: string) => {
+    const defaults: Record<string, { width: number; length: number }> = {
+      sofa: { width: 0.35, length: 0.15 },
+      silla: { width: 0.08, length: 0.08 },
+      puff: { width: 0.10, length: 0.10 },
+      estanteria: { width: 0.30, length: 0.06 },
+      armario: { width: 0.20, length: 0.10 },
+      cajonera: { width: 0.12, length: 0.08 },
+      escritorio: { width: 0.25, length: 0.12 },
+      mesa: { width: 0.20, length: 0.20 },
+      rack: { width: 0.25, length: 0.06 },
+      cama: { width: 0.30, length: 0.40 },
+      plantas: { width: 0.06, length: 0.06 },
+      instrumentos: { width: 0.10, length: 0.10 },
+      alfombra: { width: 0.40, length: 0.30 },
+    }
+    const size = defaults[type] ?? { width: 0.15, length: 0.15 }
+    const newItem: FurnitureItem = { type, x: 0.5, y: 0.5, ...size }
+    const newFurniture = [...furniture, newItem]
+    setFurniture(newFurniture)
+    notifyChange(speakerPositions, listeningPosition, newFurniture)
+  }
+
+  const removeFurniture = (idx: number) => {
+    const newFurniture = furniture.filter((_, i) => i !== idx)
+    setFurniture(newFurniture)
+    notifyChange(speakerPositions, listeningPosition, newFurniture)
+  }
+
+  const furnitureColor = isDark ? "#636366" : "#AEAEB2"
+  const furnitureLabels = t.report.furniture
 
   const treatmentColors = { absorber: svgColors.primary, diffuser: svgColors.listening, bass_trap: isDark ? "#FF453A" : "#FF3B30" }
   const priorityOpacity = { high: 1, medium: 0.7, low: 0.4 }
@@ -90,10 +156,10 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Diagrama interactivo - Vista superior</h2>
-          <p className="text-xs text-muted-foreground mt-1">Arrastrá los parlantes y el punto de escucha para optimizar tu setup</p>
+          <h2 className="text-sm font-semibold text-foreground">{t.report.diagram.interactiveTitle}</h2>
+          <p className="text-xs text-muted-foreground mt-1">{t.report.diagram.interactiveDesc}</p>
         </div>
-        <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex-shrink-0">Editable</span>
+        <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex-shrink-0">{t.report.diagram.editableBadge}</span>
       </div>
 
       <DndContext onDragEnd={handleDragEnd}>
@@ -110,6 +176,21 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
             </g>
             <text x={padding + (width * scale) / 2} y={padding - 10} textAnchor="middle" fill={svgColors.dimText} fontSize="12" fontFamily="monospace">{width.toFixed(1)}m</text>
             <text x={padding - 10} y={padding + (length * scale) / 2} textAnchor="middle" fill={svgColors.dimText} fontSize="12" fontFamily="monospace" transform={`rotate(-90, ${padding - 10}, ${padding + (length * scale) / 2})`}>{length.toFixed(1)}m</text>
+
+            {/* Furniture (draggable) */}
+            {furniture.map((item, idx) => {
+              const fw = item.width * width * scale
+              const fh = item.length * length * scale
+              const fx = toSvgX(item.x) - fw / 2
+              const fy = toSvgY(item.y) - fh / 2
+              return (
+                <DraggableItem key={`furniture-${idx}`} id={`furniture-${idx}`} x={toSvgX(item.x)} y={toSvgY(item.y)}>
+                  <rect x={fx} y={fy} width={fw} height={fh} fill={furnitureColor} fillOpacity={0.18} stroke={furnitureColor} strokeWidth="1.5" strokeDasharray="3 2" rx={3} />
+                  <text x={fx + fw / 2} y={fy + fh / 2 + 4} textAnchor="middle" fill={svgColors.dimText} fontSize="9" pointerEvents="none">{furnitureLabels[item.type as keyof typeof furnitureLabels] || item.type}</text>
+                  <circle cx={toSvgX(item.x)} cy={toSvgY(item.y)} r={Math.max(fw, fh) / 2 + 4} fill="transparent" />
+                </DraggableItem>
+              )
+            })}
 
             {treatmentPlan.map((treatment, idx) => {
               const x = toSvgX(treatment.position.x), y = toSvgY(treatment.position.y)
@@ -149,20 +230,57 @@ export function InteractiveRoomDiagram({ diagram, onPositionsChange }: Interacti
         </div>
       </DndContext>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-3 border-t border-border text-xs">
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-sm"></div><span className="text-muted-foreground">Parlantes (L/R)</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-yellow-400 rounded-full"></div><span className="text-muted-foreground">Punto escucha</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-muted-foreground">B: Bass Trap</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-muted-foreground">A: Absorber</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-yellow-400 rounded-full"></div><span className="text-muted-foreground">D: Diffuser</span></div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-3 border-t border-border text-xs">
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-sm"></div><span className="text-muted-foreground">{t.report.diagram.speakers}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.listeningPoint}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 border border-muted-foreground/50 rounded-sm border-dashed"></div><span className="text-muted-foreground">{t.report.diagram.furnitureLegend}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.bassTrap}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.absorber}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.diffuser}</span></div>
+      </div>
+
+      {/* Furniture panel */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-foreground">{t.report.diagram.furnitureTitle}</h3>
+
+        {/* Current furniture list */}
+        {furniture.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {furniture.map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => removeFurniture(idx)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted text-xs text-foreground hover:bg-destructive/10 hover:text-destructive transition-colors group"
+              >
+                {furnitureLabels[item.type as keyof typeof furnitureLabels] || item.type}
+                <X className="w-3 h-3 opacity-50 group-hover:opacity-100" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Add furniture buttons */}
+        <div className="flex flex-wrap gap-1.5">
+          {Object.entries(furnitureLabels).map(([type, label]) => (
+            <button
+              key={type}
+              onClick={() => addFurniture(type)}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground space-y-1">
-        <p><span className="text-foreground font-medium">Cómo usar el diagrama:</span></p>
+        <p><span className="text-foreground font-medium">{t.report.diagram.howToTitle}</span></p>
         <ul className="list-disc list-inside space-y-0.5 ml-2">
-          <li>Arrastrá los parlantes (L/R) para cambiar su posición</li>
-          <li>Mové el punto de escucha donde te sentás</li>
-          <li>El triángulo equilátero es la configuración ideal de stereo</li>
+          <li>{t.report.diagram.howTo1}</li>
+          <li>{t.report.diagram.howTo2}</li>
+          <li>{t.report.diagram.howTo3}</li>
+          <li>{t.report.diagram.howTo4}</li>
         </ul>
       </div>
     </div>

@@ -10,10 +10,12 @@ import { ChevronLeft } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { useRoomStore } from "@/lib/roomStore"
+import { useT } from "@/lib/i18n"
 
 export default function EspacioPage() {
   const router = useRouter()
   const updateProject = useRoomStore((s) => s.updateProject)
+  const { t } = useT()
   const [formData, setFormData] = useState({
     largo: "",
     ancho: "",
@@ -51,15 +53,15 @@ export default function EspacioPage() {
         className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
       >
         <ChevronLeft className="w-4 h-4" />
-        Volver
+        {t.common.back}
       </Link>
 
       <div className="space-y-3">
-        <h1 className="text-base md:text-lg font-semibold text-foreground">
-          Contanos sobre tu espacio
+        <h1 className="text-base md:text-lg font-semibold text-foreground leading-snug">
+          {t.espacio.title}
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground">
-          No hace falta que las medidas sean perfectas
+          {t.espacio.subtitle}
         </p>
       </div>
 
@@ -67,13 +69,13 @@ export default function EspacioPage() {
         {/* Dimensiones */}
         <div className="space-y-3">
           <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
-            Dimensiones
+            {t.espacio.dimensions}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label htmlFor="largo" className="block text-xs font-medium text-foreground mb-2">
-                Largo (m)
+                {t.espacio.length}
               </label>
               <input
                 type="number"
@@ -82,14 +84,14 @@ export default function EspacioPage() {
                 name="largo"
                 value={formData.largo}
                 onChange={handleChange}
-                placeholder="ej: 5"
+                placeholder={t.espacio.lengthPlaceholder}
                 className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
 
             <div>
               <label htmlFor="ancho" className="block text-xs font-medium text-foreground mb-2">
-                Ancho (m)
+                {t.espacio.width}
               </label>
               <input
                 type="number"
@@ -98,14 +100,14 @@ export default function EspacioPage() {
                 name="ancho"
                 value={formData.ancho}
                 onChange={handleChange}
-                placeholder="ej: 4"
+                placeholder={t.espacio.widthPlaceholder}
                 className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
 
             <div>
               <label htmlFor="altura" className="block text-xs font-medium text-foreground mb-2">
-                Altura (m)
+                {t.espacio.height}
               </label>
               <input
                 type="number"
@@ -114,26 +116,26 @@ export default function EspacioPage() {
                 name="altura"
                 value={formData.altura}
                 onChange={handleChange}
-                placeholder="ej: 2.7"
+                placeholder={t.espacio.heightPlaceholder}
                 className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Tip: Si no tenés las medidas exactas, estimá usando pasos (1 paso ≈ 0.8m)
+            {t.common.tip} {t.espacio.dimensionsTip}
           </p>
         </div>
 
         {/* Materiales */}
         <div className="space-y-3">
           <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
-            Materiales
+            {t.espacio.materials}
           </h2>
 
           <div>
             <label htmlFor="tipoPiso" className="block text-xs font-medium text-foreground mb-2">
-              Tipo de piso
+              {t.espacio.floorType}
             </label>
             <select
               id="tipoPiso"
@@ -142,25 +144,25 @@ export default function EspacioPage() {
               onChange={handleChange}
               className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
             >
-              <option value="">Selecciona una opción</option>
-              <optgroup label="Duros (más reflexivos)">
-                <option value="ceramico">Cerámico / Porcelanato</option>
-                <option value="madera">Madera / Parquet</option>
-                <option value="vinilico">Vinílico / Flotante</option>
-                <option value="concreto">Concreto / Cemento</option>
-                <option value="marmol">Mármol / Piedra</option>
+              <option value="">{t.espacio.selectPlaceholder}</option>
+              <optgroup label={t.espacio.hardFloors}>
+                <option value="ceramico">{t.espacio.ceramic}</option>
+                <option value="madera">{t.espacio.wood}</option>
+                <option value="vinilico">{t.espacio.vinyl}</option>
+                <option value="concreto">{t.espacio.concrete}</option>
+                <option value="marmol">{t.espacio.marble}</option>
               </optgroup>
-              <optgroup label="Blandos (más absorbentes)">
-                <option value="alfombra">Alfombra / Moquette</option>
-                <option value="goma">Goma / Caucho</option>
+              <optgroup label={t.espacio.softFloors}>
+                <option value="alfombra">{t.espacio.carpet}</option>
+                <option value="goma">{t.espacio.rubber}</option>
               </optgroup>
-              <option value="otro">Otro / Mixto</option>
+              <option value="otro">{t.espacio.otherFloor}</option>
             </select>
           </div>
 
           <div>
             <label htmlFor="tipoParedes" className="block text-xs font-medium text-foreground mb-2">
-              Tipo de paredes
+              {t.espacio.wallType}
             </label>
             <select
               id="tipoParedes"
@@ -169,31 +171,30 @@ export default function EspacioPage() {
               onChange={handleChange}
               className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
             >
-              <option value="">Selecciona una opción</option>
-              <optgroup label="Duras (más reflexivas)">
-                <option value="desnudas">Paredes desnudas / Pintadas</option>
-                <option value="vidrio">Con ventanas grandes / Vidrio</option>
-                <option value="ladrillo">Ladrillo a la vista</option>
+              <option value="">{t.espacio.selectPlaceholder}</option>
+              <optgroup label={t.espacio.hardWalls}>
+                <option value="desnudas">{t.espacio.nakedWalls}</option>
+                <option value="vidrio">{t.espacio.windowWalls}</option>
+                <option value="ladrillo">{t.espacio.brickWalls}</option>
               </optgroup>
-              <optgroup label="Con elementos">
-                <option value="cuadros">Con cuadros / Decoración</option>
-                <option value="bibliotecas">Con bibliotecas / Muebles</option>
-                <option value="cortinas">Con cortinas gruesas</option>
-                <option value="paneles_madera">Paneles de madera</option>
+              <optgroup label={t.espacio.withElements}>
+                <option value="cuadros">{t.espacio.framedWalls}</option>
+                <option value="bibliotecas">{t.espacio.libraryWalls}</option>
+                <option value="cortinas">{t.espacio.curtainWalls}</option>
+                <option value="paneles_madera">{t.espacio.panelWalls}</option>
               </optgroup>
-              <option value="mixto">Mixto (combinación)</option>
+              <option value="mixto">{t.espacio.mixedWalls}</option>
             </select>
           </div>
 
           <div className="p-3 bg-muted rounded-xl">
             <p className="text-xs text-muted-foreground">
-              <span className="text-foreground font-medium">Info:</span> Materiales duros reflejan más sonido (espacio más vivo),
-              materiales blandos absorben (espacio más seco).
+              <span className="text-foreground font-medium">{t.common.info}</span> {t.espacio.materialsInfo}
             </p>
           </div>
         </div>
 
-        <PrimaryButton type="submit">Continuar</PrimaryButton>
+        <PrimaryButton type="submit">{t.common.next}</PrimaryButton>
       </form>
     </CenteredLayout>
   )

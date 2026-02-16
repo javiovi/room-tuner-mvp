@@ -1,6 +1,8 @@
 "use client"
 
 import type { EnhancedAnalysisResponse } from "@/app/types/room"
+import { InfoTooltip } from "@/components/InfoTooltip"
+import { useT } from "@/lib/i18n"
 
 interface RoomMetricsCardProps {
   metrics: EnhancedAnalysisResponse["roomMetrics"]
@@ -8,6 +10,8 @@ interface RoomMetricsCardProps {
 }
 
 export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps) {
+  const { t } = useT()
+
   const characterColors = {
     viva: "text-yellow-600 dark:text-yellow-400",
     equilibrada: "text-primary",
@@ -15,39 +19,48 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
   }
 
   const characterLabels = {
-    viva: "Viva (Reverberante)",
-    equilibrada: "Equilibrada",
-    seca: "Seca (Absorbente)",
+    viva: t.report.metrics.characterViva,
+    equilibrada: t.report.metrics.characterEquilibrada,
+    seca: t.report.metrics.characterSeca,
   }
 
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground">Métricas de sala</h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-sm font-semibold text-foreground">{t.report.metrics.title}</h2>
+          <InfoTooltip text={t.tooltips.metricsCard} />
+        </div>
         <span className={`text-xs font-medium ${characterColors[roomCharacter]}`}>
           {characterLabels[roomCharacter]}
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <MetricItem label="Volumen" value={`${metrics.volume.toFixed(1)} m³`} />
-        <MetricItem label="Área de piso" value={`${metrics.floorArea.toFixed(1)} m²`} />
-        <MetricItem label="Área de paredes" value={`${metrics.wallArea.toFixed(1)} m²`} />
-        <MetricItem label="Área total" value={`${metrics.surfaceArea.toFixed(1)} m²`} />
+        <MetricItem label={t.report.metrics.volume} value={`${metrics.volume.toFixed(1)} m³`} />
+        <MetricItem label={t.report.metrics.floorArea} value={`${metrics.floorArea.toFixed(1)} m²`} />
+        <MetricItem label={t.report.metrics.wallArea} value={`${metrics.wallArea.toFixed(1)} m²`} />
+        <MetricItem label={t.report.metrics.surfaceArea} value={`${metrics.surfaceArea.toFixed(1)} m²`} />
       </div>
 
       <div className="border-t border-border pt-3 mt-3 space-y-2">
-        <h3 className="text-xs font-medium text-foreground">Tiempo de Reverberación (RT60)</h3>
+        <div className="flex items-center gap-1.5">
+          <h3 className="text-xs font-medium text-foreground">{t.report.metrics.rt60Title}</h3>
+          <InfoTooltip text={t.tooltips.rt60} />
+        </div>
         <div className="grid grid-cols-3 gap-2">
-          <RT60Badge label="Graves" value={metrics.rt60Estimate.low} />
-          <RT60Badge label="Medios" value={metrics.rt60Estimate.mid} />
-          <RT60Badge label="Agudos" value={metrics.rt60Estimate.high} />
+          <RT60Badge label={t.report.metrics.low} value={metrics.rt60Estimate.low} tooltip={t.tooltips.rt60Low} />
+          <RT60Badge label={t.report.metrics.mid} value={metrics.rt60Estimate.mid} tooltip={t.tooltips.rt60Mid} />
+          <RT60Badge label={t.report.metrics.high} value={metrics.rt60Estimate.high} tooltip={t.tooltips.rt60High} />
         </div>
         <EvaluationBadge evaluation={metrics.rt60Evaluation} />
       </div>
 
       <div className="border-t border-border pt-3 mt-3 space-y-2">
-        <h3 className="text-xs font-medium text-foreground">Proporciones</h3>
+        <div className="flex items-center gap-1.5">
+          <h3 className="text-xs font-medium text-foreground">{t.report.metrics.proportions}</h3>
+          <InfoTooltip text={t.tooltips.proportions} />
+        </div>
         <div className="grid grid-cols-3 gap-2 text-xs">
           {(["lengthWidth", "lengthHeight", "widthHeight"] as const).map((key) => {
             const labels = { lengthWidth: "L:W", lengthHeight: "L:H", widthHeight: "W:H" }
@@ -70,7 +83,10 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
 
       {metrics.roomModes.filter(m => m.severity === "high" && m.frequency < 300).length > 0 && (
         <div className="border-t border-border pt-3 mt-3 space-y-2">
-          <h3 className="text-xs font-medium text-destructive">Modos Problemáticos</h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-xs font-medium text-destructive">{t.report.metrics.problematicModes}</h3>
+            <InfoTooltip text={t.tooltips.problematicModes} />
+          </div>
           <div className="space-y-1">
             {metrics.roomModes
               .filter(m => m.severity === "high" && m.frequency < 300)
@@ -97,7 +113,7 @@ function MetricItem({ label, value }: { label: string; value: string }) {
   )
 }
 
-function RT60Badge({ label, value }: { label: string; value: number }) {
+function RT60Badge({ label, value, tooltip }: { label: string; value: number; tooltip?: string }) {
   const getColor = (rt60: number) => {
     if (rt60 < 0.2) return "text-blue-500 dark:text-blue-400"
     if (rt60 < 0.6) return "text-primary"
@@ -107,7 +123,10 @@ function RT60Badge({ label, value }: { label: string; value: number }) {
 
   return (
     <div className="text-center space-y-1 bg-muted rounded-lg p-2">
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+        {label}
+        {tooltip && <InfoTooltip text={tooltip} />}
+      </div>
       <div className={`text-sm font-semibold font-mono ${getColor(value)}`}>{value.toFixed(2)}s</div>
     </div>
   )

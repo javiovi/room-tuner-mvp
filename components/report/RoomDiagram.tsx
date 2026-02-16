@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes"
 import type { RoomDiagram as RoomDiagramType } from "@/app/types/room"
+import { useT } from "@/lib/i18n"
 
 interface RoomDiagramProps {
   diagram: RoomDiagramType
@@ -10,6 +11,7 @@ interface RoomDiagramProps {
 export function RoomDiagram({ diagram }: RoomDiagramProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const { t } = useT()
   const { floorPlan, treatmentPlan } = diagram
   const { width, length, speakerPositions, listeningPosition } = floorPlan
 
@@ -26,18 +28,21 @@ export function RoomDiagram({ diagram }: RoomDiagramProps) {
     roomStroke: isDark ? "#48484A" : "#C7C7CC",
     grid: isDark ? "#3A3A3C" : "#E5E5EA",
     dimText: isDark ? "#98989D" : "#8E8E93",
-    primary: isDark ? "#FF9F0A" : "#FF9500",
-    listening: isDark ? "#FFD60A" : "#FFCC00",
+    primary: isDark ? "#BF5AF2" : "#AF52DE",
+    listening: isDark ? "#64D2FF" : "#32ADE6",
   }
+
+  const furnitureColor = isDark ? "#636366" : "#AEAEB2"
+  const furnitureLabels = t.report.furniture
 
   const treatmentColors = { absorber: svgColors.primary, diffuser: svgColors.listening, bass_trap: isDark ? "#FF453A" : "#FF3B30" }
   const priorityOpacity = { high: 1, medium: 0.7, low: 0.4 }
 
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3">
-      <h2 className="text-sm font-semibold text-foreground">Diagrama de sala - Vista superior</h2>
+      <h2 className="text-sm font-semibold text-foreground">{t.report.diagram.staticTitle}</h2>
       <p className="text-xs text-muted-foreground">
-        Posiciones recomendadas de parlantes, punto de escucha y tratamiento acústico.
+        {t.report.diagram.staticDesc}
       </p>
 
       <div className="w-full overflow-x-auto">
@@ -53,6 +58,20 @@ export function RoomDiagram({ diagram }: RoomDiagramProps) {
           </g>
           <text x={padding + (width * scale) / 2} y={padding - 10} textAnchor="middle" fill={svgColors.dimText} fontSize="12" fontFamily="monospace">{width.toFixed(1)}m</text>
           <text x={padding - 10} y={padding + (length * scale) / 2} textAnchor="middle" fill={svgColors.dimText} fontSize="12" fontFamily="monospace" transform={`rotate(-90, ${padding - 10}, ${padding + (length * scale) / 2})`}>{length.toFixed(1)}m</text>
+
+          {/* Furniture */}
+          {floorPlan.furnitureLayout?.map((item, idx) => {
+            const fw = item.width * width * scale
+            const fh = item.length * length * scale
+            const fx = toSvgX(item.x) - fw / 2
+            const fy = toSvgY(item.y) - fh / 2
+            return (
+              <g key={`furniture-${idx}`}>
+                <rect x={fx} y={fy} width={fw} height={fh} fill={furnitureColor} fillOpacity={0.12} stroke={furnitureColor} strokeWidth="1" strokeDasharray="3 2" rx={3} />
+                <text x={fx + fw / 2} y={fy + fh / 2 + 4} textAnchor="middle" fill={svgColors.dimText} fontSize="9">{furnitureLabels[item.type as keyof typeof furnitureLabels] || item.type}</text>
+              </g>
+            )
+          })}
 
           {treatmentPlan.map((treatment, idx) => {
             const x = toSvgX(treatment.position.x), y = toSvgY(treatment.position.y)
@@ -89,21 +108,22 @@ export function RoomDiagram({ diagram }: RoomDiagramProps) {
         </svg>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-3 border-t border-border text-xs">
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-sm"></div><span className="text-muted-foreground">Parlantes (L/R)</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-yellow-400 rounded-full"></div><span className="text-muted-foreground">Punto escucha</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-muted-foreground">B: Bass Trap</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-muted-foreground">A: Absorber</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-yellow-400 rounded-full"></div><span className="text-muted-foreground">D: Diffuser</span></div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-3 border-t border-border text-xs">
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-sm"></div><span className="text-muted-foreground">{t.report.diagram.speakers}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.listeningPoint}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 border border-muted-foreground/50 rounded-sm border-dashed"></div><span className="text-muted-foreground">{t.report.diagram.furnitureLegend}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.bassTrap}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.absorber}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.diffuser}</span></div>
       </div>
 
       <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground space-y-1">
-        <p><span className="text-foreground font-medium">Interpretar el diagrama:</span></p>
+        <p><span className="text-foreground font-medium">{t.report.diagram.interpretTitle}</span></p>
         <ul className="list-disc list-inside space-y-0.5 ml-2">
-          <li>Los parlantes (L/R) deben formar triángulo equilátero con punto de escucha</li>
-          <li>Bass Traps (B) en las esquinas controlan modos de graves</li>
-          <li>Absorbers (A) en puntos de primera reflexión (paredes laterales)</li>
-          <li>Diffusers (D) en pared trasera para dispersión natural</li>
+          <li>{t.report.diagram.interpret1}</li>
+          <li>{t.report.diagram.interpret2}</li>
+          <li>{t.report.diagram.interpret3}</li>
+          <li>{t.report.diagram.interpret4}</li>
         </ul>
       </div>
     </div>

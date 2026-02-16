@@ -5,36 +5,26 @@ import Link from "next/link"
 import { Check } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { useRoomStore } from "@/lib/roomStore"
-
-const objectives = [
-  {
-    id: "music",
-    title: "Escuchar música",
-    description: "Optimizar para disfrutar de la mejor calidad de audio musical",
-  },
-  {
-    id: "instrument",
-    title: "Tocar instrumento",
-    description: "Crear un entorno ideal para la práctica instrumental",
-  },
-  {
-    id: "work",
-    title: "Trabajar / concentrarme",
-    description: "Mejorar la claridad del sonido y reducir distracciones",
-  },
-]
+import { useT } from "@/lib/i18n"
 
 export default function ObjetivoPage() {
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<string | null>(null)
   const setGoal = useRoomStore((s) => s.setGoal)
+  const { t } = useT()
+
+  const objectives = [
+    { id: "music", title: t.objetivo.musicTitle, description: t.objetivo.musicDesc },
+    { id: "instrument", title: t.objetivo.instrumentTitle, description: t.objetivo.instrumentDesc },
+    { id: "work", title: t.objetivo.workTitle, description: t.objetivo.workDesc },
+  ]
 
   return (
     <CenteredLayout>
       <div className="space-y-3 text-center">
-        <h1 className="text-lg md:text-xl font-semibold text-foreground">
-          Para qué querés optimizar tu espacio?
+        <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
+          {t.objetivo.title}
         </h1>
-        <p className="text-sm text-muted-foreground">Elegí el objetivo principal</p>
+        <p className="text-sm text-muted-foreground">{t.objetivo.subtitle}</p>
       </div>
 
       <div className="space-y-3">
@@ -78,7 +68,7 @@ export default function ObjetivoPage() {
             : "bg-muted text-muted-foreground cursor-not-allowed pointer-events-none"
         }`}
       >
-        Continuar
+        {t.common.next}
       </Link>
     </CenteredLayout>
   )

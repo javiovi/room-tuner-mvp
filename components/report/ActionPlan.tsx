@@ -1,6 +1,8 @@
 "use client"
 
 import { ArrowRight, Clock } from "lucide-react"
+import { InfoTooltip } from "@/components/InfoTooltip"
+import { useT } from "@/lib/i18n"
 
 interface ActionItem {
   title: string
@@ -16,64 +18,85 @@ interface ActionPlanProps {
 }
 
 export function ActionPlan({ roomCharacter, hasBudget = false }: ActionPlanProps) {
+  const { t } = useT()
+  const ap = t.report.actionPlan
+
   const quickWins: ActionItem[] = [
-    { title: "Optimizar posición de escucha", description: "Mover punto de escucha al 38% de la profundidad del espacio (evitar el 50%)", priority: "high", cost: "Gratis", impact: "Alto - Reduce problemas de modos" },
-    { title: "Ajustar separación de parlantes", description: "Formar triángulo equilátero con el punto de escucha", priority: "high", cost: "Gratis", impact: "Alto - Mejora imagen stereo" },
+    { title: ap.optimizeListening, description: ap.optimizeListeningDesc, priority: "high", cost: ap.costFree, impact: ap.optimizeListeningImpact },
+    { title: ap.adjustSpeakers, description: ap.adjustSpeakersDesc, priority: "high", cost: ap.costFree, impact: ap.adjustSpeakersImpact },
   ]
   if (roomCharacter === "viva") {
-    quickWins.push({ title: "Agregar alfombra gruesa", description: "Colocar entre parlantes y punto de escucha", priority: "high", cost: "~ARS $50k", impact: "Alto - Controla reflexiones de piso" })
+    quickWins.push({ title: ap.addRug, description: ap.addRugDesc, priority: "high", cost: "~ARS $50k", impact: ap.addRugImpact })
   }
 
   const mediumTerm: ActionItem[] = []
   if (roomCharacter === "viva") {
     mediumTerm.push(
-      { title: "Instalar paneles absorbentes", description: "First reflection points en paredes laterales (4-6 paneles)", priority: "high", cost: "~ARS $60-90k", impact: "Alto - Reduce reverberación" },
-      { title: "Bass traps en esquinas", description: "Mínimo 2 esquinas frontales, idealmente las 4", priority: "high", cost: "~ARS $120-240k", impact: "Alto - Controla graves" },
+      { title: ap.installAbsorbers, description: ap.installAbsorbersDesc, priority: "high", cost: "~ARS $60-90k", impact: ap.installAbsorbersImpact },
+      { title: ap.bassTraps, description: ap.bassTrapsDesc, priority: "high", cost: "~ARS $120-240k", impact: ap.bassTrapsImpact },
     )
   } else if (roomCharacter === "equilibrada") {
     mediumTerm.push(
-      { title: "Tratamiento selectivo", description: "2-4 paneles en first reflections más problemáticos", priority: "medium", cost: "~ARS $30-60k", impact: "Medio - Fine-tuning" },
-      { title: "Bass traps en esquinas", description: "2 bass traps en esquinas frontales", priority: "medium", cost: "~ARS $120k", impact: "Medio - Control de graves" },
+      { title: ap.selectiveTreatment, description: ap.selectiveTreatmentDesc, priority: "medium", cost: "~ARS $30-60k", impact: ap.selectiveTreatmentImpact },
+      { title: ap.bassTrapsCorners, description: ap.bassTrapsCornersDesc, priority: "medium", cost: "~ARS $120k", impact: ap.bassTrapsCornersImpact },
     )
   } else {
-    mediumTerm.push({ title: "Agregar difusión", description: "Difusores en pared posterior para recuperar vitalidad", priority: "medium", cost: "~ARS $80-150k", impact: "Medio - Agrega espacialidad" })
+    mediumTerm.push({ title: ap.addDiffusion, description: ap.addDiffusionDesc, priority: "medium", cost: "~ARS $80-150k", impact: ap.addDiffusionImpact })
   }
 
   const longTerm: ActionItem[] = [
-    { title: "Medición con micrófono calibrado", description: "Usar REW para medir respuesta real del espacio", priority: "medium", cost: "~ARS $80k (micrófono)", impact: "Medio - Datos objetivos" },
+    { title: ap.measurement, description: ap.measurementDesc, priority: "medium", cost: "~ARS $80k", impact: ap.measurementImpact },
   ]
   if (hasBudget) {
     longTerm.push(
-      { title: "Tratamiento profesional completo", description: "Paneles absorbentes de alta densidad + difusores + bass traps", priority: "low", cost: "~USD $1000-2000", impact: "Alto - Resultado profesional" },
-      { title: "Ceiling clouds", description: "Paneles en techo para controlar reflexiones superiores", priority: "low", cost: "~USD $300-600", impact: "Medio - Control completo" },
+      { title: ap.proTreatment, description: ap.proTreatmentDesc, priority: "low", cost: "~USD $1000-2000", impact: ap.proTreatmentImpact },
+      { title: ap.ceilingClouds, description: ap.ceilingCloudsDesc, priority: "low", cost: "~USD $300-600", impact: ap.ceilingCloudsImpact },
     )
   }
 
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-6">
       <div>
-        <h2 className="text-sm font-semibold text-foreground">Plan de acción priorizado</h2>
-        <p className="text-xs text-muted-foreground mt-1">Orden recomendado de implementación para máximo impacto</p>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">{ap.title}</h2>
+          <InfoTooltip text={t.tooltips.actionPlan} />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">{ap.description}</p>
       </div>
 
       <div className="space-y-6">
-        <TimelineSection title="Semana 1" subtitle="Cambios inmediatos" items={quickWins} />
-        <TimelineSection title="Mes 1-3" subtitle="Mejoras principales" items={mediumTerm} />
-        <TimelineSection title="6+ meses" subtitle="Optimización avanzada" items={longTerm} />
+        <TimelineSection title={ap.week1} subtitle={ap.week1Sub} items={quickWins} t={t} />
+        <TimelineSection title={ap.month1_3} subtitle={ap.month1_3Sub} items={mediumTerm} t={t} />
+        <TimelineSection title={ap.month6} subtitle={ap.month6Sub} items={longTerm} t={t} />
       </div>
 
       <div className="border-t border-border pt-4">
         <div className="p-3 bg-muted rounded-xl">
           <p className="text-xs text-muted-foreground">
-            <span className="text-foreground font-medium">Recomendación:</span> Empezar con los cambios gratuitos, medir el resultado, y luego invertir progresivamente según el impacto observado.
+            <span className="text-foreground font-medium">{t.common.recommendation}</span> {ap.recommendationText}
           </p>
+        </div>
+      </div>
+
+      {/* Glossary */}
+      <div className="border-t border-border pt-4">
+        <h3 className="text-xs font-semibold text-foreground mb-2">{ap.glossaryTitle}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          <GlossaryItem term={ap.glossary.equilateralTriangle} definition={ap.glossary.equilateralTriangleDef} />
+          <GlossaryItem term={ap.glossary.stereoImage} definition={ap.glossary.stereoImageDef} />
+          <GlossaryItem term={ap.glossary.firstReflection} definition={ap.glossary.firstReflectionDef} />
+          <GlossaryItem term={ap.glossary.bassTraps} definition={ap.glossary.bassTrapsDef} />
+          <GlossaryItem term={ap.glossary.absorbers} definition={ap.glossary.absorbersDef} />
+          <GlossaryItem term={ap.glossary.diffusers} definition={ap.glossary.diffusersDef} />
+          <GlossaryItem term={ap.glossary.ceilingClouds} definition={ap.glossary.ceilingCloudsDef} />
+          <GlossaryItem term={ap.glossary.rew} definition={ap.glossary.rewDef} />
         </div>
       </div>
     </div>
   )
 }
 
-function TimelineSection({ title, subtitle, items }: { title: string; subtitle: string; items: ActionItem[] }) {
+function TimelineSection({ title, subtitle, items, t }: { title: string; subtitle: string; items: ActionItem[]; t: any }) {
   if (items.length === 0) return null
   return (
     <div className="space-y-3">
@@ -100,9 +123,9 @@ function TimelineSection({ title, subtitle, items }: { title: string; subtitle: 
                     item.priority === "medium" ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" :
                     "bg-muted text-muted-foreground"
                   }`}>
-                    {item.priority === "high" ? "Alta prioridad" : item.priority === "medium" ? "Media" : "Baja"}
+                    {item.priority === "high" ? t.report.actionPlan.priorityHigh : item.priority === "medium" ? t.report.actionPlan.priorityMedium : t.report.actionPlan.priorityLow}
                   </span>
-                  <span className="text-muted-foreground">Costo: <span className="text-foreground font-mono">{item.cost}</span></span>
+                  <span className="text-muted-foreground">{t.common.cost} <span className="text-foreground font-mono">{item.cost}</span></span>
                   <span className="text-muted-foreground">{item.impact}</span>
                 </div>
               </div>
@@ -110,6 +133,15 @@ function TimelineSection({ title, subtitle, items }: { title: string; subtitle: 
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function GlossaryItem({ term, definition }: { term: string; definition: string }) {
+  return (
+    <div className="flex items-start gap-1.5">
+      <span className="text-foreground font-medium whitespace-nowrap">{term}:</span>
+      <span>{definition}</span>
     </div>
   )
 }

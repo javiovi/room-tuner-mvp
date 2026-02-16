@@ -3,6 +3,8 @@
 import { useTheme } from "next-themes"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 import type { FrequencyPoint } from "@/app/types/room"
+import { InfoTooltip } from "@/components/InfoTooltip"
+import { useT } from "@/lib/i18n"
 
 interface FrequencyResponseChartProps {
   data: FrequencyPoint[]
@@ -11,20 +13,24 @@ interface FrequencyResponseChartProps {
 export function FrequencyResponseChart({ data }: FrequencyResponseChartProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const { t } = useT()
 
   const colors = {
     grid: isDark ? "#3A3A3C" : "#E5E5EA",
     axis: isDark ? "#98989D" : "#8E8E93",
     cursor: isDark ? "#48484A" : "#D1D1D6",
-    primary: isDark ? "#FF9F0A" : "#FF9500",
+    primary: isDark ? "#BF5AF2" : "#AF52DE",
     warning: "#facc15",
   }
 
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3">
-      <h2 className="text-sm font-semibold text-foreground">Respuesta de frecuencia estimada</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">{t.report.frequency.title}</h2>
+        <InfoTooltip text={t.tooltips.frequency} />
+      </div>
       <p className="text-xs text-muted-foreground">
-        Estimación basada en dimensiones y materiales. Picos y valles indican resonancias y cancelaciones.
+        {t.report.frequency.description}
       </p>
 
       <div className="w-full h-64 mt-4">
@@ -37,12 +43,12 @@ export function FrequencyResponseChart({ data }: FrequencyResponseChartProps) {
               tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value.toString()}
               stroke={colors.axis}
               style={{ fontSize: '10px', fill: colors.axis }}
-              label={{ value: 'Frecuencia (Hz)', position: 'insideBottom', offset: -5, style: { fontSize: '10px', fill: colors.axis } }}
+              label={{ value: t.report.frequency.frequencyLabel, position: 'insideBottom', offset: -5, style: { fontSize: '10px', fill: colors.axis } }}
             />
             <YAxis
               domain={[-12, 12]} ticks={[-12, -6, 0, 6, 12]} stroke={colors.axis}
               style={{ fontSize: '10px', fill: colors.axis }}
-              label={{ value: 'dB', angle: -90, position: 'insideLeft', style: { fontSize: '10px', fill: colors.axis } }}
+              label={{ value: t.report.frequency.dbLabel, angle: -90, position: 'insideLeft', style: { fontSize: '10px', fill: colors.axis } }}
             />
             <Tooltip content={<CustomTooltip isDark={isDark} />} cursor={{ stroke: colors.primary, strokeWidth: 1 }} />
             <ReferenceLine y={0} stroke={colors.primary} strokeDasharray="3 3" strokeWidth={1} />
@@ -53,24 +59,26 @@ export function FrequencyResponseChart({ data }: FrequencyResponseChartProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground pt-2 border-t border-border">
+      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground pt-2 border-t border-border flex-wrap">
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5 bg-primary"></div>
-          <span>Respuesta estimada</span>
+          <span>{t.report.frequency.legendResponse}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5 bg-primary border-t-2 border-dashed"></div>
-          <span>Respuesta plana (0dB)</span>
+          <span>{t.report.frequency.legendFlat}</span>
+          <InfoTooltip text={t.tooltips.flatResponse} />
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-yellow-400 border-t-2 border-dashed opacity-50"></div>
-          <span>±6dB (umbral problema)</span>
+          <div className="w-4 h-0.5 bg-amber-400 border-t-2 border-dashed opacity-50"></div>
+          <span>{t.report.frequency.legendThreshold}</span>
+          <InfoTooltip text={t.tooltips.dbThreshold} />
         </div>
       </div>
 
       {data.filter(d => d.issue).length > 0 && (
         <div className="mt-3 p-3 rounded-xl border border-destructive/20 bg-destructive/5">
-          <h3 className="text-xs font-medium text-destructive mb-2">Frecuencias problemáticas detectadas:</h3>
+          <h3 className="text-xs font-medium text-destructive mb-2">{t.report.frequency.issuesTitle}</h3>
           <div className="grid grid-cols-2 gap-2">
             {data.filter(d => d.issue).slice(0, 6).map((point, i) => (
               <div key={i} className="text-xs text-muted-foreground">

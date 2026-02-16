@@ -3,6 +3,7 @@
 import { useState } from "react"
 import type { ProductRecommendation } from "@/app/types/room"
 import { Plus, Minus, DollarSign } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 interface BudgetCalculatorProps {
   lowBudgetProducts: ProductRecommendation[]
@@ -14,6 +15,7 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
   const allProducts = [...lowBudgetProducts, ...advancedProducts]
   const [selected, setSelected] = useState<Map<string, number>>(new Map())
   const [activeCurrency, setActiveCurrency] = useState<"USD" | "ARS">(currency)
+  const { t } = useT()
 
   const handleQuantityChange = (productId: string, delta: number) => {
     setSelected(prev => {
@@ -35,8 +37,8 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Calculadora de presupuesto</h2>
-          <p className="text-xs text-muted-foreground mt-1">Seleccioná productos y ajustá cantidades</p>
+          <h2 className="text-sm font-semibold text-foreground">{t.report.budget.title}</h2>
+          <p className="text-xs text-muted-foreground mt-1">{t.report.budget.description}</p>
         </div>
         <div className="flex bg-muted rounded-lg p-0.5">
           <button
@@ -92,7 +94,7 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
 
       {selectedProducts.length > 0 && (
         <div className="border-t border-border pt-4 space-y-2">
-          <h3 className="text-xs font-medium text-foreground">Productos seleccionados:</h3>
+          <h3 className="text-xs font-medium text-foreground">{t.report.budget.selectedProducts}</h3>
           <div className="space-y-1">
             {selectedProducts.map(p => (
               <div key={p.productId} className="flex justify-between text-xs">
@@ -108,19 +110,19 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
 
       <div className="border-t border-border pt-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">Total estimado:</span>
+          <span className="text-sm font-medium text-foreground">{t.report.budget.totalEstimated}</span>
           <div className="text-right">
             <div className="text-2xl font-semibold text-foreground font-mono flex items-center gap-1">
               <DollarSign className="w-5 h-5" />{total.toLocaleString()}
             </div>
-            <div className="text-xs text-muted-foreground">{activeCurrency} · {selectedProducts.length} productos</div>
+            <div className="text-xs text-muted-foreground">{activeCurrency} · {selectedProducts.length} {t.report.products.products}</div>
           </div>
         </div>
       </div>
 
       {total > 0 && (
         <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground">
-          <span className="text-foreground font-medium">Nota:</span> Este es un presupuesto estimado. Los precios pueden variar según proveedor y ubicación.
+          <span className="text-foreground font-medium">{t.common.note}</span> {t.report.budget.noteText}
         </div>
       )}
     </div>

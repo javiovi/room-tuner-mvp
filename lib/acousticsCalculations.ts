@@ -374,7 +374,7 @@ export function estimateFrequencyResponse(
     // Mid frequency: relatively flat, affected by room character
     if (freq >= 300 && freq < 4000) {
       if (roomCharacter === 'viva') {
-        responseDb += Math.random() * 4 - 2 // ±2dB variance
+        responseDb += Math.sin(freq / 100) * 2 // ±2dB deterministic variance
       } else if (roomCharacter === 'seca') {
         responseDb -= 2
       }
@@ -547,4 +547,112 @@ export function calculateOptimalPositions(
     listeningPosition,
     recommendations,
   }
+}
+
+// ===== POSITION-BASED RECALCULATION =====
+
+export interface PositionUpdate {
+  speakers: Array<{ x: number; y: number }>
+  listeningPosition: { x: number; y: number }
+  furnitureLayout?: Array<{ type: string; x: number; y: number; width: number; length: number }>
+}
+
+/**
+ * Recalculate frequency response and treatment plan based on new positions.
+ * Runs client-side without API call.
+ */
+export function recalculateForPositions(
+  roomModes: RoomMode[],
+  roomCharacter: 'viva' | 'equilibrada' | 'seca',
+  volume: number,
+  roomWidth: number,
+  roomLength: number,
+  positions: PositionUpdate
+): {
+  frequencyResponse: Array<{ frequency: number; response: number; issue: boolean; description?: string }>
+  treatmentPlan: Array<{
+    type: "absorber" | "diffuser" | "bass_trap"
+    position: { x: number; y: number }
+    wall: "front" | "back" | "left" | "right" | "ceiling"
+    priority: "high" | "medium" | "low"
+  }>
+} {
+  // 1. Recalculate frequency response with position-based modifiers
+  const baseResponse = estimateFrequencyResponse(roomModes, roomCharacter, volume)
+  const listenerY = positions.listeningPosition.y
+  const listenerX = positions.listeningPosition.x
+
+  // Furniture near walls adds extra absorption (reduces high-frequency energy)
+  let furnitureAbsorptionBonus = 0
+  if (positions.furnitureLayout) {
+    positions.furnitureLayout.forEach(item => {
+      const nearWall = item.x < 0.1 || item.x > 0.9 || item.y < 0.1 || item.y > 0.9
+      furnitureAbsorptionBonus += nearWall ? 0.5 : 0.1
+    })
+  }
+
+  const modifiedResponse = baseResponse.map(point => {
+    let modifier = 0
+
+    // Low frequencies: position relative to room mode nodes/antinodes
+    if (point.frequency < 300) {
+      roomModes
+        .filter(mode => Math.abs(mode.frequency - point.frequency) < 15)
+        .forEach(mode => {
+          if (mode.dimension === 'length') {
+            // Standing wave: pressure max at walls (0,1), null at 0.5
+            const positionFactor = Math.abs(Math.cos(Math.PI * listenerY))
+            modifier += (positionFactor - 0.5) * 4
+          }
+          if (mode.dimension === 'width') {
+            const positionFactor = Math.abs(Math.cos(Math.PI * listenerX))
+            modifier += (positionFactor - 0.5) * 4
+          }
+        })
+    }
+
+    // High frequencies: furniture absorption reduces energy
+    if (point.frequency >= 1000 && furnitureAbsorptionBonus > 0) {
+      modifier -= furnitureAbsorptionBonus * (point.frequency / 10000)
+    }
+
+    const newResponse = Math.round((point.response + modifier) * 10) / 10
+    const isIssue = Math.abs(newResponse) > 6
+    return {
+      ...point,
+      response: newResponse,
+      issue: isIssue,
+      description: isIssue
+        ? newResponse > 6 ? `Pico de +${newResponse.toFixed(1)}dB` : `Valle de ${newResponse.toFixed(1)}dB`
+        : undefined,
+    }
+  })
+
+  // 2. Recalculate treatment plan (first reflection points depend on positions)
+  const avgSpeakerY = (positions.speakers[0].y + positions.speakers[1].y) / 2
+  const reflectionY = (avgSpeakerY + listenerY) / 2
+
+  const treatmentPlan: Array<{
+    type: "absorber" | "diffuser" | "bass_trap"
+    position: { x: number; y: number }
+    wall: "front" | "back" | "left" | "right" | "ceiling"
+    priority: "high" | "medium" | "low"
+  }> = [
+    // Corner bass traps (always fixed)
+    { type: "bass_trap", position: { x: 0, y: 0 }, wall: "front", priority: "high" },
+    { type: "bass_trap", position: { x: 1, y: 0 }, wall: "front", priority: "high" },
+    { type: "bass_trap", position: { x: 0, y: 1 }, wall: "back", priority: "high" },
+    { type: "bass_trap", position: { x: 1, y: 1 }, wall: "back", priority: "high" },
+    // First reflection points (move with speaker/listener positions)
+    { type: "absorber", position: { x: 0, y: reflectionY }, wall: "left", priority: "high" },
+    { type: "absorber", position: { x: 1, y: reflectionY }, wall: "right", priority: "high" },
+  ]
+
+  if (roomCharacter !== "seca") {
+    treatmentPlan.push(
+      { type: "diffuser", position: { x: 0.5, y: 1 }, wall: "back", priority: "medium" }
+    )
+  }
+
+  return { frequencyResponse: modifiedResponse, treatmentPlan }
 }

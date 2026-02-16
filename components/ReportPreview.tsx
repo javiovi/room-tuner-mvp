@@ -3,9 +3,11 @@
 import { useState } from "react"
 import { mockAnalysis, mockProject } from "@/lib/mockData"
 import { Check, TrendingUp, Package } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 export function ReportPreview() {
   const [activeTab, setActiveTab] = useState<"resumen" | "analisis" | "productos">("resumen")
+  const { t } = useT()
 
   const { summary, roomCharacter, priorityScore, roomMetrics, lowBudgetChanges, freeChanges } =
     mockAnalysis
@@ -13,9 +15,9 @@ export function ReportPreview() {
   const totalIssues = priorityScore.critical + priorityScore.improvements
 
   const tabs = [
-    { key: "resumen" as const, label: "Resumen", badge: totalIssues > 0 ? totalIssues : undefined, badgeColor: "bg-destructive text-white" },
-    { key: "analisis" as const, label: "Análisis" },
-    { key: "productos" as const, label: "Productos", badge: lowBudgetChanges.items.length, badgeColor: "bg-primary/10 text-primary" },
+    { key: "resumen" as const, label: t.reportPreview.tabSummary, badge: totalIssues > 0 ? totalIssues : undefined, badgeColor: "bg-destructive text-white" },
+    { key: "analisis" as const, label: t.reportPreview.tabAnalysis },
+    { key: "productos" as const, label: t.reportPreview.tabProducts, badge: lowBudgetChanges.items.length, badgeColor: "bg-primary/10 text-primary" },
   ]
 
   return (
@@ -23,10 +25,10 @@ export function ReportPreview() {
       {/* Header */}
       <div className="text-center mb-5">
         <span className="inline-block bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-medium mb-3">
-          Preview del informe
+          {t.reportPreview.badge}
         </span>
         <p className="text-xs text-muted-foreground">
-          Ejemplo con un espacio de {mockProject.lengthM}m x {mockProject.widthM}m x{" "}
+          {t.reportPreview.example} {mockProject.lengthM}m x {mockProject.widthM}m x{" "}
           {mockProject.heightM}m
         </p>
       </div>
@@ -64,31 +66,31 @@ export function ReportPreview() {
             <div className="flex items-center justify-center gap-2 text-[10px] flex-wrap">
               {priorityScore.critical > 0 && (
                 <span className="px-3 py-1 rounded-full bg-destructive/10 text-destructive font-medium">
-                  {priorityScore.critical} Crítico{priorityScore.critical > 1 ? "s" : ""}
+                  {priorityScore.critical} {priorityScore.critical > 1 ? t.reportPreview.criticalPlural : t.reportPreview.criticalSingular}
                 </span>
               )}
               {priorityScore.improvements > 0 && (
                 <span className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 font-medium">
-                  {priorityScore.improvements} Mejora{priorityScore.improvements > 1 ? "s" : ""}
+                  {priorityScore.improvements} {priorityScore.improvements > 1 ? t.reportPreview.improvementPlural : t.reportPreview.improvementSingular}
                 </span>
               )}
               {priorityScore.optimizations > 0 && (
                 <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                  {priorityScore.optimizations} Optimizaci{priorityScore.optimizations > 1 ? "ones" : "ón"}
+                  {priorityScore.optimizations} {priorityScore.optimizations > 1 ? t.reportPreview.optimizationPlural : t.reportPreview.optimizationSingular}
                 </span>
               )}
             </div>
 
             {/* Summary */}
             <div className="bg-muted/50 rounded-xl p-3 space-y-3">
-              <h3 className="text-xs font-semibold text-foreground">Diagnóstico general</h3>
+              <h3 className="text-xs font-semibold text-foreground">{t.reportPreview.diagnosis}</h3>
               <p className="text-foreground text-xs leading-relaxed">{summary}</p>
               <div className="flex items-center justify-between text-[10px] border-t border-border pt-2 mt-2 flex-wrap gap-2">
                 <span className="text-muted-foreground">
-                  Objetivo: <span className="text-primary font-medium">Escuchar música</span>
+                  {t.reportPreview.goalLabel} <span className="text-primary font-medium">{t.reportPreview.goalMusic}</span>
                 </span>
                 <span className="text-muted-foreground">
-                  Carácter:{" "}
+                  {t.reportPreview.characterLabel}{" "}
                   <span
                     className={`font-medium ${
                       roomCharacter === "viva"
@@ -107,10 +109,10 @@ export function ReportPreview() {
             {/* Room Metrics */}
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Volumen", value: `${roomMetrics.volume.toFixed(1)} m³` },
-                { label: "Área Piso", value: `${roomMetrics.floorArea.toFixed(1)} m²` },
-                { label: "RT60 Medios", value: `${roomMetrics.rt60Estimate.mid.toFixed(2)}s` },
-                { label: "Absorción", value: `${roomMetrics.totalAbsorption.toFixed(1)} sabins` },
+                { label: t.reportPreview.volume, value: `${roomMetrics.volume.toFixed(1)} m³` },
+                { label: t.reportPreview.floorArea, value: `${roomMetrics.floorArea.toFixed(1)} m²` },
+                { label: t.reportPreview.rt60Mid, value: `${roomMetrics.rt60Estimate.mid.toFixed(2)}s` },
+                { label: t.reportPreview.absorption, value: `${roomMetrics.totalAbsorption.toFixed(1)} sabins` },
               ].map((metric) => (
                 <div key={metric.label} className="bg-muted rounded-lg p-2.5">
                   <p className="text-[10px] text-muted-foreground">{metric.label}</p>
@@ -126,7 +128,7 @@ export function ReportPreview() {
                   <Check className="w-3 h-3 text-primary" strokeWidth={3} />
                 </div>
                 <h3 className="text-xs font-semibold text-foreground">
-                  Cambios gratuitos ({freeChanges.items.length})
+                  {t.reportPreview.freeChanges} ({freeChanges.items.length})
                 </h3>
               </div>
               <ul className="space-y-1.5">
@@ -139,7 +141,7 @@ export function ReportPreview() {
               </ul>
               {freeChanges.items.length > 3 && (
                 <p className="text-[10px] text-muted-foreground pt-1">
-                  + {freeChanges.items.length - 3} cambios más...
+                  + {freeChanges.items.length - 3} {t.reportPreview.moreChanges}
                 </p>
               )}
             </div>
@@ -153,17 +155,17 @@ export function ReportPreview() {
               <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4 text-primary" />
               </div>
-              <h3 className="text-sm font-semibold text-foreground">Análisis acústico</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t.reportPreview.analysisHeading}</h3>
             </div>
 
             {/* RT60 */}
             <div className="rounded-xl border border-border p-3 space-y-2">
               <h4 className="text-xs font-semibold text-foreground">
-                Tiempo de reverberación (RT60)
+                {t.reportPreview.rt60Title}
               </h4>
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">Graves (63-250 Hz):</span>
+                  <span className="text-muted-foreground">{t.reportPreview.rt60Bass}</span>
                   <span
                     className={`font-semibold font-mono ${roomMetrics.rt60Estimate.low > 0.6 ? "text-destructive" : "text-foreground"}`}
                   >
@@ -172,7 +174,7 @@ export function ReportPreview() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">Medios (500-2k Hz):</span>
+                  <span className="text-muted-foreground">{t.reportPreview.rt60Mid2}</span>
                   <span
                     className={`font-semibold font-mono ${roomMetrics.rt60Estimate.mid > 0.5 ? "text-destructive" : "text-foreground"}`}
                   >
@@ -181,7 +183,7 @@ export function ReportPreview() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">Agudos (4k-16k Hz):</span>
+                  <span className="text-muted-foreground">{t.reportPreview.rt60Treble}</span>
                   <span className="font-semibold font-mono text-foreground">
                     {roomMetrics.rt60Estimate.high.toFixed(2)}s
                   </span>
@@ -192,7 +194,7 @@ export function ReportPreview() {
             {/* Room Modes */}
             <div className="rounded-xl border border-border p-3 space-y-2">
               <h4 className="text-xs font-semibold text-foreground">
-                Modos de sala (Resonancias)
+                {t.reportPreview.roomModesTitle}
               </h4>
               <div className="space-y-1">
                 {roomMetrics.roomModes.slice(0, 5).map((mode, idx) => (
@@ -213,10 +215,10 @@ export function ReportPreview() {
                       }`}
                     >
                       {mode.severity === "high"
-                        ? "Alta"
+                        ? t.reportPreview.severityHigh
                         : mode.severity === "medium"
-                          ? "Media"
-                          : "Baja"}
+                          ? t.reportPreview.severityMedium
+                          : t.reportPreview.severityLow}
                     </span>
                   </div>
                 ))}
@@ -226,8 +228,7 @@ export function ReportPreview() {
             {/* Info Box */}
             <div className="bg-muted rounded-xl p-3">
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                <span className="text-foreground font-medium">Tip:</span> Los modos debajo de 100Hz son los más problemáticos y
-                difíciles de tratar. Las trampas de graves en esquinas son la solución más efectiva.
+                <span className="text-foreground font-medium">{t.common.tip}</span> {t.reportPreview.tip}
               </p>
             </div>
           </div>
@@ -273,16 +274,16 @@ export function ReportPreview() {
                           : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
                       }`}
                     >
-                      Impacto: {product.impactLevel === "high" ? "Alto" : product.impactLevel === "medium" ? "Medio" : "Bajo"}
+                      {t.report.products.impactLabel} {product.impactLevel === "high" ? t.reportPreview.impactHigh : product.impactLevel === "medium" ? t.reportPreview.impactMedium : t.reportPreview.impactLow}
                     </span>
                     <span className="text-muted-foreground">
-                      Instalación: {product.installation}
+                      {t.reportPreview.installation} {product.installation}
                     </span>
                   </div>
 
                   {/* Total */}
                   <div className="border-t border-border pt-2 flex justify-between items-center">
-                    <span className="text-[10px] text-muted-foreground">Total</span>
+                    <span className="text-[10px] text-muted-foreground">{t.reportPreview.total}</span>
                     <span className="text-sm font-semibold text-foreground font-mono">
                       ${product.totalPrice.toLocaleString()}
                     </span>
@@ -295,7 +296,7 @@ export function ReportPreview() {
             <div className="rounded-xl bg-primary/5 border border-primary/10 p-3">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold text-foreground">
-                  Presupuesto total
+                  {t.reportPreview.budgetTotal}
                 </span>
                 <span className="text-base font-semibold text-primary font-mono">
                   ${lowBudgetChanges.totalEstimatedCost.min.toLocaleString()} -{" "}
@@ -304,7 +305,7 @@ export function ReportPreview() {
                 </span>
               </div>
               <p className="text-[10px] text-muted-foreground mt-2">
-                Precios reales de MercadoLibre Argentina actualizados
+                {t.reportPreview.priceSource}
               </p>
             </div>
           </div>
@@ -314,7 +315,7 @@ export function ReportPreview() {
       {/* Footer Note */}
       <div className="text-center mt-4">
         <p className="text-[10px] text-muted-foreground">
-          * Este es un ejemplo con datos mock. Tu informe será personalizado para tu espacio.
+          {t.reportPreview.footerNote}
         </p>
       </div>
     </div>

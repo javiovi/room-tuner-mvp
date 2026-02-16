@@ -15,21 +15,25 @@ import { InteractiveRoomDiagram } from "@/components/report/InteractiveRoomDiagr
 import { RecommendationSection } from "@/components/report/RecommendationSection"
 import { BudgetCalculator } from "@/components/report/BudgetCalculator"
 import { ActionPlan } from "@/components/report/ActionPlan"
+import { InfoTooltip } from "@/components/InfoTooltip"
+import { useT } from "@/lib/i18n"
 
 export default function ResultadoPage() {
   const analysis = useRoomStore((s) => s.analysis)
   const project = useRoomStore((s) => s.project)
+  const updatePositions = useRoomStore((s) => s.updatePositions)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const { t } = useT()
 
   if (!analysis) {
     return (
       <CenteredLayout>
         <div className="space-y-4 text-center">
-          <h1 className="text-lg md:text-xl font-semibold text-foreground">
-            Aún no hay análisis
+          <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
+            {t.resultado.noAnalysisTitle}
           </h1>
           <p className="text-sm text-muted-foreground">
-            No pudimos cargar el resultado de tu espacio. Probá volver a ejecutar el análisis o regresar al inicio.
+            {t.resultado.noAnalysisDesc}
           </p>
           <div className="pt-2">
             <Link
@@ -37,7 +41,7 @@ export default function ResultadoPage() {
               className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
               <ChevronLeft className="w-4 h-4" />
-              Volver al inicio
+              {t.common.backToHome}
             </Link>
           </div>
         </div>
@@ -77,7 +81,7 @@ export default function ResultadoPage() {
       document.body.removeChild(a)
     } catch (error) {
       console.error('Error downloading PDF:', error)
-      alert('Error al generar el PDF. Por favor intenta nuevamente.')
+      alert(t.resultado.pdfError)
     } finally {
       setPdfLoading(false)
     }
@@ -97,10 +101,16 @@ export default function ResultadoPage() {
 
   const totalIssues = priorityScore.critical + priorityScore.improvements
 
+  const goalLabels: Record<string, string> = {
+    music: t.resultado.goalMusic,
+    instrument: t.resultado.goalInstrument,
+    work: t.resultado.goalWork,
+  }
+
   const tabs = [
     {
       id: "resumen",
-      label: "Resumen",
+      label: t.resultado.tabSummary,
       badge: totalIssues > 0 ? totalIssues : undefined,
       content: (
         <div className="space-y-4">
@@ -108,42 +118,39 @@ export default function ResultadoPage() {
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {priorityScore.critical > 0 && (
               <div className="px-3 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-medium">
-                {priorityScore.critical} crítico{priorityScore.critical > 1 ? "s" : ""}
+                {priorityScore.critical} {priorityScore.critical > 1 ? t.resultado.criticalPlural : t.resultado.criticalSingular}
               </div>
             )}
             {priorityScore.improvements > 0 && (
               <div className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-xs font-medium">
-                {priorityScore.improvements} mejora{priorityScore.improvements > 1 ? "s" : ""}
+                {priorityScore.improvements} {priorityScore.improvements > 1 ? t.resultado.improvementPlural : t.resultado.improvementSingular}
               </div>
             )}
             {priorityScore.optimizations > 0 && (
               <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                {priorityScore.optimizations} optimizacion{priorityScore.optimizations > 1 ? "es" : ""}
+                {priorityScore.optimizations} {priorityScore.optimizations > 1 ? t.resultado.optimizationPlural : t.resultado.optimizationSingular}
               </div>
             )}
           </div>
 
           {/* Executive Summary */}
           <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">
-              Diagnóstico general
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground">
+                {t.resultado.diagnosisTitle}
+              </h2>
+              <InfoTooltip text={t.tooltips.diagnosis} />
+            </div>
             <p className="text-foreground text-sm leading-relaxed">{summary}</p>
             <div className="flex items-center justify-between text-xs border-t border-border pt-2 mt-2 flex-wrap gap-2">
               <span className="text-muted-foreground">
-                Objetivo:{" "}
+                {t.resultado.goalLabel}{" "}
                 <span className="text-foreground font-medium">
-                  {project.goal === "music"
-                    ? "Escuchar música"
-                    : project.goal === "instrument"
-                      ? "Tocar instrumento"
-                      : project.goal === "work"
-                        ? "Trabajar / concentrarme"
-                        : "Sin objetivo definido"}
+                  {goalLabels[project.goal ?? ""] ?? t.resultado.goalUndefined}
                 </span>
               </span>
-              <span className="text-muted-foreground">
-                Carácter:{" "}
+              <span className="text-muted-foreground inline-flex items-center gap-1">
+                {t.resultado.characterLabel}{" "}
                 <span
                   className={
                     roomCharacter === "viva"
@@ -155,6 +162,7 @@ export default function ResultadoPage() {
                 >
                   {roomCharacter.charAt(0).toUpperCase() + roomCharacter.slice(1)}
                 </span>
+                <InfoTooltip text={t.tooltips.character} />
               </span>
             </div>
           </div>
@@ -165,20 +173,20 @@ export default function ResultadoPage() {
           {/* Next Steps */}
           <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
             <h2 className="text-sm font-semibold text-foreground">
-              Próximos pasos
+              {t.resultado.nextStepsTitle}
             </h2>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex gap-3">
                 <span className="text-primary font-semibold">1.</span>
-                <span>Comenzar con cambios gratuitos esta semana</span>
+                <span>{t.resultado.nextStep1}</span>
               </div>
               <div className="flex gap-3">
                 <span className="text-primary font-semibold">2.</span>
-                <span>Revisar recomendaciones de productos</span>
+                <span>{t.resultado.nextStep2}</span>
               </div>
               <div className="flex gap-3">
                 <span className="text-primary font-semibold">3.</span>
-                <span>Implementar mejoras de forma gradual</span>
+                <span>{t.resultado.nextStep3}</span>
               </div>
             </div>
           </div>
@@ -187,7 +195,7 @@ export default function ResultadoPage() {
     },
     {
       id: "analisis",
-      label: "Análisis",
+      label: t.resultado.tabAnalysis,
       badge: roomMetrics.roomModes.filter((m) => m.severity === "high" && m.frequency < 300).length,
       content: (
         <div className="space-y-4">
@@ -198,13 +206,16 @@ export default function ResultadoPage() {
     },
     {
       id: "diagrama",
-      label: "Diagrama",
+      label: t.resultado.tabDiagram,
       content: (
         <div className="space-y-4">
           <InteractiveRoomDiagram
             diagram={roomDiagram}
             onPositionsChange={(positions) => {
-              console.log('Positions changed:', positions)
+              updatePositions(
+                { speakers: positions.speakers, listeningPosition: positions.listeningPosition },
+                positions.furnitureLayout
+              )
             }}
           />
         </div>
@@ -212,7 +223,7 @@ export default function ResultadoPage() {
     },
     {
       id: "cambios-gratis",
-      label: "Gratis",
+      label: t.resultado.tabFree,
       badge: freeChanges.items.length,
       content: (
         <div className="space-y-4">
@@ -226,7 +237,7 @@ export default function ResultadoPage() {
     },
     {
       id: "productos",
-      label: "Productos",
+      label: t.resultado.tabProducts,
       badge: lowBudgetChanges.items.length + advancedChanges.items.length,
       content: (
         <div className="space-y-6">
@@ -237,7 +248,7 @@ export default function ResultadoPage() {
     },
     {
       id: "presupuesto",
-      label: "Presupuesto",
+      label: t.resultado.tabBudget,
       content: (
         <div className="space-y-4">
           <BudgetCalculator
@@ -250,7 +261,7 @@ export default function ResultadoPage() {
     },
     {
       id: "plan",
-      label: "Plan",
+      label: t.resultado.tabPlan,
       content: (
         <div className="space-y-4">
           <ActionPlan
@@ -266,11 +277,11 @@ export default function ResultadoPage() {
     <CenteredLayout>
       {/* Header */}
       <div className="space-y-2 text-center">
-        <h1 className="text-lg md:text-xl font-semibold text-foreground">
-          Análisis Completo
+        <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
+          {t.resultado.title}
         </h1>
         <p className="text-xs text-muted-foreground">
-          Reporte con cálculos acústicos reales
+          {t.resultado.subtitle}
         </p>
       </div>
 
@@ -286,7 +297,7 @@ export default function ResultadoPage() {
           className="flex items-center justify-center gap-2"
         >
           <Download className="w-4 h-4" />
-          {pdfLoading ? 'Generando PDF...' : 'Descargar PDF'}
+          {pdfLoading ? t.resultado.generatingPdf : t.resultado.downloadPdf}
         </PrimaryButton>
 
         <div className="text-center pt-2 space-y-2">
@@ -295,23 +306,23 @@ export default function ResultadoPage() {
             className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Analizar otro espacio
+            {t.common.analyzeAnother}
           </Link>
           <Link
             href="/"
             className="inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors items-center gap-1 justify-center"
           >
             <ChevronLeft className="w-4 h-4" />
-            Volver al inicio
+            {t.common.backToHome}
           </Link>
         </div>
       </div>
 
       {/* Footer note */}
       <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
-        <p>Análisis generado: {new Date(analysis.generatedAt).toLocaleString("es-AR")}</p>
+        <p>{t.resultado.generatedAt} {new Date(analysis.generatedAt).toLocaleString("es-AR")}</p>
         <p className="mt-1">
-          Análisis estimado. Para resultados profesionales, considerar medición especializada.
+          {t.resultado.disclaimer}
         </p>
       </div>
     </CenteredLayout>

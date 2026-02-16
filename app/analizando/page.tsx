@@ -4,17 +4,15 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { useRoomStore } from "@/lib/roomStore"
-
-const tips = [
-  "La posición del punto de escucha puede cambiar muchísimo la percepción.",
-  "Los muebles también ayudan a controlar reflexiones.",
-  "Pequeños ajustes suelen generar grandes diferencias en el sonido.",
-]
+import { useT } from "@/lib/i18n"
 
 export default function AnalizandoPage() {
   const router = useRouter()
   const project = useRoomStore((s) => s.project)
   const setAnalysis = useRoomStore((s) => s.setAnalysis)
+  const { t } = useT()
+
+  const tips = [t.analizando.tip1, t.analizando.tip2, t.analizando.tip3]
 
   useEffect(() => {
     const run = async () => {
@@ -37,8 +35,8 @@ export default function AnalizandoPage() {
   return (
     <CenteredLayout>
       <div className="space-y-3 text-center">
-        <h1 className="text-lg md:text-xl font-semibold text-foreground">Analizando tu espacio...</h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">Procesando información acústica</p>
+        <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">{t.analizando.title}</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">{t.analizando.subtitle}</p>
       </div>
 
       <div className="flex justify-center py-6">
@@ -51,7 +49,7 @@ export default function AnalizandoPage() {
       </div>
 
       <div className="bg-muted rounded-2xl p-4 space-y-4">
-        <p className="text-xs font-medium text-foreground">Datos útiles:</p>
+        <p className="text-xs font-medium text-foreground">{t.analizando.usefulData}</p>
         <ul className="space-y-3">
           {tips.map((tip, index) => (
             <li key={index} className="text-xs text-muted-foreground flex gap-3">

@@ -1,6 +1,7 @@
 "use client"
 
 import type { ProductRecommendationBlock } from "@/app/types/room"
+import { useT } from "@/lib/i18n"
 
 interface ProductTableProps {
   recommendations: ProductRecommendationBlock
@@ -9,6 +10,7 @@ interface ProductTableProps {
 
 export function ProductTable({ recommendations, title }: ProductTableProps) {
   const { items, totalEstimatedCost } = recommendations
+  const { t } = useT()
 
   if (!items || items.length === 0) return null
 
@@ -19,19 +21,28 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
   }, {} as Record<string, typeof items>)
 
   const categoryLabels: Record<string, string> = {
-    absorber: "Paneles Absorbentes", bass_trap: "Trampas de Graves", diffuser: "Difusores",
-    rug: "Alfombras", curtain: "Cortinas", misc: "Otros",
+    absorber: t.report.products.categoryAbsorber,
+    bass_trap: t.report.products.categoryBassTrap,
+    diffuser: t.report.products.categoryDiffuser,
+    rug: t.report.products.categoryRug,
+    curtain: t.report.products.categoryCurtain,
+    misc: t.report.products.categoryOther,
   }
 
   const impactColors = { high: "text-destructive", medium: "text-yellow-600 dark:text-yellow-400", low: "text-muted-foreground" }
-  const impactLabels = { high: "Alta", medium: "Media", low: "Baja" }
+  const impactLabels = { high: t.report.products.impactHigh, medium: t.report.products.impactMedium, low: t.report.products.impactLow }
+  const installLabels = {
+    easy: `✓ ${t.report.products.installEasy}`,
+    moderate: `⚡ ${t.report.products.installModerate}`,
+    professional: `⚠ ${t.report.products.installProfessional}`,
+  }
 
   return (
     <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
       <div className="flex items-start justify-between">
         <h2 className="text-sm font-semibold text-foreground">{title || recommendations.title}</h2>
         <div className="text-right">
-          <div className="text-xs text-muted-foreground">Costo estimado</div>
+          <div className="text-xs text-muted-foreground">{t.report.products.estimatedCost}</div>
           <div className="text-lg font-semibold text-foreground font-mono">
             {totalEstimatedCost.currency === "USD" ? "$" : "ARS $"}{totalEstimatedCost.min.toLocaleString()} - {totalEstimatedCost.max.toLocaleString()}
           </div>
@@ -67,9 +78,9 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
                   </div>
                   <div className="text-xs text-muted-foreground mb-2">📍 {product.placement}</div>
                   <div className="flex items-center gap-3 flex-wrap text-xs">
-                    <span className={`font-medium ${impactColors[product.impactLevel]}`}>Impacto: {impactLabels[product.impactLevel]}</span>
+                    <span className={`font-medium ${impactColors[product.impactLevel]}`}>{t.report.products.impactLabel} {impactLabels[product.impactLevel]}</span>
                     <span className="text-muted-foreground">
-                      {product.installation === "easy" ? "✓ Fácil" : product.installation === "moderate" ? "⚡ Moderada" : "⚠ Profesional"}
+                      {installLabels[product.installation as keyof typeof installLabels] || product.installation}
                     </span>
                   </div>
                 </div>
@@ -80,9 +91,9 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
       </div>
 
       <div className="border-t border-border pt-3 flex items-center justify-between">
-        <div className="text-xs text-muted-foreground">Total de {items.length} productos</div>
+        <div className="text-xs text-muted-foreground">{t.report.products.totalOf} {items.length} {t.report.products.products}</div>
         <div className="text-right">
-          <div className="text-xs text-muted-foreground">Rango de inversión</div>
+          <div className="text-xs text-muted-foreground">{t.report.products.investmentRange}</div>
           <div className="text-xl font-semibold text-foreground font-mono">
             {totalEstimatedCost.currency === "USD" ? "$" : "ARS $"}{totalEstimatedCost.min.toLocaleString()} - {totalEstimatedCost.currency === "USD" ? "$" : "ARS $"}{totalEstimatedCost.max.toLocaleString()}
           </div>
@@ -90,7 +101,7 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
       </div>
 
       <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground">
-        <span className="text-foreground font-medium">Nota:</span> Los precios son estimados y pueden variar según proveedor y ubicación.
+        <span className="text-foreground font-medium">{t.common.note}</span> {t.report.products.noteText}
       </div>
     </div>
   )
