@@ -37,25 +37,25 @@ export default function AnalizandoPage() {
   return (
     <CenteredLayout>
       <div className="space-y-3 text-center">
-        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">{"> "}Analizando tu espacio...</h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">{"// "}Procesando información acústica</p>
+        <h1 className="text-lg md:text-xl font-semibold text-foreground">Analizando tu espacio...</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">Procesando información acústica</p>
       </div>
 
-      <div className="flex justify-center py-4">
-        <div className="flex gap-2">
-          <div className="w-4 h-4 bg-primary animate-pulse" style={{ animationDelay: "0ms" }}></div>
-          <div className="w-4 h-4 bg-primary animate-pulse" style={{ animationDelay: "150ms" }}></div>
-          <div className="w-4 h-4 bg-primary animate-pulse" style={{ animationDelay: "300ms" }}></div>
-          <div className="w-4 h-4 bg-primary animate-pulse" style={{ animationDelay: "450ms" }}></div>
+      <div className="flex justify-center py-6">
+        <div className="flex gap-3">
+          <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: "0ms" }}></div>
+          <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: "150ms" }}></div>
+          <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: "300ms" }}></div>
+          <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: "450ms" }}></div>
         </div>
       </div>
 
-      <div className="border-accent/50 bg-card p-4 space-y-4" style={{ borderWidth: "3px", borderStyle: "solid" }}>
-        <p className="text-xs font-semibold text-accent uppercase tracking-wide">{">"} Datos útiles:</p>
+      <div className="bg-muted rounded-2xl p-4 space-y-4">
+        <p className="text-xs font-medium text-foreground">Datos útiles:</p>
         <ul className="space-y-3">
           {tips.map((tip, index) => (
-            <li key={index} className="text-xs text-muted-foreground flex gap-2">
-              <span className="text-primary font-bold">[{String(index + 1).padStart(2, "0")}]</span>
+            <li key={index} className="text-xs text-muted-foreground flex gap-3">
+              <span className="text-primary font-semibold flex-shrink-0">{index + 1}.</span>
               <span className="leading-relaxed">{tip}</span>
             </li>
           ))}

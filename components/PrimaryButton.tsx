@@ -12,15 +12,13 @@ export function PrimaryButton({ className, children, style, ...props }: PrimaryB
   return (
     <button
       className={cn(
-        "w-full bg-primary text-primary-foreground py-3 px-6 font-semibold text-center uppercase text-sm tracking-wide border-black hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 transition-all",
+        "w-full bg-primary text-primary-foreground py-3.5 px-6 font-semibold text-center text-sm",
+        "rounded-xl",
+        "hover:opacity-90 active:scale-[0.98] transition-all duration-150",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
         className,
       )}
-      style={{
-        borderWidth: "3px",
-        borderStyle: "solid",
-        boxShadow: "4px 4px 0 0 rgba(0,0,0,1)",
-        ...style,
-      }}
+      style={style}
       {...props}
     >
       {children}

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { ChevronLeft, RefreshCw, Download } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { RetroTabs } from "@/components/RetroTabs"
@@ -20,13 +21,12 @@ export default function ResultadoPage() {
   const project = useRoomStore((s) => s.project)
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  // 🛡️ Si no hay análisis, mostramos un fallback
   if (!analysis) {
     return (
       <CenteredLayout>
         <div className="space-y-4 text-center">
-          <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">
-            {"> "}Aún no hay análisis
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">
+            Aún no hay análisis
           </h1>
           <p className="text-sm text-muted-foreground">
             No pudimos cargar el resultado de tu espacio. Probá volver a ejecutar el análisis o regresar al inicio.
@@ -34,9 +34,10 @@ export default function ResultadoPage() {
           <div className="pt-2">
             <Link
               href="/"
-              className="text-xs text-accent hover:text-primary transition-colors uppercase tracking-wide"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              {"<"} VOLVER AL INICIO
+              <ChevronLeft className="w-4 h-4" />
+              Volver al inicio
             </Link>
           </div>
         </div>
@@ -44,7 +45,6 @@ export default function ResultadoPage() {
     )
   }
 
-  // 📄 Download PDF function
   const handleDownloadPDF = async () => {
     if (!analysis || !project) return
 
@@ -65,10 +65,7 @@ export default function ResultadoPage() {
         throw new Error('Failed to generate PDF')
       }
 
-      // Get the PDF blob
       const blob = await response.blob()
-
-      // Create download link
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -76,7 +73,6 @@ export default function ResultadoPage() {
       document.body.appendChild(a)
       a.click()
 
-      // Cleanup
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (error) {
@@ -99,10 +95,8 @@ export default function ResultadoPage() {
     roomDiagram,
   } = analysis
 
-  // Calculate total issues for badge
   const totalIssues = priorityScore.critical + priorityScore.improvements
 
-  // Define tabs content
   const tabs = [
     {
       id: "resumen",
@@ -111,37 +105,34 @@ export default function ResultadoPage() {
       content: (
         <div className="space-y-4">
           {/* Priority Score Badges */}
-          <div className="flex items-center justify-center gap-3 text-[10px] font-mono flex-wrap">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             {priorityScore.critical > 0 && (
-              <div className="px-3 py-1 border-2 border-destructive text-destructive bg-destructive/10">
-                {priorityScore.critical} CRÍTICO{priorityScore.critical > 1 ? "S" : ""}
+              <div className="px-3 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-medium">
+                {priorityScore.critical} crítico{priorityScore.critical > 1 ? "s" : ""}
               </div>
             )}
             {priorityScore.improvements > 0 && (
-              <div className="px-3 py-1 border-2 border-accent text-accent bg-accent/10">
-                {priorityScore.improvements} MEJORA{priorityScore.improvements > 1 ? "S" : ""}
+              <div className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-xs font-medium">
+                {priorityScore.improvements} mejora{priorityScore.improvements > 1 ? "s" : ""}
               </div>
             )}
             {priorityScore.optimizations > 0 && (
-              <div className="px-3 py-1 border-2 border-primary text-primary bg-primary/10">
-                {priorityScore.optimizations} OPTIMIZACION{priorityScore.optimizations > 1 ? "ES" : ""}
+              <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                {priorityScore.optimizations} optimizacion{priorityScore.optimizations > 1 ? "es" : ""}
               </div>
             )}
           </div>
 
           {/* Executive Summary */}
-          <div
-            className="border-primary bg-card p-4 space-y-3 glow-border"
-            style={{ borderWidth: "3px", borderStyle: "solid" }}
-          >
-            <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
-              [DIAGNÓSTICO GENERAL]
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">
+              Diagnóstico general
             </h2>
             <p className="text-foreground text-sm leading-relaxed">{summary}</p>
-            <div className="flex items-center justify-between text-xs border-t border-muted-foreground/30 pt-2 mt-2 flex-wrap gap-2">
+            <div className="flex items-center justify-between text-xs border-t border-border pt-2 mt-2 flex-wrap gap-2">
               <span className="text-muted-foreground">
                 Objetivo:{" "}
-                <span className="text-accent">
+                <span className="text-foreground font-medium">
                   {project.goal === "music"
                     ? "Escuchar música"
                     : project.goal === "instrument"
@@ -156,13 +147,13 @@ export default function ResultadoPage() {
                 <span
                   className={
                     roomCharacter === "viva"
-                      ? "text-yellow-400"
+                      ? "text-yellow-600 dark:text-yellow-400"
                       : roomCharacter === "equilibrada"
                         ? "text-primary"
-                        : "text-blue-400"
+                        : "text-blue-500 dark:text-blue-400"
                   }
                 >
-                  {roomCharacter.toUpperCase()}
+                  {roomCharacter.charAt(0).toUpperCase() + roomCharacter.slice(1)}
                 </span>
               </span>
             </div>
@@ -172,24 +163,21 @@ export default function ResultadoPage() {
           <RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} />
 
           {/* Next Steps */}
-          <div
-            className="border-primary bg-card p-4 space-y-3"
-            style={{ borderWidth: "3px", borderStyle: "solid" }}
-          >
-            <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
-              [PRÓXIMOS PASOS]
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">
+              Próximos pasos
             </h2>
-            <div className="space-y-2 text-xs text-muted-foreground">
-              <div className="flex gap-2">
-                <span className="text-primary font-bold">[1]</span>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex gap-3">
+                <span className="text-primary font-semibold">1.</span>
                 <span>Comenzar con cambios gratuitos esta semana</span>
               </div>
-              <div className="flex gap-2">
-                <span className="text-primary font-bold">[2]</span>
+              <div className="flex gap-3">
+                <span className="text-primary font-semibold">2.</span>
                 <span>Revisar recomendaciones de productos</span>
               </div>
-              <div className="flex gap-2">
-                <span className="text-primary font-bold">[3]</span>
+              <div className="flex gap-3">
+                <span className="text-primary font-semibold">3.</span>
                 <span>Implementar mejoras de forma gradual</span>
               </div>
             </div>
@@ -217,7 +205,6 @@ export default function ResultadoPage() {
             diagram={roomDiagram}
             onPositionsChange={(positions) => {
               console.log('Positions changed:', positions)
-              // TODO: Recalcular métricas acústicas en tiempo real
             }}
           />
         </div>
@@ -243,10 +230,7 @@ export default function ResultadoPage() {
       badge: lowBudgetChanges.items.length + advancedChanges.items.length,
       content: (
         <div className="space-y-6">
-          {/* Low Budget */}
           <ProductTable recommendations={lowBudgetChanges} />
-
-          {/* Advanced */}
           <ProductTable recommendations={advancedChanges} />
         </div>
       ),
@@ -282,11 +266,11 @@ export default function ResultadoPage() {
     <CenteredLayout>
       {/* Header */}
       <div className="space-y-2 text-center">
-        <h1 className="text-lg md:text-xl font-bold text-primary glow-text font-mono">
-          {"> "}Análisis Completo
+        <h1 className="text-lg md:text-xl font-semibold text-foreground">
+          Análisis Completo
         </h1>
-        <p className="text-xs text-muted-foreground uppercase tracking-wide">
-          {"// "}Reporte con cálculos acústicos reales
+        <p className="text-xs text-muted-foreground">
+          Reporte con cálculos acústicos reales
         </p>
       </div>
 
@@ -294,33 +278,37 @@ export default function ResultadoPage() {
       <RetroTabs tabs={tabs} defaultTab="resumen" />
 
       {/* Actions */}
-      <div className="space-y-3 pt-4 border-t border-muted-foreground/20">
+      <div className="space-y-3 pt-4 border-t border-border">
         <PrimaryButton
           type="button"
           onClick={handleDownloadPDF}
           disabled={pdfLoading}
+          className="flex items-center justify-center gap-2"
         >
-          {pdfLoading ? '[GENERANDO PDF...]' : '[DESCARGAR PDF]'}
+          <Download className="w-4 h-4" />
+          {pdfLoading ? 'Generando PDF...' : 'Descargar PDF'}
         </PrimaryButton>
 
         <div className="text-center pt-2 space-y-2">
           <Link
             href="/objetivo"
-            className="block text-xs text-primary hover:text-accent transition-colors uppercase tracking-wide"
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
           >
-            {"↻"} ANALIZAR OTRO ESPACIO
+            <RefreshCw className="w-3.5 h-3.5" />
+            Analizar otro espacio
           </Link>
           <Link
             href="/"
-            className="block text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wide"
+            className="inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors items-center gap-1 justify-center"
           >
-            {"<"} VOLVER AL INICIO
+            <ChevronLeft className="w-4 h-4" />
+            Volver al inicio
           </Link>
         </div>
       </div>
 
       {/* Footer note */}
-      <div className="text-center text-[10px] text-muted-foreground pt-4 border-t border-muted-foreground/20">
+      <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
         <p>Análisis generado: {new Date(analysis.generatedAt).toLocaleString("es-AR")}</p>
         <p className="mt-1">
           Análisis estimado. Para resultados profesionales, considerar medición especializada.

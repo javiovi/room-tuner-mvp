@@ -5,6 +5,7 @@ import type React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { ChevronLeft } from "lucide-react"
 
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { PrimaryButton } from "@/components/PrimaryButton"
@@ -47,30 +48,31 @@ export default function EspacioPage() {
     <CenteredLayout>
       <Link
         href="/objetivo"
-        className="text-xs text-accent hover:text-primary transition-colors inline-flex items-center gap-1 uppercase tracking-wide"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
       >
-        {"<"} VOLVER
+        <ChevronLeft className="w-4 h-4" />
+        Volver
       </Link>
 
       <div className="space-y-3">
-        <h1 className="text-base md:text-lg font-bold text-primary glow-text font-mono">
-          {"> "}Contanos sobre tu espacio
+        <h1 className="text-base md:text-lg font-semibold text-foreground">
+          Contanos sobre tu espacio
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground">
-          {"// "}No hace falta que las medidas sean perfectas
+          No hace falta que las medidas sean perfectas
         </p>
       </div>
 
       <form className="space-y-4" onSubmit={handleContinue}>
         {/* Dimensiones */}
         <div className="space-y-3">
-          <h2 className="text-xs font-bold text-accent uppercase tracking-wide border-b border-accent/30 pb-1">
-            [DIMENSIONES]
+          <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+            Dimensiones
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label htmlFor="largo" className="block text-[11px] font-semibold text-accent mb-2 uppercase tracking-wide">
+              <label htmlFor="largo" className="block text-xs font-medium text-foreground mb-2">
                 Largo (m)
               </label>
               <input
@@ -81,12 +83,12 @@ export default function EspacioPage() {
                 value={formData.largo}
                 onChange={handleChange}
                 placeholder="ej: 5"
-                className="w-full border-2 border-primary/50 px-3 py-3 text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all font-mono touch-manipulation"
+                className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
 
             <div>
-              <label htmlFor="ancho" className="block text-[11px] font-semibold text-accent mb-2 uppercase tracking-wide">
+              <label htmlFor="ancho" className="block text-xs font-medium text-foreground mb-2">
                 Ancho (m)
               </label>
               <input
@@ -97,12 +99,12 @@ export default function EspacioPage() {
                 value={formData.ancho}
                 onChange={handleChange}
                 placeholder="ej: 4"
-                className="w-full border-2 border-primary/50 px-3 py-3 text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all font-mono touch-manipulation"
+                className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
 
             <div>
-              <label htmlFor="altura" className="block text-[11px] font-semibold text-accent mb-2 uppercase tracking-wide">
+              <label htmlFor="altura" className="block text-xs font-medium text-foreground mb-2">
                 Altura (m)
               </label>
               <input
@@ -113,25 +115,24 @@ export default function EspacioPage() {
                 value={formData.altura}
                 onChange={handleChange}
                 placeholder="ej: 2.7"
-                className="w-full border-2 border-primary/50 px-3 py-3 text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all font-mono touch-manipulation"
+                className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
           </div>
 
-          {/* Helper text */}
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Tip: Si no tenés las medidas exactas, estimá usando pasos (1 paso ≈ 0.8m)
           </p>
         </div>
 
         {/* Materiales */}
         <div className="space-y-3">
-          <h2 className="text-xs font-bold text-accent uppercase tracking-wide border-b border-accent/30 pb-1">
-            [MATERIALES]
+          <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+            Materiales
           </h2>
 
           <div>
-            <label htmlFor="tipoPiso" className="block text-[11px] font-semibold text-accent mb-2 uppercase tracking-wide">
+            <label htmlFor="tipoPiso" className="block text-xs font-medium text-foreground mb-2">
               Tipo de piso
             </label>
             <select
@@ -139,9 +140,9 @@ export default function EspacioPage() {
               name="tipoPiso"
               value={formData.tipoPiso}
               onChange={handleChange}
-              className="w-full border-2 border-primary/50 px-3 py-3 text-sm bg-muted text-foreground focus:outline-none focus:border-primary transition-all appearance-none font-mono cursor-pointer touch-manipulation"
+              className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
             >
-              <option value="">{">"} Selecciona una opción</option>
+              <option value="">Selecciona una opción</option>
               <optgroup label="Duros (más reflexivos)">
                 <option value="ceramico">Cerámico / Porcelanato</option>
                 <option value="madera">Madera / Parquet</option>
@@ -158,7 +159,7 @@ export default function EspacioPage() {
           </div>
 
           <div>
-            <label htmlFor="tipoParedes" className="block text-[11px] font-semibold text-accent mb-2 uppercase tracking-wide">
+            <label htmlFor="tipoParedes" className="block text-xs font-medium text-foreground mb-2">
               Tipo de paredes
             </label>
             <select
@@ -166,9 +167,9 @@ export default function EspacioPage() {
               name="tipoParedes"
               value={formData.tipoParedes}
               onChange={handleChange}
-              className="w-full border-2 border-primary/50 px-3 py-3 text-sm bg-muted text-foreground focus:outline-none focus:border-primary transition-all appearance-none font-mono cursor-pointer touch-manipulation"
+              className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
             >
-              <option value="">{">"} Selecciona una opción</option>
+              <option value="">Selecciona una opción</option>
               <optgroup label="Duras (más reflexivas)">
                 <option value="desnudas">Paredes desnudas / Pintadas</option>
                 <option value="vidrio">Con ventanas grandes / Vidrio</option>
@@ -184,16 +185,15 @@ export default function EspacioPage() {
             </select>
           </div>
 
-          {/* Info sobre materiales */}
-          <div className="p-2 border border-accent/20 bg-accent/5">
-            <p className="text-[10px] text-muted-foreground">
-              <span className="text-accent font-bold">Info:</span> Materiales duros reflejan más sonido (espacio más vivo),
+          <div className="p-3 bg-muted rounded-xl">
+            <p className="text-xs text-muted-foreground">
+              <span className="text-foreground font-medium">Info:</span> Materiales duros reflejan más sonido (espacio más vivo),
               materiales blandos absorben (espacio más seco).
             </p>
           </div>
         </div>
 
-        <PrimaryButton type="submit">[CONTINUAR]</PrimaryButton>
+        <PrimaryButton type="submit">Continuar</PrimaryButton>
       </form>
     </CenteredLayout>
   )

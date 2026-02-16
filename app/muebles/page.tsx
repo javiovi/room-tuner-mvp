@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { ChevronLeft, Check } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { useRoomStore } from "@/lib/roomStore"
@@ -91,24 +92,25 @@ export default function MueblesPage() {
     <CenteredLayout>
       <Link
         href="/disposicion"
-        className="text-xs text-accent hover:text-primary transition-colors inline-flex items-center gap-1 uppercase tracking-wide"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
       >
-        {"<"} VOLVER
+        <ChevronLeft className="w-4 h-4" />
+        Volver
       </Link>
 
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h1 className="text-base md:text-lg font-bold text-primary glow-text font-mono">
-              {"> "}Muebles en el espacio
+            <h1 className="text-base md:text-lg font-semibold text-foreground">
+              Muebles en el espacio
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground">
-              {"// "}Seleccioná todo lo que aplique
+              Seleccioná todo lo que aplique
             </p>
           </div>
           {totalSelected > 0 && (
-            <div className="px-2 py-1 bg-primary text-primary-foreground text-xs font-bold border-2 border-black flex-shrink-0">
-              {totalSelected} ITEM{totalSelected > 1 ? "S" : ""}
+            <div className="px-2.5 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full flex-shrink-0">
+              {totalSelected} item{totalSelected > 1 ? "s" : ""}
             </div>
           )}
         </div>
@@ -117,25 +119,25 @@ export default function MueblesPage() {
       <div className="space-y-4">
         {furnitureOptions.map((category) => (
           <div key={category.category} className="space-y-2">
-            <h2 className="text-xs font-bold text-accent uppercase tracking-wide border-b border-accent/30 pb-1">
-              [{category.category}]
+            <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+              {category.category}
             </h2>
             <div className="grid grid-cols-1 gap-2">
               {category.items.map((item) => (
                 <label
                   key={item.id}
-                  className={`flex items-center gap-3 p-3 border-2 cursor-pointer transition-all touch-manipulation ${
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all touch-manipulation ${
                     selected.includes(item.id)
-                      ? "border-primary bg-primary/10"
-                      : "border-muted-foreground/30 bg-card hover:border-primary/50"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/50"
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 ${
-                      selected.includes(item.id) ? "border-primary bg-primary" : "border-muted-foreground"
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      selected.includes(item.id) ? "border-primary bg-primary" : "border-muted-foreground/40"
                     }`}
                   >
-                    {selected.includes(item.id) && <span className="text-primary-foreground text-xs font-bold">✓</span>}
+                    {selected.includes(item.id) && <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />}
                   </div>
                   <input
                     type="checkbox"
@@ -144,7 +146,7 @@ export default function MueblesPage() {
                     className="sr-only"
                   />
                   <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                    <item.Icon className="w-6 h-6 text-primary" strokeWidth={2} />
+                    <item.Icon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
                   </div>
                   <span className="text-xs md:text-sm text-foreground">{item.label}</span>
                 </label>
@@ -154,16 +156,15 @@ export default function MueblesPage() {
         ))}
       </div>
 
-      {/* Info box */}
-      <div className="p-3 border border-accent/20 bg-accent/5">
-        <p className="text-[10px] text-muted-foreground">
-          <span className="text-accent font-bold">Tip:</span> Los muebles afectan la acústica del espacio.
+      <div className="p-3 bg-muted rounded-xl">
+        <p className="text-xs text-muted-foreground">
+          <span className="text-foreground font-medium">Tip:</span> Los muebles afectan la acústica del espacio.
           Más muebles = más absorción de sonido. Estanterías y bibliotecas ayudan a difundir el sonido.
         </p>
       </div>
 
       <PrimaryButton type="button" onClick={handleContinue}>
-        [ANALIZAR MI ESPACIO]
+        Analizar mi espacio
       </PrimaryButton>
     </CenteredLayout>
   )

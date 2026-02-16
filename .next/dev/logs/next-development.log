@@ -1,49 +1,32 @@
-[00:00:01.979] Server  WARN     ⚠ Minimum recommended TypeScript version is v5.1.0, older versions can potentially be incompatible with Next.js. Detected: 5.0.2
-[00:00:02.386] Server  LOG      ✓ Ready in 1748ms
-[00:04:46.789] Server  LOG      ○ Compiling / ...
-[00:04:48.348] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:04:48.348] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:04:48.348] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626072696}
-[00:05:18.299] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/objetivo color: rgb(120, 120, 120) color: inherit {"dp":"/objetivo","o":"http://localhost:3000/objetivo","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626102646}
-[00:05:21.144] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/espacio color: rgb(120, 120, 120) color: inherit {"dp":"/espacio","o":"http://localhost:3000/espacio","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626105492}
-[00:05:34.087] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/disposicion color: rgb(120, 120, 120) color: inherit {"dp":"/disposicion","o":"http://localhost:3000/disposicion","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626118435}
-[00:05:40.669] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/muebles color: rgb(120, 120, 120) color: inherit {"dp":"/muebles","o":"http://localhost:3000/muebles","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626125017}
-[00:05:46.532] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/analizando color: rgb(120, 120, 120) color: inherit {"dp":"/analizando","o":"http://localhost:3000/analizando","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626130877}
-[00:05:49.446] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
-[00:05:49.454] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
-[00:05:49.455] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
-[00:05:49.457] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
-[00:05:49.935] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
-[00:05:49.937] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
-[00:05:49.938] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
-[00:05:49.938] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
-[00:05:49.943] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
-[00:05:49.943] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
-[00:05:53.292] Server  LOG      ○ Compiling /resultado ...
-[00:05:54.228] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3000/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626138560}
-[00:06:00.465] Server  LOG     [PDF] Starting PDF generation...
-[00:06:00.840] Server  ERROR   [PDF Generation] Error: TypeError: Cannot read properties of undefined (reading 'toFixed')
-[00:06:02.453] Browser ERROR   Error downloading PDF: {}
-[00:08:36.111] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:08:36.111] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/resultado","route":"/resultado"}
-[00:08:36.111] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3000/resultado","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626300461}
-[00:08:37.676] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626302024}
-[00:08:38.811] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/objetivo color: rgb(120, 120, 120) color: inherit {"dp":"/objetivo","o":"http://localhost:3000/objetivo","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626303161}
-[00:08:40.764] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/espacio color: rgb(120, 120, 120) color: inherit {"dp":"/espacio","o":"http://localhost:3000/espacio","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626305113}
-[00:09:01.063] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/disposicion color: rgb(120, 120, 120) color: inherit {"dp":"/disposicion","o":"http://localhost:3000/disposicion","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626325412}
-[00:09:05.614] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/muebles color: rgb(120, 120, 120) color: inherit {"dp":"/muebles","o":"http://localhost:3000/muebles","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626329963}
-[00:09:12.835] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/analizando color: rgb(120, 120, 120) color: inherit {"dp":"/analizando","o":"http://localhost:3000/analizando","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626337184}
-[00:09:14.836] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
-[00:09:14.837] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
-[00:09:14.839] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
-[00:09:14.840] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
-[00:09:15.312] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
-[00:09:15.314] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
-[00:09:15.315] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
-[00:09:15.319] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
-[00:09:15.319] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
-[00:09:15.320] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
-[00:09:15.815] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3000/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1767626340163}
-[00:09:40.159] Server  LOG     [PDF] Starting PDF generation...
-[00:09:40.764] Server  LOG     [PDF] PDF generated successfully, size: 21067 "bytes"
-[00:16:05.544] Server  LOG      ✓ Compiled in 245ms
+[00:00:00.707] Server  WARN     ⚠ Minimum recommended TypeScript version is v5.1.0, older versions can potentially be incompatible with Next.js. Detected: 5.0.2
+[00:00:00.805] Server  LOG      ✓ Ready in 596ms
+[00:00:33.283] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:33.283] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:33.283] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3001/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253929735}
+[00:00:43.128] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/objetivo color: rgb(120, 120, 120) color: inherit {"dp":"/objetivo","o":"http://localhost:3001/objetivo","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253939580}
+[00:00:48.336] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/espacio color: rgb(120, 120, 120) color: inherit {"dp":"/espacio","o":"http://localhost:3001/espacio","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253944790}
+[00:00:59.284] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/disposicion color: rgb(120, 120, 120) color: inherit {"dp":"/disposicion","o":"http://localhost:3001/disposicion","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253955738}
+[00:01:03.198] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/muebles color: rgb(120, 120, 120) color: inherit {"dp":"/muebles","o":"http://localhost:3001/muebles","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253959652}
+[00:01:07.973] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/analizando color: rgb(120, 120, 120) color: inherit {"dp":"/analizando","o":"http://localhost:3001/analizando","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253964427}
+[00:01:08.485] Server  ERROR   Error saving project: {}
+[00:01:08.492] Server  ERROR   Error saving project: {}
+[00:01:09.687] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
+[00:01:09.690] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
+[00:01:09.693] Server  WARN    [Pricing] ML API failed for "panel espuma acustica 5cm": 403
+[00:01:09.700] Server  WARN    [Pricing] ML API failed for "bass_trap acustico": 403
+[00:01:10.158] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
+[00:01:10.162] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
+[00:01:10.163] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
+[00:01:10.172] Server  WARN    [Pricing] ML API failed for "pads aislacion monitores": 403
+[00:01:10.443] Server  WARN    [Pricing] ML API failed for "rug acustico": 403
+[00:01:10.443] Server  LOG     [Pricing] Enriched 4 products (0 with real prices from ML)
+[00:01:11.062] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/resultado color: rgb(120, 120, 120) color: inherit {"dp":"/resultado","o":"http://localhost:3001/resultado","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253967516}
+[00:01:32.171] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/objetivo color: rgb(120, 120, 120) color: inherit {"dp":"/objetivo","o":"http://localhost:3001/objetivo","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771253988623}
+[00:01:53.666] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:01:53.666] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:01:53.666] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3001/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771254010120}
+[00:05:22.086] Server  LOG      ✓ Compiled in 323ms
+[00:06:08.393] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:06:08.393] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:06:08.393] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3001/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771254264848}
+[00:06:41.496] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3001/objetivo color: rgb(120, 120, 120) color: inherit {"dp":"/objetivo","o":"http://localhost:3001/objetivo","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1771254297948}

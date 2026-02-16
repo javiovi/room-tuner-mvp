@@ -2,259 +2,161 @@
 
 import Link from "next/link"
 import { Music, Guitar, Briefcase } from "lucide-react"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { ReportPreview } from "@/components/ReportPreview"
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
-        <div className="text-center space-y-6">
-          {/* Badge */}
-          <div className="flex justify-center">
-            <span className="inline-flex items-center bg-black text-primary px-3 py-1 text-[10px] uppercase tracking-[0.2em] border-2 border-primary">
-              BETA // ANÁLISIS ACÚSTICO
-            </span>
-          </div>
+      {/* Top bar */}
+      <div className="container max-w-4xl mx-auto px-4 pt-4 flex justify-end">
+        <ThemeToggle />
+      </div>
 
-          {/* Main Title */}
-          <h1 className="text-3xl md:text-5xl font-bold text-primary glow-text leading-tight font-mono">
-            {"> "}Optimizá la acústica
+      {/* Hero */}
+      <section className="container max-w-4xl mx-auto px-4 py-16 md:py-24">
+        <div className="text-center space-y-6">
+          <span className="inline-flex items-center bg-primary/10 text-primary px-4 py-1.5 text-xs font-medium rounded-full">
+            Beta
+          </span>
+
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight">
+            Optimizá la acústica
             <br />
-            de tu espacio
+            <span className="text-primary">de tu espacio</span>
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            Análisis profesional en <span className="text-accent font-bold">5 minutos</span>. Sin registro, sin
-            tarjeta, sin spam.
-            <br />
-            Descubrí qué le falta a tu espacio para sonar mejor y cuánto te costaría arreglarlo.
+          <p className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto">
+            Análisis profesional en minutos. Descubrí qué le falta y cuánto cuesta arreglarlo.
           </p>
 
-          {/* Primary CTA */}
-          <div className="pt-4">
+          <div className="pt-2">
             <Link
               href="/objetivo"
-              className="inline-flex items-center justify-center bg-primary text-primary-foreground py-4 px-8 font-bold uppercase text-sm tracking-wide border-black hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-              style={{
-                borderWidth: "3px",
-                borderStyle: "solid",
-                boxShadow: "4px 4px 0 0 rgba(0,0,0,1)",
-              }}
+              className="inline-flex items-center justify-center bg-primary text-primary-foreground py-4 px-8 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-150"
             >
-              [ANALIZAR MI ESPACIO GRATIS]
+              Probar demo gratis
             </Link>
-            <p className="text-[11px] text-muted-foreground mt-3">100% gratis • Sin registro • 5 minutos</p>
+            <p className="text-xs text-muted-foreground mt-3">Sin registro · 5 minutos</p>
           </div>
+        </div>
+      </section>
 
-          {/* Interactive Report Preview */}
-          <div className="pt-8">
-            <ReportPreview />
-          </div>
+      {/* App Preview Placeholder — future GIFs/screenshots go here */}
+      <section className="container max-w-4xl mx-auto px-4 pb-12">
+        <div className="rounded-2xl border border-border/50 bg-muted/30 p-8 md:p-12 flex items-center justify-center min-h-[280px]">
+          <p className="text-sm text-muted-foreground/60 text-center">
+            {/* Replace with <Image> or GIF when ready */}
+            Vista previa del análisis interactivo
+          </p>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-muted-foreground/20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono mb-2">[¿CÓMO FUNCIONA?]</h2>
-          <p className="text-sm text-muted-foreground">Tres pasos simples para optimizar tu espacio</p>
-        </div>
+      <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-border">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-10">Cómo funciona</h2>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Step 1 */}
-          <div className="border-2 border-accent/30 bg-card p-6 space-y-3">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-accent text-black font-bold text-xl border-2 border-black">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-6 space-y-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-primary text-primary-foreground font-bold text-sm rounded-xl">
               01
             </div>
-            <h3 className="text-lg font-bold text-accent uppercase tracking-wide">Medí tu espacio</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Dimensiones aproximadas (no hace falta ser exacto). Podés usar pasos o medir con el celu.
+            <h3 className="text-base font-semibold text-foreground">Medí tu espacio</h3>
+            <p className="text-sm text-muted-foreground">
+              Dimensiones aproximadas, materiales y disposición de muebles.
             </p>
           </div>
 
-          {/* Step 2 */}
-          <div className="border-2 border-accent/30 bg-card p-6 space-y-3">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-accent text-black font-bold text-xl border-2 border-black">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-6 space-y-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-primary text-primary-foreground font-bold text-sm rounded-xl">
               02
             </div>
-            <h3 className="text-lg font-bold text-accent uppercase tracking-wide">Respondé</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              5 preguntas sobre materiales, ubicación de equipos y muebles. Toma menos de 3 minutos.
+            <h3 className="text-base font-semibold text-foreground">Analizamos</h3>
+            <p className="text-sm text-muted-foreground">
+              Calculamos RT60, modos de sala, respuesta de frecuencia y más.
             </p>
           </div>
 
-          {/* Step 3 */}
-          <div className="border-2 border-accent/30 bg-card p-6 space-y-3">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-accent text-black font-bold text-xl border-2 border-black">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-6 space-y-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-primary text-primary-foreground font-bold text-sm rounded-xl">
               03
             </div>
-            <h3 className="text-lg font-bold text-accent uppercase tracking-wide">Obtenés</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Análisis completo con cálculos acústicos reales, diagrama interactivo y recomendaciones.
+            <h3 className="text-base font-semibold text-foreground">Tu informe</h3>
+            <p className="text-sm text-muted-foreground">
+              Recomendaciones, productos con precios reales y plan de acción.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* What You Get */}
-      <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-muted-foreground/20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono mb-2">[QUÉ VAS A OBTENER]</h2>
-          <p className="text-sm text-muted-foreground">Tu informe personalizado incluye</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="flex gap-3 items-start">
-            <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">Análisis acústico profesional</h4>
-              <p className="text-xs text-muted-foreground">RT60, modos del espacio, respuesta de frecuencia</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">Diagrama interactivo 2D</h4>
-              <p className="text-xs text-muted-foreground">Arrastrá parlantes y optimizá tu setup</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">Recomendaciones personalizadas</h4>
-              <p className="text-xs text-muted-foreground">Cambios gratis, bajo presupuesto y avanzados</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">Precios reales en ARS/USD</h4>
-              <p className="text-xs text-muted-foreground">Productos reales con links y presupuesto estimado</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">Plan de acción priorizado</h4>
-              <p className="text-xs text-muted-foreground">Qué hacer primero para máximo impacto</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <span className="text-primary font-bold text-lg flex-shrink-0">[✓]</span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">Exportable a PDF</h4>
-              <p className="text-xs text-muted-foreground">Guardá e imprimí tu análisis completo</p>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Use Cases */}
-      <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-muted-foreground/20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono mb-2">[PARA QUÉ SIRVE]</h2>
-          <p className="text-sm text-muted-foreground">Optimizá tu espacio según tu uso</p>
-        </div>
+      <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-border">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-10">Para quién es</h2>
 
         <div className="grid md:grid-cols-3 gap-4">
-          {/* Music */}
-          <div className="border-2 border-primary/30 bg-card p-5 space-y-3 text-center">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3 text-center">
             <div className="flex justify-center">
-              <div className="w-16 h-16 border-2 border-primary bg-primary/10 flex items-center justify-center">
-                <Music className="w-8 h-8 text-primary" strokeWidth={2} />
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Music className="w-6 h-6 text-primary" strokeWidth={1.5} />
               </div>
             </div>
-            <h3 className="text-sm font-bold text-primary uppercase">Escuchar Música</h3>
-            <p className="text-xs text-muted-foreground">
-              Balance stereo perfecto, control de graves, sweet spot optimizado
-            </p>
+            <h3 className="text-sm font-semibold text-foreground">Escuchar música</h3>
+            <p className="text-xs text-muted-foreground">Sweet spot, balance stereo, control de graves</p>
           </div>
 
-          {/* Instrument */}
-          <div className="border-2 border-primary/30 bg-card p-5 space-y-3 text-center">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3 text-center">
             <div className="flex justify-center">
-              <div className="w-16 h-16 border-2 border-primary bg-primary/10 flex items-center justify-center">
-                <Guitar className="w-8 h-8 text-primary" strokeWidth={2} />
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Guitar className="w-6 h-6 text-primary" strokeWidth={1.5} />
               </div>
             </div>
-            <h3 className="text-sm font-bold text-primary uppercase">Tocar Instrumento</h3>
-            <p className="text-xs text-muted-foreground">
-              Acústica viva pero controlada, sin ecos molestos, monitoreo claro
-            </p>
+            <h3 className="text-sm font-semibold text-foreground">Tocar o producir</h3>
+            <p className="text-xs text-muted-foreground">Acústica controlada, sin ecos, monitoreo claro</p>
           </div>
 
-          {/* Work */}
-          <div className="border-2 border-primary/30 bg-card p-5 space-y-3 text-center">
+          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3 text-center">
             <div className="flex justify-center">
-              <div className="w-16 h-16 border-2 border-primary bg-primary/10 flex items-center justify-center">
-                <Briefcase className="w-8 h-8 text-primary" strokeWidth={2} />
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-primary" strokeWidth={1.5} />
               </div>
             </div>
-            <h3 className="text-sm font-bold text-primary uppercase">Trabajar/Estudiar</h3>
-            <p className="text-xs text-muted-foreground">
-              Espacio seco para concentración, control de ruido, calls más claras
-            </p>
+            <h3 className="text-sm font-semibold text-foreground">Trabajar o estudiar</h3>
+            <p className="text-xs text-muted-foreground">Concentración, control de ruido, calls claras</p>
           </div>
         </div>
       </section>
 
+      {/* Report Preview */}
+      <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-border">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-3">Ejemplo de informe</h2>
+        <p className="text-sm text-muted-foreground text-center mb-8">Datos de ejemplo con un espacio real</p>
+        <ReportPreview />
+      </section>
+
       {/* Final CTA */}
-      <section className="container max-w-4xl mx-auto px-4 py-16 border-t border-muted-foreground/20">
-        <div
-          className="border-primary bg-card p-8 md:p-12 text-center space-y-6"
-          style={{ borderWidth: "3px", borderStyle: "solid" }}
-        >
-          <h2 className="text-2xl md:text-3xl font-bold text-primary font-mono">
-            [LISTO PARA OPTIMIZAR TU ESPACIO?]
+      <section className="container max-w-4xl mx-auto px-4 py-16 border-t border-border">
+        <div className="bg-card rounded-2xl card-shadow border border-border/50 p-8 md:p-12 text-center space-y-5">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+            Probá con tu espacio
           </h2>
-          <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto">
-            Empezá ahora y en 5 minutos tenés tu análisis completo. Sin costos ocultos, sin trucos.
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            La demo es gratuita. En 5 minutos tenés un análisis completo de tu sala.
           </p>
-          <div>
-            <Link
-              href="/objetivo"
-              className="inline-flex items-center justify-center bg-primary text-primary-foreground py-4 px-8 font-bold uppercase text-sm tracking-wide border-black hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-              style={{
-                borderWidth: "3px",
-                borderStyle: "solid",
-                boxShadow: "4px 4px 0 0 rgba(0,0,0,1)",
-              }}
-            >
-              [EMPEZAR ANÁLISIS GRATIS]
-            </Link>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground pt-4">
-            <span className="flex items-center gap-1">
-              <span className="text-accent">✓</span> Sin registro
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-accent">✓</span> Sin tarjeta
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-accent">✓</span> 5 minutos
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-accent">✓</span> 100% gratis
-            </span>
-          </div>
+          <Link
+            href="/objetivo"
+            className="inline-flex items-center justify-center bg-primary text-primary-foreground py-4 px-8 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-150"
+          >
+            Empezar demo
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="container max-w-4xl mx-auto px-4 py-8 border-t border-muted-foreground/20">
+      <footer className="container max-w-4xl mx-auto px-4 py-8 border-t border-border">
         <div className="text-center space-y-2">
-          <p className="text-xs text-muted-foreground">
-            RoomTuner • Análisis acústico interactivo
-          </p>
-          <p className="text-[10px] text-muted-foreground/70">
-            Beta experimental. Los cálculos son estimaciones basadas en fórmulas acústicas estándar.
+          <p className="text-xs text-muted-foreground">RoomTuner · Análisis acústico interactivo</p>
+          <p className="text-xs text-muted-foreground/70">
+            Los cálculos son estimaciones basadas en fórmulas acústicas estándar.
           </p>
         </div>
       </footer>
