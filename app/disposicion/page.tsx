@@ -20,7 +20,11 @@ export default function DisposicionPage() {
     dondeSientas: "",
   })
 
+  const isValid = formData.ubicacionEquipo !== "" && formData.dondeSientas !== ""
+
   const handleContinue = () => {
+    if (!isValid) return
+
     updateProject({
       speakerPlacement: formData.ubicacionEquipo as any,
       listeningPosition: formData.dondeSientas as any,
@@ -101,7 +105,7 @@ export default function DisposicionPage() {
           <InfoCallout label={t.common.info}>{t.disposicion.listeningInfo}</InfoCallout>
         </div>
 
-        <Button onClick={handleContinue} className="w-full">{t.common.next}</Button>
+        <Button onClick={handleContinue} disabled={!isValid} className="w-full">{t.common.next}</Button>
       </div>
     </CenteredLayout>
   )

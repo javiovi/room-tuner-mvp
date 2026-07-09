@@ -33,8 +33,19 @@ export default function EspacioPage() {
     }))
   }
 
+  const largoNum = parseFloat(formData.largo)
+  const anchoNum = parseFloat(formData.ancho)
+  const alturaNum = parseFloat(formData.altura)
+  const isValid =
+    formData.largo !== "" && largoNum > 0 &&
+    formData.ancho !== "" && anchoNum > 0 &&
+    formData.altura !== "" && alturaNum > 0 &&
+    formData.tipoPiso !== "" &&
+    formData.tipoParedes !== ""
+
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isValid) return
 
     updateProject({
       lengthM: formData.largo ? Number(formData.largo) : undefined,
@@ -189,7 +200,7 @@ export default function EspacioPage() {
           <InfoCallout label={t.common.info}>{t.espacio.materialsInfo}</InfoCallout>
         </div>
 
-        <Button type="submit" className="w-full">{t.common.next}</Button>
+        <Button type="submit" disabled={!isValid} className="w-full">{t.common.next}</Button>
       </form>
     </CenteredLayout>
   )
