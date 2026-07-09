@@ -3,9 +3,11 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { ChevronLeft, Check } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
-import { PrimaryButton } from "@/components/PrimaryButton"
+import { Button } from "@/components/Button"
+import { OptionCard } from "@/components/OptionCard"
+import { InfoCallout } from "@/components/InfoCallout"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 import {
@@ -111,7 +113,7 @@ export default function MueblesPage() {
             </p>
           </div>
           {totalSelected > 0 && (
-            <div className="px-2.5 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full flex-shrink-0">
+            <div className="px-2 py-0.5 border border-primary text-primary font-mono text-[10px] flex-shrink-0">
               {totalSelected} {totalSelected > 1 ? t.common.items : t.common.item}
             </div>
           )}
@@ -120,53 +122,31 @@ export default function MueblesPage() {
 
       <div className="space-y-4">
         {furnitureOptions.map((category) => (
-          <div key={category.categoryKey} className="space-y-2">
-            <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+          <div key={category.categoryKey} className="space-y-1">
+            <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
               {t.muebles[category.categoryKey]}
             </h2>
-            <div className="grid grid-cols-1 gap-2">
+            <div>
               {category.items.map((item) => (
-                <label
+                <OptionCard
                   key={item.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all touch-manipulation ${
-                    selected.includes(item.id)
-                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card hover:border-primary/50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      selected.includes(item.id) ? "border-primary bg-primary" : "border-muted-foreground/40"
-                    }`}
-                  >
-                    {selected.includes(item.id) && <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(item.id)}
-                    onChange={() => toggleFurniture(item.id)}
-                    className="sr-only"
-                  />
-                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                    <item.Icon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-                  </div>
-                  <span className="text-xs md:text-sm text-foreground">{t.muebles[item.labelKey]}</span>
-                </label>
+                  variant="checkbox"
+                  selected={selected.includes(item.id)}
+                  onSelect={() => toggleFurniture(item.id)}
+                  title={t.muebles[item.labelKey]}
+                  icon={item.Icon}
+                />
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="p-3 bg-muted rounded-xl">
-        <p className="text-xs text-muted-foreground">
-          <span className="text-foreground font-medium">{t.common.tip}</span> {t.muebles.tip}
-        </p>
-      </div>
+      <InfoCallout label={t.common.tip}>{t.muebles.tip}</InfoCallout>
 
-      <PrimaryButton type="button" onClick={handleContinue}>
+      <Button type="button" onClick={handleContinue} className="w-full">
         {t.muebles.analyzeButton}
-      </PrimaryButton>
+      </Button>
     </CenteredLayout>
   )
 }

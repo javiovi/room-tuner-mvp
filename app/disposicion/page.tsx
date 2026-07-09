@@ -1,13 +1,13 @@
 "use client"
 
-import type React from "react"
-
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { ChevronLeft } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
-import { PrimaryButton } from "@/components/PrimaryButton"
+import { Button } from "@/components/Button"
+import { OptionCard } from "@/components/OptionCard"
+import { InfoCallout } from "@/components/InfoCallout"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 
@@ -20,17 +20,7 @@ export default function DisposicionPage() {
     dondeSientas: "",
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleContinue = (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const handleContinue = () => {
     updateProject({
       speakerPlacement: formData.ubicacionEquipo as any,
       listeningPosition: formData.dondeSientas as any,
@@ -70,95 +60,49 @@ export default function DisposicionPage() {
         <p className="text-xs md:text-sm text-muted-foreground">{t.disposicion.subtitle}</p>
       </div>
 
-      <form className="space-y-8" onSubmit={handleContinue}>
-        <div className="space-y-4">
-          <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
             {t.disposicion.speakerTitle}
           </h2>
-          <div className="space-y-2">
+          <div>
             {speakerOptions.map((option) => (
-              <label
+              <OptionCard
                 key={option.value}
-                className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition-all touch-manipulation ${
-                  formData.ubicacionEquipo === option.value
-                    ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
-                    formData.ubicacionEquipo === option.value ? "border-primary" : "border-muted-foreground/40"
-                  }`}
-                >
-                  {formData.ubicacionEquipo === option.value && <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>}
-                </div>
-                <input
-                  type="radio"
-                  name="ubicacionEquipo"
-                  value={option.value}
-                  checked={formData.ubicacionEquipo === option.value}
-                  onChange={handleChange}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className="text-xs md:text-sm text-foreground font-medium">{option.label}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{option.desc}</div>
-                </div>
-              </label>
+                variant="radio"
+                selected={formData.ubicacionEquipo === option.value}
+                onSelect={() => setFormData((prev) => ({ ...prev, ubicacionEquipo: option.value }))}
+                title={option.label}
+                description={option.desc}
+              />
             ))}
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            {t.common.tip} {t.disposicion.speakerTip}
-          </p>
+          <InfoCallout label={t.common.tip}>{t.disposicion.speakerTip}</InfoCallout>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+        <div className="space-y-2">
+          <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
             {t.disposicion.listeningTitle}
           </h2>
-          <div className="space-y-2">
+          <div>
             {listeningOptions.map((option) => (
-              <label
+              <OptionCard
                 key={option.value}
-                className={`flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition-all touch-manipulation ${
-                  formData.dondeSientas === option.value
-                    ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
-                    formData.dondeSientas === option.value ? "border-primary" : "border-muted-foreground/40"
-                  }`}
-                >
-                  {formData.dondeSientas === option.value && <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>}
-                </div>
-                <input
-                  type="radio"
-                  name="dondeSientas"
-                  value={option.value}
-                  checked={formData.dondeSientas === option.value}
-                  onChange={handleChange}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className="text-xs md:text-sm text-foreground font-medium">{option.label}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{option.desc}</div>
-                </div>
-              </label>
+                variant="radio"
+                selected={formData.dondeSientas === option.value}
+                onSelect={() => setFormData((prev) => ({ ...prev, dondeSientas: option.value }))}
+                title={option.label}
+                description={option.desc}
+              />
             ))}
           </div>
 
-          <div className="p-3 bg-muted rounded-xl">
-            <p className="text-xs text-muted-foreground">
-              <span className="text-foreground font-medium">{t.common.info}</span> {t.disposicion.listeningInfo}
-            </p>
-          </div>
+          <InfoCallout label={t.common.info}>{t.disposicion.listeningInfo}</InfoCallout>
         </div>
 
-        <PrimaryButton type="submit">{t.common.next}</PrimaryButton>
-      </form>
+        <Button onClick={handleContinue} className="w-full">{t.common.next}</Button>
+      </div>
     </CenteredLayout>
   )
 }

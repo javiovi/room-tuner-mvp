@@ -1,13 +1,13 @@
 "use client"
 
 import type { RecommendationBlock } from "@/app/types/room"
-import { Check } from "lucide-react"
+import { Check, ArrowRight } from "lucide-react"
 import { useT } from "@/lib/i18n"
+import { InfoCallout } from "@/components/InfoCallout"
 
 interface RecommendationSectionProps {
   recommendations: RecommendationBlock
   icon?: "check" | "arrow"
-  accentColor?: "primary" | "accent" | "destructive"
 }
 
 export function RecommendationSection({
@@ -22,7 +22,7 @@ export function RecommendationSection({
   }
 
   return (
-    <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
+    <div className="bg-card border border-border rounded-sm p-5 space-y-4">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
 
       <div className="space-y-3">
@@ -30,11 +30,11 @@ export function RecommendationSection({
           <div key={index} className="flex items-start gap-3 group">
             <div className="flex-shrink-0 mt-0.5">
               {icon === "check" ? (
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-primary" strokeWidth={3} />
+                <div className="w-4 h-4 border border-primary flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 text-primary" strokeWidth={3} />
                 </div>
               ) : (
-                <span className="text-sm font-medium text-primary">→</span>
+                <ArrowRight className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
               )}
             </div>
             <p className="text-xs md:text-sm text-foreground leading-relaxed flex-1">{item}</p>
@@ -42,11 +42,7 @@ export function RecommendationSection({
         ))}
       </div>
 
-      <div className="mt-4 p-3 bg-muted rounded-xl">
-        <p className="text-xs text-muted-foreground">
-          <span className="text-foreground font-medium">{t.report.recommendations.tipLabel}</span> {t.report.recommendations.tipText}
-        </p>
-      </div>
+      <InfoCallout label={t.report.recommendations.tipLabel}>{t.report.recommendations.tipText}</InfoCallout>
     </div>
   )
 }

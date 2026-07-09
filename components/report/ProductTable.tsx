@@ -2,6 +2,8 @@
 
 import type { ProductRecommendationBlock } from "@/app/types/room"
 import { useT } from "@/lib/i18n"
+import { MapPin, CheckCircle2, Zap, AlertTriangle, type LucideIcon } from "lucide-react"
+import { InfoCallout } from "@/components/InfoCallout"
 
 interface ProductTableProps {
   recommendations: ProductRecommendationBlock
@@ -29,16 +31,17 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
     misc: t.report.products.categoryOther,
   }
 
-  const impactColors = { high: "text-destructive", medium: "text-yellow-600 dark:text-yellow-400", low: "text-muted-foreground" }
+  const impactColors = { high: "text-destructive", medium: "text-warning", low: "text-muted-foreground" }
   const impactLabels = { high: t.report.products.impactHigh, medium: t.report.products.impactMedium, low: t.report.products.impactLow }
-  const installLabels = {
-    easy: `✓ ${t.report.products.installEasy}`,
-    moderate: `⚡ ${t.report.products.installModerate}`,
-    professional: `⚠ ${t.report.products.installProfessional}`,
+  const installIcons: Record<string, LucideIcon> = { easy: CheckCircle2, moderate: Zap, professional: AlertTriangle }
+  const installTextLabels: Record<string, string> = {
+    easy: t.report.products.installEasy,
+    moderate: t.report.products.installModerate,
+    professional: t.report.products.installProfessional,
   }
 
   return (
-    <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
+    <div className="bg-card border border-border rounded-sm p-5 space-y-4">
       <div className="flex items-start justify-between">
         <h2 className="text-sm font-semibold text-foreground">{title || recommendations.title}</h2>
         <div className="text-right">
@@ -56,35 +59,41 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
               <h3 className="text-xs font-medium text-foreground">{categoryLabels[category] || category}</h3>
             </div>
             <div className="space-y-2">
-              {products.map((product, idx) => (
-                <div key={idx} className="rounded-xl border border-border bg-card p-3 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1">
-                      <h4 className="text-xs font-medium text-foreground">{product.product}</h4>
-                      {product.link && (
-                        <a href={product.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:text-primary/80 transition-colors mt-1 inline-block">
-                          {product.supplier} →
-                        </a>
-                      )}
+              {products.map((product, idx) => {
+                const InstallIcon = installIcons[product.installation] ?? CheckCircle2
+                const installLabel = installTextLabels[product.installation] ?? product.installation
+                return (
+                  <div key={idx} className="rounded-sm border border-border bg-card p-3 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex-1">
+                        <h4 className="text-xs font-medium text-foreground">{product.product}</h4>
+                        {product.link && (
+                          <a href={product.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:text-primary/80 transition-colors mt-1 inline-block">
+                            {product.supplier} →
+                          </a>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-semibold text-foreground font-mono">
+                          {product.currency === "USD" ? "$" : "ARS $"}{product.totalPrice.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {product.quantity}x {product.currency === "USD" ? "$" : "ARS $"}{product.unitPrice.toLocaleString()}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs font-semibold text-foreground font-mono">
-                        {product.currency === "USD" ? "$" : "ARS $"}{product.totalPrice.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {product.quantity}x {product.currency === "USD" ? "$" : "ARS $"}{product.unitPrice.toLocaleString()}
-                      </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                      <MapPin className="w-3 h-3 shrink-0" strokeWidth={1.5} /> {product.placement}
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap text-xs">
+                      <span className={`font-medium ${impactColors[product.impactLevel]}`}>{t.report.products.impactLabel} {impactLabels[product.impactLevel]}</span>
+                      <span className="text-muted-foreground inline-flex items-center gap-1">
+                        <InstallIcon className="w-3 h-3 shrink-0" strokeWidth={1.5} /> {installLabel}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground mb-2">📍 {product.placement}</div>
-                  <div className="flex items-center gap-3 flex-wrap text-xs">
-                    <span className={`font-medium ${impactColors[product.impactLevel]}`}>{t.report.products.impactLabel} {impactLabels[product.impactLevel]}</span>
-                    <span className="text-muted-foreground">
-                      {installLabels[product.installation as keyof typeof installLabels] || product.installation}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         ))}
@@ -100,9 +109,7 @@ export function ProductTable({ recommendations, title }: ProductTableProps) {
         </div>
       </div>
 
-      <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground">
-        <span className="text-foreground font-medium">{t.common.note}</span> {t.report.products.noteText}
-      </div>
+      <InfoCallout label={t.common.note}>{t.report.products.noteText}</InfoCallout>
     </div>
   )
 }

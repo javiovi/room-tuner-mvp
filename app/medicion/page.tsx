@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Mic, MicOff } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
+import { Button } from "@/components/Button"
 import { NoiseLevelMeter } from "@/components/medicion/NoiseLevelMeter"
 import { ClapTest } from "@/components/medicion/ClapTest"
 import { useRoomStore } from "@/lib/roomStore"
@@ -72,6 +73,14 @@ export default function MedicionPage() {
 
   return (
     <CenteredLayout>
+      <Link
+        href="/muebles"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        {t.common.back}
+      </Link>
+
       <div className="space-y-3 text-center">
         <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
           {t.medicion.title}
@@ -86,10 +95,10 @@ export default function MedicionPage() {
         <div className="flex items-center justify-center gap-2 py-2">
           {steps.map((s, idx) => (
             <div key={s.key} className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
+              <div className={`w-6 h-6 rounded-sm border flex items-center justify-center text-xs font-mono font-semibold transition-colors ${
                 idx <= stepIndex
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
+                  ? "border-primary text-primary"
+                  : "border-muted-foreground/40 text-muted-foreground"
               }`}>
                 {idx + 1}
               </div>
@@ -106,7 +115,7 @@ export default function MedicionPage() {
 
       {/* Error message */}
       {error && (
-        <div className="bg-destructive/10 text-destructive rounded-xl p-3 text-xs flex items-center gap-2">
+        <div className="border border-destructive/40 bg-destructive/5 text-destructive rounded-sm p-3 text-xs flex items-center gap-2">
           <MicOff className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -117,30 +126,24 @@ export default function MedicionPage() {
         {step === "idle" && (
           <>
             {!audioSupported ? (
-              <div className="bg-muted rounded-xl p-4 text-center space-y-2">
+              <div className="border border-border rounded-sm p-4 text-center space-y-2">
                 <MicOff className="w-8 h-8 text-muted-foreground mx-auto" />
                 <p className="text-xs text-muted-foreground">{t.medicion.notSupported}</p>
               </div>
             ) : (
-              <button
-                onClick={handleStartMeasurement}
-                className="w-full bg-primary text-primary-foreground py-3.5 px-6 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-              >
+              <Button onClick={handleStartMeasurement} className="w-full flex items-center justify-center gap-2">
                 <Mic className="w-4 h-4" />
                 {t.medicion.measureButton}
-              </button>
+              </Button>
             )}
-            <Link
-              href="/analizando"
-              className="block w-full bg-secondary text-secondary-foreground py-3.5 px-6 font-semibold text-center text-sm rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all"
-            >
+            <Button variant="secondary" onClick={() => router.push("/analizando")} className="w-full">
               {t.medicion.skipButton}
-            </Link>
+            </Button>
           </>
         )}
 
         {step === "noise" && (
-          <div className="bg-card rounded-2xl border border-border/50 p-4">
+          <div className="bg-card border border-border rounded-sm p-4">
             <NoiseLevelMeter
               onComplete={handleNoiseComplete}
               onError={(err) => { setError(err); setStep("idle") }}
@@ -152,7 +155,7 @@ export default function MedicionPage() {
           <div className="space-y-4">
             {/* Show noise result summary */}
             {noiseResult && (
-              <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-3">
+              <div className="bg-card border border-border rounded-sm p-4 space-y-3">
                 <div className="flex items-center gap-2 text-primary">
                   <Mic className="w-4 h-4" />
                   <span className="text-xs font-semibold">{t.medicion.noiseComplete}</span>
@@ -165,7 +168,7 @@ export default function MedicionPage() {
             )}
 
             {/* Clap test */}
-            <div className="bg-card rounded-2xl border border-border/50 p-4">
+            <div className="bg-card border border-border rounded-sm p-4">
               <ClapTest
                 onComplete={handleClapComplete}
                 onSkip={handleClapSkip}
@@ -176,7 +179,7 @@ export default function MedicionPage() {
         )}
 
         {step === "clap" && (
-          <div className="bg-card rounded-2xl border border-border/50 p-4">
+          <div className="bg-card border border-border rounded-sm p-4">
             <ClapTest
               onComplete={handleClapComplete}
               onSkip={handleClapSkip}
@@ -187,30 +190,17 @@ export default function MedicionPage() {
 
         {step === "done" && (
           <div className="space-y-4">
-            <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 text-center">
+            <div className="border border-primary/30 rounded-sm p-4 text-center">
               <p className="text-sm font-semibold text-foreground">{t.medicion.measuringComplete}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {noiseResult && `${t.medicion.noiseLevel}: ${noiseResult.averageDb} dB`}
               </p>
             </div>
-            <button
-              onClick={handleContinue}
-              className="w-full bg-primary text-primary-foreground py-3.5 px-6 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all"
-            >
+            <Button onClick={handleContinue} className="w-full">
               {t.medicion.continueToAnalysis}
-            </button>
+            </Button>
           </div>
         )}
-      </div>
-
-      <div className="pt-2 text-center">
-        <Link
-          href="/muebles"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          {t.common.back}
-        </Link>
       </div>
     </CenteredLayout>
   )

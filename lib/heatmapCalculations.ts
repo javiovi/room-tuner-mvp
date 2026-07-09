@@ -110,30 +110,29 @@ export function calculateHeatmap(
   return { cells, resolution, minPressure: minP, maxPressure: maxP }
 }
 
-/**
- * Map a pressure value (0-1) to a color string.
- * Blue(0) → Cyan(0.25) → Green(0.5) → Yellow(0.75) → Red(1.0)
- */
-export function pressureToColor(pressure: number, opacity: number = 0.4): string {
-  let r: number, g: number, b: number
+function hexToRgb(hex: string): [number, number, number] {
+  const clean = hex.replace("#", "")
+  const value = parseInt(clean, 16)
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255]
+}
 
-  if (pressure < 0.25) {
-    r = 0
-    g = Math.round(pressure * 4 * 255)
-    b = 255
-  } else if (pressure < 0.5) {
-    r = 0
-    g = 255
-    b = Math.round((1 - (pressure - 0.25) * 4) * 255)
-  } else if (pressure < 0.75) {
-    r = Math.round((pressure - 0.5) * 4 * 255)
-    g = 255
-    b = 0
-  } else {
-    r = 255
-    g = Math.round((1 - (pressure - 0.75) * 4) * 255)
-    b = 0
-  }
+/**
+ * Map a pressure value (0-1) to a color string, interpolated between the app's own
+ * chartTheme low/high tones (see lib/chartTheme.ts) — a two-stop diverging scale
+ * instead of a generic rainbow, so the heatmap reads as part of the same instrument.
+ */
+export function pressureToColor(
+  pressure: number,
+  opacity: number = 0.4,
+  lowColor: string = "#0284c7",
+  highColor: string = "#d93a2b",
+): string {
+  const t = Math.max(0, Math.min(1, pressure))
+  const [r1, g1, b1] = hexToRgb(lowColor)
+  const [r2, g2, b2] = hexToRgb(highColor)
+  const r = Math.round(r1 + (r2 - r1) * t)
+  const g = Math.round(g1 + (g2 - g1) * t)
+  const b = Math.round(b1 + (b2 - b1) * t)
 
   return `rgba(${r}, ${g}, ${b}, ${opacity})`
 }

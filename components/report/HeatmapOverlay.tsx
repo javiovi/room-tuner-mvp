@@ -1,8 +1,10 @@
 "use client"
 
 import { useMemo } from "react"
+import { useTheme } from "next-themes"
 import type { HeatmapGrid } from "@/lib/heatmapCalculations"
 import { pressureToColor } from "@/lib/heatmapCalculations"
+import { useChartTheme } from "@/lib/chartTheme"
 
 interface HeatmapOverlayProps {
   grid: HeatmapGrid
@@ -13,6 +15,8 @@ interface HeatmapOverlayProps {
 }
 
 export function HeatmapOverlay({ grid, roomWidth, roomLength, scale, padding }: HeatmapOverlayProps) {
+  const { resolvedTheme } = useTheme()
+  const chartTheme = useChartTheme(resolvedTheme === "dark")
   const cellWidth = (roomWidth * scale) / grid.resolution
   const cellHeight = (roomLength * scale) / grid.resolution
 
@@ -20,7 +24,7 @@ export function HeatmapOverlay({ grid, roomWidth, roomLength, scale, padding }: 
     return grid.cells.map((cell, i) => {
       const x = padding + cell.x * roomWidth * scale - cellWidth / 2
       const y = padding + cell.y * roomLength * scale - cellHeight / 2
-      const fill = pressureToColor(cell.pressure, 0.35)
+      const fill = pressureToColor(cell.pressure, 0.35, chartTheme.heatmapLow, chartTheme.heatmapHigh)
 
       return (
         <rect
@@ -34,7 +38,7 @@ export function HeatmapOverlay({ grid, roomWidth, roomLength, scale, padding }: 
         />
       )
     })
-  }, [grid, roomWidth, roomLength, scale, padding, cellWidth, cellHeight])
+  }, [grid, roomWidth, roomLength, scale, padding, cellWidth, cellHeight, chartTheme])
 
   return <g className="heatmap-overlay">{rects}</g>
 }

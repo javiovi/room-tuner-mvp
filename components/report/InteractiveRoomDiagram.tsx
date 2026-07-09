@@ -9,6 +9,8 @@ import type { RoomDiagram as RoomDiagramType, RoomMode } from "@/app/types/room"
 import { useT } from "@/lib/i18n"
 import { calculateHeatmap } from "@/lib/heatmapCalculations"
 import { HeatmapOverlay } from "@/components/report/HeatmapOverlay"
+import { useChartTheme } from "@/lib/chartTheme"
+import { InfoCallout } from "@/components/InfoCallout"
 
 type FurnitureItem = {
   type: string
@@ -54,6 +56,7 @@ function DraggableItem({ id, x, y, children }: DraggableItemProps) {
 export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onToggleHeatmap, onPositionsChange }: InteractiveRoomDiagramProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const theme = useChartTheme(isDark)
   const { t } = useT()
   const { floorPlan, treatmentPlan } = diagram
   const { width, length } = floorPlan
@@ -73,12 +76,13 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
   const toNormalizedY = (svgY: number) => Math.max(0, Math.min(1, (svgY - padding) / (length * scale)))
 
   const svgColors = {
-    roomFill: isDark ? "#1C1C1E" : "#F2F2F7",
-    roomStroke: isDark ? "#48484A" : "#C7C7CC",
-    grid: isDark ? "#3A3A3C" : "#E5E5EA",
-    dimText: isDark ? "#98989D" : "#8E8E93",
-    primary: isDark ? "#BF5AF2" : "#AF52DE",
-    listening: isDark ? "#64D2FF" : "#32ADE6",
+    roomFill: theme.diagramBg,
+    roomStroke: theme.diagramStroke,
+    grid: theme.diagramGrid,
+    dimText: theme.diagramText,
+    onFill: isDark ? theme.diagramBg : "#ffffff",
+    primary: theme.primary,
+    listening: theme.secondary,
   }
 
   const notifyChange = (
@@ -151,10 +155,10 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
     notifyChange(speakerPositions, listeningPosition, newFurniture)
   }
 
-  const furnitureColor = isDark ? "#636366" : "#AEAEB2"
+  const furnitureColor = theme.axis
   const furnitureLabels = t.report.furniture
 
-  const treatmentColors = { absorber: svgColors.primary, diffuser: svgColors.listening, bass_trap: isDark ? "#FF453A" : "#FF3B30" }
+  const treatmentColors: Record<string, string> = { absorber: svgColors.primary, diffuser: svgColors.listening, bass_trap: theme.destructive }
   const priorityOpacity = { high: 1, medium: 0.7, low: 0.4 }
 
   const heatmapGrid = useMemo(() => {
@@ -163,7 +167,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
   }, [showHeatmap, roomModes, length, width])
 
   return (
-    <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3">
+    <div className="bg-card border border-border rounded-sm p-5 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold text-foreground">{t.report.diagram.interactiveTitle}</h2>
@@ -173,16 +177,16 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
           {roomModes && onToggleHeatmap && (
             <button
               onClick={onToggleHeatmap}
-              className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
+              className={`px-2.5 py-1 text-xs font-medium border rounded-sm transition-colors ${
                 showHeatmap
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-muted-foreground hover:border-primary/50"
               }`}
             >
               {t.report.diagram.heatmapToggle}
             </button>
           )}
-          <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">{t.report.diagram.editableBadge}</span>
+          <span className="px-2.5 py-1 border border-primary/30 text-primary text-xs font-mono uppercase tracking-wide rounded-sm">{t.report.diagram.editableBadge}</span>
         </div>
       </div>
 
@@ -214,7 +218,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
               const fy = toSvgY(item.y) - fh / 2
               return (
                 <DraggableItem key={`furniture-${idx}`} id={`furniture-${idx}`} x={toSvgX(item.x)} y={toSvgY(item.y)}>
-                  <rect x={fx} y={fy} width={fw} height={fh} fill={furnitureColor} fillOpacity={0.18} stroke={furnitureColor} strokeWidth="1.5" strokeDasharray="3 2" rx={3} />
+                  <rect x={fx} y={fy} width={fw} height={fh} fill={furnitureColor} fillOpacity={0.18} stroke={furnitureColor} strokeWidth="1.5" strokeDasharray="3 2" />
                   <text x={fx + fw / 2} y={fy + fh / 2 + 4} textAnchor="middle" fill={svgColors.dimText} fontSize="9" pointerEvents="none">{furnitureLabels[item.type as keyof typeof furnitureLabels] || item.type}</text>
                   <circle cx={toSvgX(item.x)} cy={toSvgY(item.y)} r={Math.max(fw, fh) / 2 + 4} fill="transparent" />
                 </DraggableItem>
@@ -225,8 +229,8 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
               const x = toSvgX(treatment.position.x), y = toSvgY(treatment.position.y)
               return (
                 <g key={idx}>
-                  <circle cx={x} cy={y} r={8} fill={treatmentColors[treatment.type]} opacity={priorityOpacity[treatment.priority]} stroke={svgColors.roomStroke} strokeWidth="0.5" />
-                  <text x={x} y={y + 3} textAnchor="middle" fill={isDark ? "#1C1C1E" : "#fff"} fontSize="10" fontWeight="bold">
+                  <rect x={x - 8} y={y - 8} width={16} height={16} fill={treatmentColors[treatment.type]} opacity={priorityOpacity[treatment.priority]} stroke={svgColors.roomStroke} strokeWidth="0.5" />
+                  <text x={x} y={y + 3} textAnchor="middle" fill={svgColors.onFill} fontSize="10" fontWeight="bold">
                     {treatment.type === "bass_trap" ? "B" : treatment.type === "absorber" ? "A" : "D"}
                   </text>
                 </g>
@@ -238,7 +242,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
               return (
                 <DraggableItem key={`speaker-${idx}`} id={idx === 0 ? "speaker-left" : "speaker-right"} x={x} y={y}>
                   <polygon points={`${x},${y - 15} ${x - 10},${y + 10} ${x + 10},${y + 10}`} fill={svgColors.primary} stroke={svgColors.roomStroke} strokeWidth="1" />
-                  <text x={x} y={y + 5} textAnchor="middle" fill={isDark ? "#1C1C1E" : "#fff"} fontSize="12" fontWeight="bold" pointerEvents="none">{idx === 0 ? "L" : "R"}</text>
+                  <text x={x} y={y + 5} textAnchor="middle" fill={svgColors.onFill} fontSize="12" fontWeight="bold" pointerEvents="none">{idx === 0 ? "L" : "R"}</text>
                   <circle cx={x} cy={y} r={20} fill="transparent" stroke={svgColors.primary} strokeWidth="1" strokeDasharray="2 2" opacity="0.3" />
                 </DraggableItem>
               )
@@ -246,8 +250,8 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
 
             <DraggableItem id="listening-position" x={toSvgX(listeningPosition.x)} y={toSvgY(listeningPosition.y)}>
               <circle cx={toSvgX(listeningPosition.x)} cy={toSvgY(listeningPosition.y)} r={12} fill={svgColors.listening} stroke={svgColors.roomStroke} strokeWidth="1" />
-              <circle cx={toSvgX(listeningPosition.x) - 8} cy={toSvgY(listeningPosition.y)} r={3} fill={isDark ? "#1C1C1E" : "#fff"} pointerEvents="none" />
-              <circle cx={toSvgX(listeningPosition.x) + 8} cy={toSvgY(listeningPosition.y)} r={3} fill={isDark ? "#1C1C1E" : "#fff"} pointerEvents="none" />
+              <circle cx={toSvgX(listeningPosition.x) - 8} cy={toSvgY(listeningPosition.y)} r={3} fill={svgColors.onFill} pointerEvents="none" />
+              <circle cx={toSvgX(listeningPosition.x) + 8} cy={toSvgY(listeningPosition.y)} r={3} fill={svgColors.onFill} pointerEvents="none" />
               <circle cx={toSvgX(listeningPosition.x)} cy={toSvgY(listeningPosition.y)} r={20} fill="transparent" stroke={svgColors.listening} strokeWidth="1" strokeDasharray="2 2" opacity="0.3" />
             </DraggableItem>
 
@@ -260,16 +264,16 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
       </DndContext>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-3 border-t border-border text-xs">
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-sm"></div><span className="text-muted-foreground">{t.report.diagram.speakers}</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.listeningPoint}</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 border border-muted-foreground/50 rounded-sm border-dashed"></div><span className="text-muted-foreground">{t.report.diagram.furnitureLegend}</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.bassTrap}</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.absorber}</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-sky-400 rounded-full"></div><span className="text-muted-foreground">{t.report.diagram.diffuser}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3" style={{ background: theme.primary }}></div><span className="text-muted-foreground">{t.report.diagram.speakers}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: theme.secondary }}></div><span className="text-muted-foreground">{t.report.diagram.listeningPoint}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 border border-muted-foreground/50 border-dashed"></div><span className="text-muted-foreground">{t.report.diagram.furnitureLegend}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3" style={{ background: theme.destructive }}></div><span className="text-muted-foreground">{t.report.diagram.bassTrap}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3" style={{ background: theme.primary }}></div><span className="text-muted-foreground">{t.report.diagram.absorber}</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: theme.secondary }}></div><span className="text-muted-foreground">{t.report.diagram.diffuser}</span></div>
         {showHeatmap && (
           <>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: "rgba(255,0,0,0.5)" }}></div><span className="text-muted-foreground">{t.report.diagram.heatmapHigh}</span></div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: "rgba(0,0,255,0.5)" }}></div><span className="text-muted-foreground">{t.report.diagram.heatmapLow}</span></div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3" style={{ background: theme.heatmapHigh, opacity: 0.6 }}></div><span className="text-muted-foreground">{t.report.diagram.heatmapHigh}</span></div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3" style={{ background: theme.heatmapLow, opacity: 0.6 }}></div><span className="text-muted-foreground">{t.report.diagram.heatmapLow}</span></div>
           </>
         )}
       </div>
@@ -285,7 +289,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
               <button
                 key={idx}
                 onClick={() => removeFurniture(idx)}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted text-xs text-foreground hover:bg-destructive/10 hover:text-destructive transition-colors group"
+                className="inline-flex items-center gap-1 px-2 py-1 border border-border rounded-sm text-xs text-foreground hover:border-destructive/50 hover:text-destructive transition-colors group"
               >
                 {furnitureLabels[item.type as keyof typeof furnitureLabels] || item.type}
                 <X className="w-3 h-3 opacity-50 group-hover:opacity-100" />
@@ -300,7 +304,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
             <button
               key={type}
               onClick={() => addFurniture(type)}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-sm border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
             >
               <Plus className="w-3 h-3" />
               {label}
@@ -309,15 +313,14 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
         </div>
       </div>
 
-      <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground space-y-1">
-        <p><span className="text-foreground font-medium">{t.report.diagram.howToTitle}</span></p>
-        <ul className="list-disc list-inside space-y-0.5 ml-2">
+      <InfoCallout label={t.report.diagram.howToTitle}>
+        <ul className="list-disc list-inside space-y-0.5 ml-1 mt-1">
           <li>{t.report.diagram.howTo1}</li>
           <li>{t.report.diagram.howTo2}</li>
           <li>{t.report.diagram.howTo3}</li>
           <li>{t.report.diagram.howTo4}</li>
         </ul>
-      </div>
+      </InfoCallout>
     </div>
   )
 }

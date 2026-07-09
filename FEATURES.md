@@ -100,6 +100,24 @@
 | Vercel Analytics | Implementado |
 | Zustand store con persistencia en navegación | Implementado |
 
+### Freemium / Paywall — Sprint 1 (EN CURSO, sin pago real)
+
+Desde el commit `analitycs` (2026-02-17), el reporte en `/resultado` está dividido en modo gratis y modo desbloqueado. **Todavía no hay cobro real** — esta fase mide intención de pago antes de integrar un método de cobro.
+
+| Feature | Estado | Detalle |
+|---------|--------|---------|
+| Tabs limitados en modo free | Implementado | Solo Resumen + Cambios gratis + tab "Informe completo" (bloqueado con blur) |
+| Tabs completos en modo desbloqueado | Implementado | Los 7 tabs originales |
+| Budget teaser bloqueado | Implementado | Muestra rango de precio estimado, oculta detalle hasta desbloquear |
+| PDF bloqueado en modo free | Implementado | Botón de descarga reemplazado por CTA de desbloqueo |
+| Tracking de intención de pago | Implementado | Eventos Vercel Analytics: `view_result_preview`, `click_unlock_report` (source: locked_tab/budget_teaser/pdf_locked), `click_pdf_locked` |
+| Flag de desbloqueo forzado (dev/QA) | Implementado | `NEXT_PUBLIC_FORCE_UNLOCK=true`, `?unlock=1`, o `localStorage.roomtuner_force_unlock` |
+| **Checkout / cobro real** | **No implementado** | El botón de desbloqueo solo muestra "Próximamente" — no hay pasarela de pago conectada |
+| Persistencia de compra (Supabase) | No implementado | Hoy el "unlock" no persiste entre sesiones ni dispositivos |
+| Modelo de precio definido | Parcial | El copy dice "Pago único por proyecto", pero no está validado ni implementado |
+
+**Siguiente paso lógico (Sprint 2):** elegir pasarela de pago (Mercado Pago es la opción natural para Argentina, dado que ya se usa MercadoLibre para pricing de productos), implementar checkout + webhook, y persistir el estado de compra en Supabase.
+
 ---
 
 ## Roadmap de features futuras
@@ -141,5 +159,5 @@
 | Export a REW / CSV | Exportar datos para importar en herramientas profesionales | Baja |
 | Compartir reporte por link | URL pública con el reporte completo (sin PDF) | Media |
 | Modo profesional | Interface avanzada con más parámetros y visualizaciones detalladas | Alta |
-| Monetización (freemium) | Análisis básico gratis, PDF/productos/medición como premium | Media |
+| ~~Monetización (freemium)~~ | **En curso, ver sección "Freemium / Paywall — Sprint 1" arriba.** Falta el cobro real (Sprint 2). | Media |
 | Notificaciones / recordatorios | "Hace 30 días mediste tu sala — querés medir de nuevo post-tratamiento?" | Baja |

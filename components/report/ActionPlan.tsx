@@ -2,6 +2,7 @@
 
 import { ArrowRight, Clock } from "lucide-react"
 import { InfoTooltip } from "@/components/InfoTooltip"
+import { InfoCallout } from "@/components/InfoCallout"
 import { useT } from "@/lib/i18n"
 
 interface ActionItem {
@@ -59,7 +60,7 @@ export function ActionPlan({ roomCharacter, hasBudget = false }: ActionPlanProps
   }
 
   return (
-    <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-6">
+    <div className="bg-card border border-border rounded-sm p-5 space-y-6">
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground">{ap.title}</h2>
@@ -75,11 +76,7 @@ export function ActionPlan({ roomCharacter, hasBudget = false }: ActionPlanProps
       </div>
 
       <div className="border-t border-border pt-4">
-        <div className="p-3 bg-muted rounded-xl">
-          <p className="text-xs text-muted-foreground">
-            <span className="text-foreground font-medium">{t.common.recommendation}</span> {ap.recommendationText}
-          </p>
-        </div>
+        <InfoCallout label={t.common.recommendation}>{ap.recommendationText}</InfoCallout>
       </div>
 
       {/* Glossary */}
@@ -105,9 +102,7 @@ function TimelineSection({ title, subtitle, items, t }: { title: string; subtitl
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Clock className="w-4 h-4 text-primary" />
-        </div>
+        <Clock className="w-4 h-4 text-primary shrink-0" strokeWidth={1.5} />
         <div>
           <h3 className="text-xs font-semibold text-foreground">{title}</h3>
           <p className="text-xs text-muted-foreground">{subtitle}</p>
@@ -122,10 +117,10 @@ function TimelineSection({ title, subtitle, items, t }: { title: string; subtitl
                 <h4 className="text-xs font-medium text-foreground">{item.title}</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
                 <div className="flex items-center gap-3 text-xs mt-1 flex-wrap">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                    item.priority === "high" ? "bg-destructive/10 text-destructive" :
-                    item.priority === "medium" ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" :
-                    "bg-muted text-muted-foreground"
+                  <span className={`px-2 py-0.5 border rounded-sm text-[10px] font-medium ${
+                    item.priority === "high" ? "border-destructive/30 text-destructive" :
+                    item.priority === "medium" ? "border-warning/30 text-warning" :
+                    "border-border text-muted-foreground"
                   }`}>
                     {item.priority === "high" ? t.report.actionPlan.priorityHigh : item.priority === "medium" ? t.report.actionPlan.priorityMedium : t.report.actionPlan.priorityLow}
                   </span>

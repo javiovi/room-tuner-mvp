@@ -33,7 +33,7 @@ export function InfoTooltip({ text }: InfoTooltipProps) {
         <Info className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-1.5 right-0 w-64 p-3 rounded-xl bg-card border border-border card-shadow-lg text-xs text-muted-foreground leading-relaxed animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className="absolute z-50 top-full mt-1.5 right-0 w-64 p-3 rounded-sm bg-card border border-border text-xs text-muted-foreground leading-relaxed animate-in fade-in-0 zoom-in-95 duration-150">
           {text}
           <div className="absolute -top-1 right-3 w-2 h-2 bg-card border-l border-t border-border rotate-45" />
         </div>

@@ -3,6 +3,7 @@
 import type React from "react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { LanguageToggle } from "@/components/LanguageToggle"
+import { WizardProgress } from "@/components/WizardProgress"
 
 interface CenteredLayoutProps {
   children: React.ReactNode
@@ -15,6 +16,7 @@ export function CenteredLayout({ children }: CenteredLayoutProps) {
         <div className="flex justify-end mb-2">
           <ThemeToggle />
         </div>
+        <WizardProgress />
         <div className="space-y-6">
           {children}
         </div>

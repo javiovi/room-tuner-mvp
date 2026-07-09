@@ -4,6 +4,7 @@ import { useState } from "react"
 import type { ProductRecommendation } from "@/app/types/room"
 import { Plus, Minus, DollarSign } from "lucide-react"
 import { useT } from "@/lib/i18n"
+import { InfoCallout } from "@/components/InfoCallout"
 
 interface BudgetCalculatorProps {
   lowBudgetProducts: ProductRecommendation[]
@@ -34,7 +35,7 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
   const total = selectedProducts.reduce((sum, p) => sum + (p.unitPrice * p.selectedQuantity), 0)
 
   return (
-    <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-4">
+    <div className="bg-card border border-border rounded-sm p-5 space-y-4">
       <div>
         <h2 className="text-sm font-semibold text-foreground">{t.report.budget.title}</h2>
         <p className="text-xs text-muted-foreground mt-1">{t.report.budget.description}</p>
@@ -45,8 +46,8 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
           const qty = selected.get(product.productId) || 0
           const isSelected = qty > 0
           return (
-            <div key={product.productId} className={`rounded-xl border p-3 transition-all ${
-              isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border hover:border-primary/30"
+            <div key={product.productId} className={`rounded-sm border p-3 transition-colors ${
+              isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
             }`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -57,12 +58,12 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => handleQuantityChange(product.productId, -1)} disabled={qty === 0}
-                    className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center disabled:opacity-30 hover:bg-primary/10 transition-colors">
+                    className="w-7 h-7 rounded-sm border border-border flex items-center justify-center disabled:opacity-30 hover:border-primary/50 transition-colors">
                     <Minus className="w-3 h-3" strokeWidth={3} />
                   </button>
                   <span className="text-xs font-mono font-semibold text-foreground w-6 text-center">{qty}</span>
                   <button onClick={() => handleQuantityChange(product.productId, 1)}
-                    className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center hover:bg-primary/10 transition-colors">
+                    className="w-7 h-7 rounded-sm border border-border flex items-center justify-center hover:border-primary/50 transition-colors">
                     <Plus className="w-3 h-3" strokeWidth={3} />
                   </button>
                 </div>
@@ -100,11 +101,7 @@ export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency
         </div>
       </div>
 
-      {total > 0 && (
-        <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground">
-          <span className="text-foreground font-medium">{t.common.note}</span> {t.report.budget.noteText}
-        </div>
-      )}
+      {total > 0 && <InfoCallout label={t.common.note}>{t.report.budget.noteText}</InfoCallout>}
     </div>
   )
 }

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
-import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, Activity } from "lucide-react"
+import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, Activity, X } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
-import { PrimaryButton } from "@/components/PrimaryButton"
-import { RetroTabs } from "@/components/RetroTabs"
+import { Button } from "@/components/Button"
+import { Tabs } from "@/components/Tabs"
+import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useRoomStore } from "@/lib/roomStore"
 import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
 import { FrequencyResponseChart } from "@/components/report/FrequencyResponseChart"
@@ -185,30 +186,35 @@ export default function ResultadoPage() {
     return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value)
   }
 
+  const room =
+    project.lengthM && project.widthM && project.heightM
+      ? { length: project.lengthM, width: project.widthM, height: project.heightM }
+      : undefined
+
   // ── Resumen tab content (shared between free and pro) ──
   const resumenContent = (
     <div className="space-y-4">
       {/* Priority Score Badges */}
       <div className="flex items-center justify-center gap-2 flex-wrap">
         {priorityScore.critical > 0 && (
-          <div className="px-3 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-medium">
+          <div className="px-3 py-1 border border-destructive/30 text-destructive text-xs font-medium rounded-sm">
             {priorityScore.critical} {priorityScore.critical > 1 ? t.resultado.criticalPlural : t.resultado.criticalSingular}
           </div>
         )}
         {priorityScore.improvements > 0 && (
-          <div className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-xs font-medium">
+          <div className="px-3 py-1 border border-warning/30 text-warning text-xs font-medium rounded-sm">
             {priorityScore.improvements} {priorityScore.improvements > 1 ? t.resultado.improvementPlural : t.resultado.improvementSingular}
           </div>
         )}
         {priorityScore.optimizations > 0 && (
-          <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+          <div className="px-3 py-1 border border-primary/30 text-primary text-xs font-medium rounded-sm">
             {priorityScore.optimizations} {priorityScore.optimizations > 1 ? t.resultado.optimizationPlural : t.resultado.optimizationSingular}
           </div>
         )}
       </div>
 
       {/* Executive Summary */}
-      <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
+      <div className="bg-card border border-border rounded-sm p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground">
             {t.resultado.diagnosisTitle}
@@ -216,7 +222,7 @@ export default function ResultadoPage() {
           <InfoTooltip text={t.tooltips.diagnosis} />
         </div>
         <p className="text-foreground text-sm leading-relaxed">{summary}</p>
-        <div className="flex items-center justify-between text-xs border-t border-border pt-2 mt-2 flex-wrap gap-2">
+        <div className="flex items-center justify-between text-xs border-t border-dotted border-border pt-2 mt-2 flex-wrap gap-2">
           <span className="text-muted-foreground">
             {t.resultado.goalLabel}{" "}
             <span className="text-foreground font-medium">
@@ -228,10 +234,10 @@ export default function ResultadoPage() {
             <span
               className={
                 roomCharacter === "viva"
-                  ? "text-yellow-600 dark:text-yellow-400"
+                  ? "text-warning"
                   : roomCharacter === "equilibrada"
                     ? "text-primary"
-                    : "text-blue-500 dark:text-blue-400"
+                    : "text-chart-3"
               }
             >
               {roomCharacter.charAt(0).toUpperCase() + roomCharacter.slice(1)}
@@ -245,7 +251,7 @@ export default function ResultadoPage() {
       <RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} />
 
       {/* Measurement Quality */}
-      <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
+      <div className="bg-card border border-border rounded-sm p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-muted-foreground" />
@@ -254,12 +260,12 @@ export default function ResultadoPage() {
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
+            <span className={`px-2 py-0.5 text-[10px] font-medium border rounded-sm ${
               measurementQuality === "high"
-                ? "bg-primary/10 text-primary"
+                ? "border-primary/30 text-primary"
                 : measurementQuality === "medium"
-                  ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
-                  : "bg-destructive/10 text-destructive"
+                  ? "border-warning/30 text-warning"
+                  : "border-destructive/30 text-destructive"
             }`}>
               {measurementQuality === "high"
                 ? t.resultado.measurementQualityHighLabel
@@ -299,7 +305,7 @@ export default function ResultadoPage() {
 
       {/* Budget Teaser (free only) */}
       {!isUnlocked && hasBudgetTeaser && (
-        <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
+        <div className="bg-card border border-border rounded-sm p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground">
               {t.resultado.budgetTeaserLabel}
@@ -314,32 +320,29 @@ export default function ResultadoPage() {
           <p className="text-[10px] text-muted-foreground text-center">
             {t.resultado.budgetTeaserDisclaimer.replace("{currency}", localCurrency)}
           </p>
-          <button
-            onClick={() => handleUnlock("budget_teaser")}
-            className="w-full py-2.5 px-4 text-xs font-semibold rounded-xl border-2 border-primary text-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-1.5"
-          >
+          <Button onClick={() => handleUnlock("budget_teaser")} variant="secondary" className="w-full flex items-center justify-center gap-1.5">
             <Lock className="w-3 h-3" />
             {t.resultado.budgetTeaserCta}
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Next Steps */}
-      <div className="bg-card rounded-2xl card-shadow border border-border/50 p-4 space-y-3">
+      <div className="bg-card border border-border rounded-sm p-4 space-y-3">
         <h2 className="text-sm font-semibold text-foreground">
           {t.resultado.nextStepsTitle}
         </h2>
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex gap-3">
-            <span className="text-primary font-semibold">1.</span>
+            <span className="font-mono text-primary">01</span>
             <span>{t.resultado.nextStep1}</span>
           </div>
           <div className="flex gap-3">
-            <span className="text-primary font-semibold">2.</span>
+            <span className="font-mono text-primary">02</span>
             <span>{t.resultado.nextStep2}</span>
           </div>
           <div className="flex gap-3">
-            <span className="text-primary font-semibold">3.</span>
+            <span className="font-mono text-primary">03</span>
             <span>{t.resultado.nextStep3}</span>
           </div>
         </div>
@@ -353,15 +356,15 @@ export default function ResultadoPage() {
       {/* Blurred teaser cards */}
       <div className="relative">
         <div className="space-y-3 blur-[6px] select-none pointer-events-none" aria-hidden>
-          <div className="bg-card rounded-2xl border border-border/50 p-4 h-24" />
-          <div className="bg-card rounded-2xl border border-border/50 p-4 h-32" />
-          <div className="bg-card rounded-2xl border border-border/50 p-4 h-20" />
+          <div className="bg-card border border-border rounded-sm p-4 h-24" />
+          <div className="bg-card border border-border rounded-sm p-4 h-32" />
+          <div className="bg-card border border-border rounded-sm p-4 h-20" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-card rounded-2xl card-shadow border-2 border-primary/20 p-6 max-w-sm w-full mx-4 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-              <Lock className="w-6 h-6 text-primary" />
-            </div>
+          <div className="relative bg-card border-2 border-primary p-6 max-w-sm w-full mx-4 space-y-4 text-center">
+            <span aria-hidden className="absolute -top-[3px] -left-[3px] h-2 w-2 border-t-2 border-l-2 border-primary" />
+            <span aria-hidden className="absolute -bottom-[3px] -right-[3px] h-2 w-2 border-b-2 border-r-2 border-primary" />
+            <Lock className="w-6 h-6 text-primary mx-auto" />
             <h3 className="text-base font-bold text-foreground">
               {t.resultado.lockedTitle}
             </h3>
@@ -383,13 +386,10 @@ export default function ResultadoPage() {
                 </li>
               ))}
             </ul>
-            <button
-              onClick={() => handleUnlock("locked_tab")}
-              className="w-full py-3 px-4 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-            >
+            <Button onClick={() => handleUnlock("locked_tab")} className="w-full flex items-center justify-center gap-2">
               <Lock className="w-3.5 h-3.5" />
               {t.resultado.lockedCta}
-            </button>
+            </Button>
             <p className="text-[10px] text-muted-foreground">
               {t.resultado.lockedPrice}
             </p>
@@ -444,11 +444,7 @@ export default function ResultadoPage() {
       badge: freeChanges.items.length,
       content: (
         <div className="space-y-4">
-          <RecommendationSection
-            recommendations={freeChanges}
-            icon="check"
-            accentColor="accent"
-          />
+          <RecommendationSection recommendations={freeChanges} icon="check" />
         </div>
       ),
     },
@@ -503,11 +499,7 @@ export default function ResultadoPage() {
       badge: freeChanges.items.length,
       content: (
         <div className="space-y-4">
-          <RecommendationSection
-            recommendations={freeChanges}
-            icon="check"
-            accentColor="accent"
-          />
+          <RecommendationSection recommendations={freeChanges} icon="check" />
         </div>
       ),
     },
@@ -532,28 +524,30 @@ export default function ResultadoPage() {
           {t.resultado.subtitle}
         </p>
         {forceUnlock && process.env.NODE_ENV !== "production" && (
-          <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-yellow-400/20 text-yellow-600 border border-yellow-400/40">
+          <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold rounded-sm bg-warning/10 text-warning border border-warning/40">
             DEV UNLOCK
           </span>
         )}
       </div>
 
+      <StandingWaveMotif variant="hero" room={room} className="h-16 w-full" />
+
       {/* Tabs */}
-      <RetroTabs tabs={tabs} defaultTab="resumen" />
+      <Tabs tabs={tabs} defaultTab="resumen" />
 
       {/* Unlock notice banner */}
       {unlockNotice && (
-        <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center gap-2 bg-card border border-border rounded-sm px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200">
           <Lock className="w-3.5 h-3.5 text-primary shrink-0" />
           <p className="text-xs text-muted-foreground flex-1">
             {t.landing.paidComingSoon}
           </p>
           <button
             onClick={() => setUnlockNotice(false)}
-            className="text-muted-foreground hover:text-foreground text-xs shrink-0"
+            className="text-muted-foreground hover:text-foreground shrink-0"
             aria-label="Close"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -561,27 +555,27 @@ export default function ResultadoPage() {
       {/* Actions */}
       <div className="space-y-3 pt-4 border-t border-border">
         {isUnlocked ? (
-          <PrimaryButton
+          <Button
             type="button"
             onClick={handleDownloadPDF}
             disabled={pdfLoading}
-            className="flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
             {pdfLoading ? t.resultado.generatingPdf : t.resultado.downloadPdf}
-          </PrimaryButton>
+          </Button>
         ) : (
-          <PrimaryButton
+          <Button
             type="button"
             onClick={() => {
               track("click_pdf_locked", { goal: project?.goal ?? "unknown" })
               handleUnlock("pdf_locked")
             }}
-            className="flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2"
           >
             <Lock className="w-4 h-4" />
             {t.resultado.pdfLocked}
-          </PrimaryButton>
+          </Button>
         )}
 
         <div className="text-center pt-2 space-y-2">

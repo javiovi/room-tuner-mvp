@@ -8,7 +8,8 @@ import { useState } from "react"
 import { ChevronLeft } from "lucide-react"
 
 import { CenteredLayout } from "@/components/CenteredLayout"
-import { PrimaryButton } from "@/components/PrimaryButton"
+import { Button } from "@/components/Button"
+import { InfoCallout } from "@/components/InfoCallout"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 
@@ -68,7 +69,7 @@ export default function EspacioPage() {
       <form className="space-y-4" onSubmit={handleContinue}>
         {/* Dimensiones */}
         <div className="space-y-3">
-          <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+          <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
             {t.espacio.dimensions}
           </h2>
 
@@ -85,7 +86,7 @@ export default function EspacioPage() {
                 value={formData.largo}
                 onChange={handleChange}
                 placeholder={t.espacio.lengthPlaceholder}
-                className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
+                className="w-full border border-border rounded-sm px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
 
@@ -101,7 +102,7 @@ export default function EspacioPage() {
                 value={formData.ancho}
                 onChange={handleChange}
                 placeholder={t.espacio.widthPlaceholder}
-                className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
+                className="w-full border border-border rounded-sm px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
 
@@ -117,19 +118,17 @@ export default function EspacioPage() {
                 value={formData.altura}
                 onChange={handleChange}
                 placeholder={t.espacio.heightPlaceholder}
-                className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
+                className="w-full border border-border rounded-sm px-3 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all touch-manipulation"
               />
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            {t.common.tip} {t.espacio.dimensionsTip}
-          </p>
+          <InfoCallout label={t.common.tip}>{t.espacio.dimensionsTip}</InfoCallout>
         </div>
 
         {/* Materiales */}
         <div className="space-y-3">
-          <h2 className="text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+          <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
             {t.espacio.materials}
           </h2>
 
@@ -142,7 +141,7 @@ export default function EspacioPage() {
               name="tipoPiso"
               value={formData.tipoPiso}
               onChange={handleChange}
-              className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
+              className="w-full border border-border rounded-sm px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
             >
               <option value="">{t.espacio.selectPlaceholder}</option>
               <optgroup label={t.espacio.hardFloors}>
@@ -169,7 +168,7 @@ export default function EspacioPage() {
               name="tipoParedes"
               value={formData.tipoParedes}
               onChange={handleChange}
-              className="w-full border border-border rounded-lg px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
+              className="w-full border border-border rounded-sm px-3 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none cursor-pointer touch-manipulation"
             >
               <option value="">{t.espacio.selectPlaceholder}</option>
               <optgroup label={t.espacio.hardWalls}>
@@ -187,14 +186,10 @@ export default function EspacioPage() {
             </select>
           </div>
 
-          <div className="p-3 bg-muted rounded-xl">
-            <p className="text-xs text-muted-foreground">
-              <span className="text-foreground font-medium">{t.common.info}</span> {t.espacio.materialsInfo}
-            </p>
-          </div>
+          <InfoCallout label={t.common.info}>{t.espacio.materialsInfo}</InfoCallout>
         </div>
 
-        <PrimaryButton type="submit">{t.common.next}</PrimaryButton>
+        <Button type="submit" className="w-full">{t.common.next}</Button>
       </form>
     </CenteredLayout>
   )

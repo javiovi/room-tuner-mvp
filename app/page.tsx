@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Music, Guitar, Briefcase, ChevronDown, Check, Ruler, BarChart3, FileText, Lock } from "lucide-react"
+import { Music, Guitar, Briefcase, ChevronDown, Ruler, BarChart3, FileText, Lock } from "lucide-react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { LanguageToggle } from "@/components/LanguageToggle"
 import { ReportPreview } from "@/components/ReportPreview"
+import { Button } from "@/components/Button"
+import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useT } from "@/lib/i18n"
 
 type Mode = "music" | "instrument" | "work"
@@ -72,7 +74,9 @@ export default function LandingPage() {
       </div>
 
       {/* ── HERO ── */}
-      <section className="container max-w-4xl mx-auto px-4 pt-10 pb-6 md:pt-16 md:pb-10">
+      <section className="container max-w-4xl mx-auto px-4 pt-6 pb-6 md:pt-10 md:pb-10">
+        <StandingWaveMotif variant="hero" animated className="h-24 md:h-28 w-full mb-6" />
+
         <div className="text-center space-y-4">
           <h1 className="text-2xl md:text-4xl font-bold text-foreground leading-tight">
             {t.landing.heroH1}{" "}
@@ -84,13 +88,13 @@ export default function LandingPage() {
         </div>
 
         {/* Bullets (change per mode) */}
-        <div className="flex justify-center gap-4 mt-6 flex-wrap">
+        <div className="flex justify-center gap-2 mt-6 flex-wrap">
           {current.bullets.map((b, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground bg-primary/5 border border-primary/10 rounded-full px-3 py-1.5"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground border border-border px-2.5 py-1"
             >
-              <Check className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+              <span aria-hidden className="h-1.5 w-1.5 border border-primary shrink-0" />
               {b}
             </span>
           ))}
@@ -98,7 +102,7 @@ export default function LandingPage() {
 
         {/* ── MODE SELECTOR ── */}
         <div className="mt-8">
-          <p className="text-xs text-muted-foreground text-center mb-3 font-medium uppercase tracking-wide">
+          <p className="text-[10px] text-muted-foreground text-center mb-3 font-mono uppercase tracking-widest">
             {t.landing.modeTitle}
           </p>
           <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
@@ -109,20 +113,18 @@ export default function LandingPage() {
                 <button
                   key={m.key}
                   onClick={() => setSelectedMode(m.key)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-150 ${
-                    isActive
-                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border hover:border-primary/30 bg-card"
+                  className={`relative flex flex-col items-center gap-2.5 p-4 border transition-colors duration-100 ${
+                    isActive ? "border-primary" : "border-border hover:border-primary/40"
                   }`}
                 >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" strokeWidth={1.5} />
-                  </div>
-                  <span className={`text-xs font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                  {isActive && (
+                    <>
+                      <span aria-hidden className="absolute -top-[3px] -left-[3px] h-1.5 w-1.5 border-t border-l border-primary" />
+                      <span aria-hidden className="absolute -bottom-[3px] -right-[3px] h-1.5 w-1.5 border-b border-r border-primary" />
+                    </>
+                  )}
+                  <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.5} />
+                  <span className={`text-[11px] font-mono uppercase tracking-wide ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                     {m.label}
                   </span>
                 </button>
@@ -138,12 +140,9 @@ export default function LandingPage() {
 
         {/* ── CTAs ── */}
         <div className="flex flex-col items-center gap-3 mt-8">
-          <button
-            onClick={handleStart}
-            className="w-full max-w-xs bg-primary text-primary-foreground py-3.5 px-8 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-150"
-          >
+          <Button onClick={handleStart} className="w-full max-w-xs">
             {t.landing.ctaStart}
-          </button>
+          </Button>
           <button
             onClick={scrollToPreview}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -163,37 +162,36 @@ export default function LandingPage() {
         </p>
         <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {/* Free */}
-          <div className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-3 flex flex-col">
+          <div className="border border-border p-5 space-y-3 flex flex-col">
             <h3 className="text-sm font-semibold text-foreground">{t.landing.freeTitle}</h3>
             <ul className="space-y-2 flex-1">
               {[t.landing.freeItem1, t.landing.freeItem2, t.landing.freeItem3, t.landing.freeItem4].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" strokeWidth={2.5} />
+                  <span aria-hidden className="mt-1 h-1.5 w-1.5 border border-primary shrink-0" />
                   {item}
                 </li>
               ))}
             </ul>
-            <button
-              onClick={handleStart}
-              className="w-full mt-2 py-2.5 px-4 text-xs font-semibold rounded-xl border border-primary text-primary hover:bg-primary/5 transition-colors"
-            >
+            <Button onClick={handleStart} variant="secondary" className="w-full mt-2">
               {t.landing.freeCta}
-            </button>
+            </Button>
           </div>
           {/* Paid */}
-          <div className="bg-card rounded-2xl card-shadow border-2 border-primary/30 p-5 space-y-3 flex flex-col">
+          <div className="relative border-2 border-primary p-5 space-y-3 flex flex-col">
+            <span aria-hidden className="absolute -top-[3px] -left-[3px] h-2 w-2 border-t-2 border-l-2 border-primary" />
+            <span aria-hidden className="absolute -bottom-[3px] -right-[3px] h-2 w-2 border-b-2 border-r-2 border-primary" />
             <h3 className="text-sm font-semibold text-foreground">{t.landing.paidTitle}</h3>
             <ul className="space-y-2 flex-1">
               {[t.landing.paidItem1, t.landing.paidItem2, t.landing.paidItem3, t.landing.paidItem4].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-foreground">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" strokeWidth={2.5} />
+                  <span aria-hidden className="mt-1 h-1.5 w-1.5 bg-primary shrink-0" />
                   {item}
                 </li>
               ))}
             </ul>
             <button
               onClick={() => alert(t.landing.paidComingSoon)}
-              className="w-full mt-2 py-2.5 px-4 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full mt-2 py-3 px-4 text-xs font-medium uppercase tracking-wider border border-primary bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
             >
               <Lock className="w-3.5 h-3.5" />
               {t.landing.paidCta}
@@ -207,21 +205,15 @@ export default function LandingPage() {
         <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-8">
           {t.landing.howItWorks}
         </h2>
-        <div className="grid md:grid-cols-3 gap-5 max-w-2xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-4 max-w-2xl mx-auto">
           {[
             { step: "01", Icon: Ruler, title: t.landing.step1Title, desc: t.landing.step1Desc },
             { step: "02", Icon: BarChart3, title: t.landing.step2Title, desc: t.landing.step2Desc },
             { step: "03", Icon: FileText, title: t.landing.step3Title, desc: t.landing.step3Desc },
           ].map((s) => (
-            <div key={s.step} className="bg-card rounded-2xl card-shadow border border-border/50 p-5 space-y-2 text-center">
-              <div className="flex justify-center">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <s.Icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-              </div>
-              <div className="inline-flex items-center justify-center w-7 h-7 bg-primary text-primary-foreground font-bold text-xs rounded-lg">
-                {s.step}
-              </div>
+            <div key={s.step} className="border border-border p-5 space-y-2.5 text-center">
+              <s.Icon className="w-5 h-5 text-primary mx-auto" strokeWidth={1.5} />
+              <p className="font-mono text-[10px] text-muted-foreground tracking-[0.2em]">{s.step}</p>
               <h3 className="text-sm font-semibold text-foreground">{s.title}</h3>
               <p className="text-xs text-muted-foreground">{s.desc}</p>
             </div>
@@ -250,7 +242,7 @@ export default function LandingPage() {
           />
         </button>
         {methodOpen && (
-          <div className="mt-4 bg-card rounded-2xl card-shadow border border-border/50 p-5 max-w-lg mx-auto space-y-3">
+          <div className="mt-4 border border-border p-5 max-w-lg mx-auto space-y-3">
             <ul className="space-y-2">
               {[
                 t.landing.methodologyItem1,
@@ -259,12 +251,12 @@ export default function LandingPage() {
                 t.landing.methodologyItem4,
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-foreground">
-                  <span className="text-primary font-bold">{i + 1}.</span>
+                  <span className="font-mono text-primary">{String(i + 1).padStart(2, "0")}</span>
                   {item}
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-muted-foreground italic border-t border-border pt-3">
+            <p className="text-xs text-muted-foreground italic border-t border-dotted border-border pt-3">
               {t.landing.methodologyDisclaimer}
             </p>
           </div>
@@ -273,19 +265,17 @@ export default function LandingPage() {
 
       {/* ── FINAL CTA ── */}
       <section className="container max-w-4xl mx-auto px-4 py-12 border-t border-border">
-        <div className="bg-card rounded-2xl card-shadow border border-border/50 p-8 md:p-10 text-center space-y-4">
+        <StandingWaveMotif variant="divider" className="h-5 w-full mb-8" />
+        <div className="border border-border p-8 md:p-10 text-center space-y-4">
           <h2 className="text-xl md:text-2xl font-bold text-foreground">
             {t.landing.finalCtaTitle}
           </h2>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
             {t.landing.finalCtaDesc}
           </p>
-          <button
-            onClick={handleStart}
-            className="inline-flex items-center justify-center bg-primary text-primary-foreground py-3.5 px-8 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-150"
-          >
+          <Button onClick={handleStart} className="inline-flex">
             {t.landing.ctaStart}
-          </button>
+          </Button>
         </div>
       </section>
 

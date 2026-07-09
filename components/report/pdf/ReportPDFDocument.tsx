@@ -1,6 +1,5 @@
 /**
- * PDF Report Document — Modern, Complete, Bilingual
- * Generates a professional PDF of the room analysis report
+ * PDF Report Document — Blueprint identity, matching the web app's report
  */
 
 import React from 'react'
@@ -14,79 +13,87 @@ import {
   Svg,
   Rect,
   Circle,
+  Line,
+  Polyline,
 } from '@react-pdf/renderer'
-import type { EnhancedAnalysisResponse, RoomProject, ProductRecommendation } from '@/app/types/room'
+import type { EnhancedAnalysisResponse, RoomProject, ProductRecommendation, FrequencyPoint } from '@/app/types/room'
 
-// Clean professional color palette
+// Blueprint palette — literal hex (mirrors app/globals.css light-mode tokens; react-pdf can't read CSS vars)
 const c = {
-  primary: '#111827',
-  secondary: '#374151',
-  body: '#4B5563',
-  muted: '#9CA3AF',
-  accent: '#2563EB',
-  success: '#059669',
-  warning: '#D97706',
-  danger: '#DC2626',
-  bgLight: '#F9FAFB',
-  border: '#E5E7EB',
-  white: '#FFFFFF',
+  ink: '#101820',
+  body: '#3d4a54',
+  muted: '#5c6b77',
+  accent: '#0284c7',
+  success: '#147a5d',
+  warning: '#b4790e',
+  danger: '#d93a2b',
+  bgLight: '#f4f7f9',
+  border: '#d7e0e7',
+  white: '#ffffff',
 }
+
+const MONO = 'Courier'
 
 const s = StyleSheet.create({
   page: { backgroundColor: c.white, paddingTop: 36, paddingBottom: 50, paddingHorizontal: 40, fontFamily: 'Helvetica' },
-  footer: { position: 'absolute', bottom: 20, left: 40, right: 40, flexDirection: 'row', justifyContent: 'space-between', fontSize: 7, color: c.muted },
+  footer: { position: 'absolute', bottom: 20, left: 40, right: 40, flexDirection: 'row', justifyContent: 'space-between', fontSize: 7, color: c.muted, fontFamily: MONO },
 
   // Cover
   coverWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  coverBrand: { fontSize: 28, fontWeight: 'bold', color: c.primary, letterSpacing: 1 },
-  coverSub: { fontSize: 11, color: c.muted, marginTop: 4, letterSpacing: 2, textTransform: 'uppercase' },
+  coverBrand: { fontSize: 26, fontWeight: 'bold', color: c.ink, letterSpacing: 1 },
+  coverSub: { fontSize: 10, color: c.muted, marginTop: 4, letterSpacing: 2, textTransform: 'uppercase', fontFamily: MONO },
   coverInfoBlock: { marginTop: 32, alignItems: 'center' },
-  coverInfo: { fontSize: 10, color: c.body, marginBottom: 5 },
+  coverInfo: { fontSize: 10, color: c.body, marginBottom: 5, fontFamily: MONO },
   coverBadgeRow: { flexDirection: 'row', marginTop: 20, gap: 8 },
   coverSummary: { marginTop: 28, paddingHorizontal: 30, maxWidth: 460 },
 
   // Section
-  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: c.primary, marginBottom: 10, paddingBottom: 5, borderBottomWidth: 1.5, borderBottomColor: c.primary, borderBottomStyle: 'solid' },
-  subTitle: { fontSize: 10, fontWeight: 'bold', color: c.secondary, marginBottom: 6, marginTop: 10 },
+  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: c.ink, marginBottom: 10, paddingBottom: 5, borderBottomWidth: 1.5, borderBottomColor: c.ink, borderBottomStyle: 'solid' },
+  subTitle: { fontSize: 10, fontWeight: 'bold', color: c.ink, marginBottom: 6, marginTop: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
   body: { fontSize: 9, color: c.body, lineHeight: 1.5 },
   small: { fontSize: 8, color: c.muted, lineHeight: 1.4 },
-  bodyBold: { fontSize: 9, fontWeight: 'bold', color: c.primary },
+  bodyBold: { fontSize: 9, fontWeight: 'bold', color: c.ink },
 
-  // Cards & grids
-  card: { backgroundColor: c.bgLight, borderWidth: 0.5, borderColor: c.border, borderStyle: 'solid', borderRadius: 4, padding: 10, marginBottom: 8 },
+  // Cards & grids — outline, no fill (Blueprint: annotation regions on one sheet, not floating cards)
+  card: { backgroundColor: c.white, borderWidth: 0.75, borderColor: c.border, borderStyle: 'solid', borderRadius: 1, padding: 10, marginBottom: 8 },
   metricsRow: { flexDirection: 'row', gap: 6, marginBottom: 6 },
-  metricBox: { flex: 1, backgroundColor: c.bgLight, borderWidth: 0.5, borderColor: c.border, borderStyle: 'solid', borderRadius: 4, padding: 8 },
-  metricLabel: { fontSize: 7, color: c.muted, textTransform: 'uppercase', marginBottom: 3 },
-  metricValue: { fontSize: 12, fontWeight: 'bold', color: c.primary },
+  metricBox: { flex: 1, backgroundColor: c.white, borderWidth: 0.75, borderColor: c.border, borderStyle: 'solid', borderRadius: 1, padding: 8 },
+  metricLabel: { fontSize: 7, color: c.muted, textTransform: 'uppercase', marginBottom: 3, fontFamily: MONO, letterSpacing: 0.5 },
+  metricValue: { fontSize: 13, fontWeight: 'bold', color: c.ink, fontFamily: MONO },
   metricUnit: { fontSize: 8, color: c.muted },
 
-  // Badges
-  badge: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: 10, fontSize: 8, fontWeight: 'bold' },
-  badgeDanger: { backgroundColor: '#FEE2E2', color: c.danger },
-  badgeWarning: { backgroundColor: '#FEF3C7', color: c.warning },
-  badgeSuccess: { backgroundColor: '#D1FAE5', color: c.success },
-  badgeInfo: { backgroundColor: '#DBEAFE', color: c.accent },
+  // Badges — outline tags, not filled pills
+  badge: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: 1, borderWidth: 0.75, borderStyle: 'solid', fontSize: 8, fontWeight: 'bold', fontFamily: MONO },
+  badgeDanger: { borderColor: c.danger, color: c.danger },
+  badgeWarning: { borderColor: c.warning, color: c.warning },
+  badgeSuccess: { borderColor: c.success, color: c.success },
+  badgeInfo: { borderColor: c.accent, color: c.accent },
 
   // Tables
   tableRow: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: c.border, borderBottomStyle: 'solid', paddingVertical: 4, alignItems: 'center' },
-  tableHeader: { backgroundColor: c.bgLight, borderBottomWidth: 1, borderBottomColor: c.primary, borderBottomStyle: 'solid' },
+  tableHeader: { backgroundColor: c.bgLight, borderBottomWidth: 1, borderBottomColor: c.ink, borderBottomStyle: 'solid' },
   tableCell: { fontSize: 8, color: c.body, paddingHorizontal: 3 },
-  tableCellBold: { fontSize: 8, fontWeight: 'bold', color: c.primary, paddingHorizontal: 3 },
+  tableCellBold: { fontSize: 8, fontWeight: 'bold', color: c.ink, paddingHorizontal: 3, fontFamily: MONO },
 
   // List
   listItem: { flexDirection: 'row', marginBottom: 4 },
-  bullet: { fontSize: 9, color: c.accent, marginRight: 6, fontWeight: 'bold' },
+  bullet: { fontSize: 9, color: c.accent, marginRight: 6, fontWeight: 'bold', fontFamily: MONO },
 
-  // RT60 bar
-  barBg: { height: 8, backgroundColor: c.border, borderRadius: 4, flex: 1 },
-  barFill: { height: 8, borderRadius: 4 },
+  // RT60 bar — width set explicitly; `flex: 1` on a column-layout child resolves as a
+  // height weight, not a width, and silently collapses to zero visible width.
+  barRow: { flexDirection: 'row' },
+  barBg: { height: 8, backgroundColor: c.border, borderRadius: 1, width: '100%' },
+  barFill: { height: 8, borderRadius: 1 },
 
   // Diagram
-  diagramBox: { width: '100%', height: 320, borderWidth: 0.5, borderColor: c.border, borderStyle: 'solid', borderRadius: 4, backgroundColor: c.bgLight, padding: 15, marginVertical: 8 },
+  diagramBox: { width: '100%', height: 320, borderWidth: 0.75, borderColor: c.border, borderStyle: 'solid', borderRadius: 1, backgroundColor: c.bgLight, padding: 15, marginVertical: 8 },
   legendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 },
   legendItem: { flexDirection: 'row', alignItems: 'center' },
-  legendDot: { width: 8, height: 8, borderRadius: 4, marginRight: 4 },
+  legendDot: { width: 8, height: 8, marginRight: 4 },
   legendText: { fontSize: 7, color: c.body },
+
+  // Frequency chart
+  chartBox: { width: '100%', borderWidth: 0.75, borderColor: c.border, borderStyle: 'solid', borderRadius: 1, padding: 10, marginTop: 6, marginBottom: 8 },
 
   // Link
   link: { color: c.accent, textDecoration: 'underline', fontSize: 8 },
@@ -131,6 +138,7 @@ function getLabels(locale: string) {
     ceiling: isEN ? 'Ceiling' : 'Techo',
     furniture: isEN ? 'Furniture' : 'Muebles',
     roomModes: isEN ? 'Room Modes (Resonances)' : 'Modos de Sala (Resonancias)',
+    frequencyResponseTitle: isEN ? 'Frequency Response (estimated)' : 'Respuesta de Frecuencia (estimada)',
     frequency: isEN ? 'Frequency' : 'Frecuencia',
     type: isEN ? 'Type' : 'Tipo',
     dimension: isEN ? 'Dimension' : 'Dimension',
@@ -246,11 +254,46 @@ function RT60Bar({ label, value, target, color }: { label: string; value: number
     <View style={{ marginBottom: 6 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
         <Text style={s.small}>{label}</Text>
-        <Text style={[s.small, { fontWeight: 'bold', color: isOver ? c.danger : c.success }]}>{value.toFixed(2)}s</Text>
+        <Text style={[s.small, { fontFamily: MONO, fontWeight: 'bold', color: isOver ? c.danger : c.success }]}>{value.toFixed(2)}s</Text>
       </View>
       <View style={s.barBg}>
         <View style={[s.barFill, { width: `${pct}%`, backgroundColor: color }]} />
       </View>
+    </View>
+  )
+}
+
+/** Frequency response line chart — the web app has one (recharts); the PDF had none at all. */
+function FrequencyChart({ data, l }: { data: FrequencyPoint[]; l: ReturnType<typeof getLabels> }) {
+  const width = 515
+  const height = 130
+  const pad = { left: 26, right: 8, top: 8, bottom: 14 }
+  const chartW = width - pad.left - pad.right
+  const chartH = height - pad.top - pad.bottom
+  const minF = 20
+  const maxF = 20000
+  const logMin = Math.log10(minF)
+  const logMax = Math.log10(maxF)
+  const clampDb = (db: number) => Math.max(-12, Math.min(12, db))
+  const xFor = (f: number) => pad.left + ((Math.log10(Math.max(f, minF)) - logMin) / (logMax - logMin)) * chartW
+  const yFor = (db: number) => pad.top + chartH - ((clampDb(db) + 12) / 24) * chartH
+  const zeroY = yFor(0)
+
+  const sorted = [...data].sort((a, b) => a.frequency - b.frequency)
+  const points = sorted.map((p) => `${xFor(p.frequency)},${yFor(p.response)}`).join(' ')
+
+  return (
+    <View style={s.chartBox}>
+      <Text style={[s.small, { marginBottom: 4, fontFamily: MONO, textTransform: 'uppercase' }]}>{l.frequencyResponseTitle}</Text>
+      <Svg width={width} height={height}>
+        <Line x1={pad.left} y1={zeroY} x2={width - pad.right} y2={zeroY} stroke={c.border} strokeWidth={0.75} strokeDasharray="2,2" />
+        {points.length > 0 && <Polyline points={points} fill="none" stroke={c.accent} strokeWidth={1.5} />}
+        <Text x={pad.left} y={height - 3} fontSize={6} fill={c.muted}>20Hz</Text>
+        <Text x={xFor(1000)} y={height - 3} fontSize={6} fill={c.muted} textAnchor="middle">1kHz</Text>
+        <Text x={width - pad.right} y={height - 3} fontSize={6} textAnchor="end" fill={c.muted}>20kHz</Text>
+        <Text x={pad.left - 2} y={pad.top + 4} fontSize={6} textAnchor="end" fill={c.muted}>+12dB</Text>
+        <Text x={pad.left - 2} y={pad.top + chartH} fontSize={6} textAnchor="end" fill={c.muted}>-12dB</Text>
+      </Svg>
     </View>
   )
 }
@@ -274,8 +317,8 @@ function ProductTableSection({ items, currency, l }: { items: ProductRecommendat
             <Text style={[s.tableCell, { flex: 3 }]}>{item.product}</Text>
           )}
           <Text style={[s.tableCell, { flex: 0.7, textAlign: 'center' }]}>{item.quantity}</Text>
-          <Text style={[s.tableCell, { flex: 1.3, textAlign: 'right' }]}>{formatPrice(item.unitPrice, currency)}</Text>
-          <Text style={[s.tableCell, { flex: 1.3, textAlign: 'right' }]}>{formatPrice(item.totalPrice, currency)}</Text>
+          <Text style={[s.tableCell, { flex: 1.3, textAlign: 'right', fontFamily: MONO }]}>{formatPrice(item.unitPrice, currency)}</Text>
+          <Text style={[s.tableCell, { flex: 1.3, textAlign: 'right', fontFamily: MONO }]}>{formatPrice(item.totalPrice, currency)}</Text>
         </View>
       ))}
     </View>
@@ -415,8 +458,8 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
 
           {/* Measured RT60 comparison */}
           {roomMetrics.measuredRT60 && (
-            <View style={{ marginTop: 8, padding: 6, backgroundColor: '#EFF6FF', borderRadius: 4 }}>
-              <Text style={[s.small, { fontWeight: 'bold', color: c.accent }]}>
+            <View style={{ marginTop: 8, padding: 6, borderWidth: 0.75, borderColor: c.accent, borderStyle: 'solid', borderRadius: 1 }}>
+              <Text style={[s.small, { fontFamily: MONO, fontWeight: 'bold', color: c.accent }]}>
                 {l.rt60Measured}: {roomMetrics.measuredRT60.value.toFixed(2)}s
                 {'  '}({l.confidence}: {roomMetrics.measuredRT60.confidence})
               </Text>
@@ -448,28 +491,30 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
         <View style={s.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
             <Text style={s.small}>{l.floor}</Text>
-            <Text style={[s.small, { fontWeight: 'bold' }]}>{(materialsAnalysis.floorAbsorption * 100).toFixed(0)}%</Text>
+            <Text style={[s.small, { fontFamily: MONO, fontWeight: 'bold', color: c.ink }]}>{(materialsAnalysis.floorAbsorption * 100).toFixed(0)}%</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
             <Text style={s.small}>{l.walls}</Text>
-            <Text style={[s.small, { fontWeight: 'bold' }]}>{(materialsAnalysis.wallAbsorption * 100).toFixed(0)}%</Text>
+            <Text style={[s.small, { fontFamily: MONO, fontWeight: 'bold', color: c.ink }]}>{(materialsAnalysis.wallAbsorption * 100).toFixed(0)}%</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
             <Text style={s.small}>{l.ceiling}</Text>
-            <Text style={[s.small, { fontWeight: 'bold' }]}>{(materialsAnalysis.ceilingAbsorption * 100).toFixed(0)}%</Text>
+            <Text style={[s.small, { fontFamily: MONO, fontWeight: 'bold', color: c.ink }]}>{(materialsAnalysis.ceilingAbsorption * 100).toFixed(0)}%</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={s.small}>{l.furniture}</Text>
-            <Text style={[s.small, { fontWeight: 'bold' }]}>{materialsAnalysis.furnitureContribution.toFixed(1)} sabins</Text>
+            <Text style={[s.small, { fontFamily: MONO, fontWeight: 'bold', color: c.ink }]}>{materialsAnalysis.furnitureContribution.toFixed(1)} sabins</Text>
           </View>
         </View>
 
         <Footer page={2} total={totalPages} label={l.generatedWith} />
       </Page>
 
-      {/* ═══ PAGE 3: ROOM MODES + FREQUENCY ═══ */}
+      {/* ═══ PAGE 3: FREQUENCY RESPONSE + ROOM MODES ═══ */}
       <Page size="A4" style={s.page}>
         <Text style={s.sectionTitle}>{l.roomModes}</Text>
+
+        <FrequencyChart data={frequencyResponse} l={l} />
 
         {/* Mode count summary */}
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
@@ -492,7 +537,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
               const sevOrder = { high: 0, medium: 1, low: 2 }
               return (sevOrder[a.severity] - sevOrder[b.severity]) || (a.frequency - b.frequency)
             })
-            .slice(0, 20)
+            .slice(0, 14)
             .map((mode, idx) => {
               const typeLabel = mode.type === 'axial' ? l.axial : mode.type === 'tangential' ? l.tangential : l.oblique
               const dimLabel = mode.dimension === 'length' ? l.length : mode.dimension === 'width' ? l.width : mode.dimension === 'height' ? l.height : l.mixed
@@ -502,7 +547,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
                 <View key={idx} style={s.tableRow}>
                   <Text style={[s.tableCellBold, { flex: 1 }]}>{mode.frequency.toFixed(0)} Hz</Text>
                   <Text style={[s.tableCell, { flex: 1 }]}>{typeLabel}</Text>
-                  <Text style={[s.tableCell, { flex: 0.8 }]}>{modeStr}</Text>
+                  <Text style={[s.tableCell, { flex: 0.8, fontFamily: MONO }]}>{modeStr}</Text>
                   <Text style={[s.tableCell, { flex: 1 }]}>{dimLabel}</Text>
                   <Text style={[s.tableCell, { flex: 0.8, color: severityColor(mode.severity), fontWeight: 'bold' }]}>{sevLabel}</Text>
                 </View>
@@ -512,7 +557,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
 
         {/* Proportions info */}
         <View style={[s.card, { marginTop: 10 }]}>
-          <Text style={s.small}>
+          <Text style={[s.small, { fontFamily: MONO }]}>
             {l.proportions}: {roomMetrics.ratios.lengthWidth.toFixed(2)} : {roomMetrics.ratios.lengthHeight.toFixed(2)} : {roomMetrics.ratios.widthHeight.toFixed(2)}
           </Text>
           <Text style={[s.small, { marginTop: 2 }]}>{roomMetrics.ratios.message}</Text>
@@ -541,38 +586,35 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
         <View style={s.diagramBox}>
           <Svg width="100%" height="290" viewBox="0 0 400 290">
             {/* Room outline */}
-            <Rect x="40" y="20" width="320" height="250" fill="none" stroke={c.secondary} strokeWidth="1.5" />
+            <Rect x="40" y="20" width="320" height="250" fill="none" stroke={c.ink} strokeWidth="1" />
 
             {/* Dimension labels */}
-            <Text x="200" y="14" fontSize="9" textAnchor="middle" fill={c.muted}>
-              {project.lengthM}m
+            <Text x="200" y="13" fontSize="10" textAnchor="middle" fill={c.muted}>
+              {project.lengthM?.toFixed(1)} m
             </Text>
-            <Text x="370" y="145" fontSize="9" textAnchor="start" fill={c.muted}>
-              {project.widthM}m
+            <Text x="368" y="145" fontSize="10" textAnchor="start" fill={c.muted}>
+              {project.widthM?.toFixed(1)} m
             </Text>
 
-            {/* Speakers */}
+            {/* Speakers — sp.x/sp.y are already 0-1 normalized, do not divide by room meters */}
             {roomDiagram?.floorPlan?.speakerPositions?.map((sp, idx) => {
-              const x = 40 + (sp.x / project.widthM!) * 320
-              const y = 20 + (sp.y / project.lengthM!) * 250
+              const x = 40 + sp.x * 320
+              const y = 20 + sp.y * 250
               return (
                 <React.Fragment key={`sp-${idx}`}>
-                  <Rect x={x - 7} y={y - 7} width="14" height="14" fill={c.accent} stroke={c.primary} strokeWidth="0.5" />
-                  <Text x={x} y={y - 12} fontSize="7" textAnchor="middle" fill={c.accent}>S{idx + 1}</Text>
+                  <Rect x={x - 7} y={y - 7} width="14" height="14" fill={c.accent} stroke={c.ink} strokeWidth="0.5" />
+                  <Text x={x} y={y - 12} fontSize="8" textAnchor="middle" fill={c.accent}>S{idx + 1}</Text>
                 </React.Fragment>
               )
             })}
 
-            {/* Listening position */}
+            {/* Listening position — same fix: already normalized */}
             {roomDiagram?.floorPlan?.listeningPosition && (() => {
               const lp = roomDiagram.floorPlan.listeningPosition
-              const x = 40 + (lp.x / project.widthM!) * 320
-              const y = 20 + (lp.y / project.lengthM!) * 250
+              const x = 40 + lp.x * 320
+              const y = 20 + lp.y * 250
               return (
-                <React.Fragment>
-                  <Circle cx={x} cy={y} r="9" fill={c.success} stroke={c.primary} strokeWidth="0.5" />
-                  <Text x={x} y={y - 14} fontSize="7" textAnchor="middle" fill={c.success}>SWEET SPOT</Text>
-                </React.Fragment>
+                <Circle cx={x} cy={y} r="9" fill={c.success} stroke={c.ink} strokeWidth="0.5" />
               )
             })()}
 
@@ -659,7 +701,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
         <ProductTableSection items={lowBudgetChanges.items} currency={currency} l={l} />
 
         <View style={[s.card, { marginTop: 8 }]}>
-          <Text style={s.bodyBold}>
+          <Text style={[s.bodyBold, { fontFamily: MONO }]}>
             {l.estimatedBudget}: {formatPrice(lowBudgetChanges.totalEstimatedCost.min, currency)} - {formatPrice(lowBudgetChanges.totalEstimatedCost.max, currency)}
           </Text>
           <Text style={[s.small, { marginTop: 2 }]}>{l.clickProducts}</Text>
@@ -677,7 +719,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
             <ProductTableSection items={advancedChanges.items} currency={currency} l={l} />
 
             <View style={[s.card, { marginTop: 8 }]}>
-              <Text style={s.bodyBold}>
+              <Text style={[s.bodyBold, { fontFamily: MONO }]}>
                 {l.estimatedBudget}: {formatPrice(advancedChanges.totalEstimatedCost.min, currency)} - {formatPrice(advancedChanges.totalEstimatedCost.max, currency)}
               </Text>
             </View>
@@ -756,7 +798,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
         </View>
 
         <View style={{ marginTop: 30, alignItems: 'center' }}>
-          <Text style={[s.body, { textAlign: 'center', color: c.accent }]}>
+          <Text style={[s.body, { textAlign: 'center', color: c.accent, fontFamily: MONO }]}>
             roomtuner.app
           </Text>
           <Text style={[s.small, { textAlign: 'center', marginTop: 4 }]}>

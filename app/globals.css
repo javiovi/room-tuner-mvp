@@ -5,96 +5,104 @@
 
 /* ============================================
    LIGHT MODE (default)
-   Apple/iOS inspired: clean, white, warm gray
+   Blueprint: graphite + cyanotype cyan, architectural drafting register
    ============================================ */
 :root {
-  --background: #fafafa;
-  --foreground: #1c1c1e;
+  --background: #f4f7f9;
+  --foreground: #101820;
   --card: #ffffff;
-  --card-foreground: #1c1c1e;
+  --card-foreground: #101820;
   --popover: #ffffff;
-  --popover-foreground: #1c1c1e;
-  --primary: #af52de;
+  --popover-foreground: #101820;
+  --primary: #0284c7;
   --primary-foreground: #ffffff;
-  --secondary: #f2f2f7;
-  --secondary-foreground: #3a3a3c;
-  --muted: #f2f2f7;
-  --muted-foreground: #8e8e93;
-  --accent: #af52de;
+  --secondary: #e8eef2;
+  --secondary-foreground: #101820;
+  --muted: #eef3f6;
+  --muted-foreground: #5c6b77;
+  --accent: #0284c7;
   --accent-foreground: #ffffff;
-  --destructive: #ff3b30;
+  --destructive: #d93a2b;
   --destructive-foreground: #ffffff;
-  --border: #d1d1d6;
-  --input: #d1d1d6;
-  --ring: #af52de;
-  --chart-1: #af52de;
-  --chart-2: #34c759;
-  --chart-3: #007aff;
-  --chart-4: #5856d6;
-  --chart-5: #ff3b30;
-  --radius: 1rem;
-  --sidebar: #f2f2f7;
-  --sidebar-foreground: #1c1c1e;
-  --sidebar-primary: #af52de;
+  --warning: #b4790e;
+  --warning-foreground: #ffffff;
+  --success: #147a5d;
+  --success-foreground: #ffffff;
+  --border: #d7e0e7;
+  --input: #d7e0e7;
+  --ring: #0284c7;
+  --chart-1: #0284c7;
+  --chart-2: #147a5d;
+  --chart-3: #5b6b78;
+  --chart-4: #b4790e;
+  --chart-5: #d93a2b;
+  --radius: 4px;
+  --sidebar: #eef3f6;
+  --sidebar-foreground: #101820;
+  --sidebar-primary: #0284c7;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e5e5ea;
-  --sidebar-accent-foreground: #3a3a3c;
-  --sidebar-border: #d1d1d6;
-  --sidebar-ring: #af52de;
+  --sidebar-accent: #e8eef2;
+  --sidebar-accent-foreground: #101820;
+  --sidebar-border: #d7e0e7;
+  --sidebar-ring: #0284c7;
 
-  --diagram-bg: #f2f2f7;
-  --diagram-stroke: #c7c7cc;
-  --diagram-grid: #e5e5ea;
-  --diagram-text: #8e8e93;
+  --diagram-bg: #eef3f6;
+  --diagram-stroke: #c3d1da;
+  --diagram-grid: #dce5ea;
+  --diagram-text: #5c6b77;
 }
 
 /* ============================================
    DARK MODE
-   Apple/iOS dark: elevated surfaces, not pure black
+   Blueprint dark: graphite panel, cyanotype cyan lifted off near-black
    ============================================ */
 .dark {
-  --background: #1c1c1e;
-  --foreground: #f5f5f7;
-  --card: #2c2c2e;
-  --card-foreground: #f5f5f7;
-  --popover: #2c2c2e;
-  --popover-foreground: #f5f5f7;
-  --primary: #bf5af2;
-  --primary-foreground: #ffffff;
-  --secondary: #3a3a3c;
-  --secondary-foreground: #e5e5ea;
-  --muted: #3a3a3c;
-  --muted-foreground: #98989d;
-  --accent: #bf5af2;
-  --accent-foreground: #ffffff;
-  --destructive: #ff453a;
+  --background: #0b1116;
+  --foreground: #e7eef3;
+  --card: #121a21;
+  --card-foreground: #e7eef3;
+  --popover: #121a21;
+  --popover-foreground: #e7eef3;
+  --primary: #4fc3f7;
+  --primary-foreground: #0b1116;
+  --secondary: #1a232b;
+  --secondary-foreground: #e7eef3;
+  --muted: #182029;
+  --muted-foreground: #7e93a3;
+  --accent: #4fc3f7;
+  --accent-foreground: #0b1116;
+  --destructive: #ff6b5e;
   --destructive-foreground: #ffffff;
-  --border: #48484a;
-  --input: #48484a;
-  --ring: #bf5af2;
-  --chart-1: #bf5af2;
-  --chart-2: #30d158;
-  --chart-3: #0a84ff;
-  --chart-4: #5e5ce6;
-  --chart-5: #ff453a;
-  --sidebar: #1c1c1e;
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #bf5af2;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3a3a3c;
-  --sidebar-accent-foreground: #e5e5ea;
-  --sidebar-border: #48484a;
-  --sidebar-ring: #bf5af2;
+  --warning: #f2b84b;
+  --warning-foreground: #1c1408;
+  --success: #4fd1a5;
+  --success-foreground: #06231b;
+  --border: #223140;
+  --input: #223140;
+  --ring: #4fc3f7;
+  --chart-1: #4fc3f7;
+  --chart-2: #4fd1a5;
+  --chart-3: #9aa5b1;
+  --chart-4: #f2b84b;
+  --chart-5: #ff6b5e;
+  --sidebar: #121a21;
+  --sidebar-foreground: #e7eef3;
+  --sidebar-primary: #4fc3f7;
+  --sidebar-primary-foreground: #0b1116;
+  --sidebar-accent: #1a232b;
+  --sidebar-accent-foreground: #e7eef3;
+  --sidebar-border: #223140;
+  --sidebar-ring: #4fc3f7;
 
-  --diagram-bg: #1c1c1e;
-  --diagram-stroke: #48484a;
-  --diagram-grid: #3a3a3c;
-  --diagram-text: #98989d;
+  --diagram-bg: #141c24;
+  --diagram-stroke: #2e3f4e;
+  --diagram-grid: #1c2731;
+  --diagram-text: #7e93a3;
 }
 
 @theme inline {
-  --font-sans: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Fira Code", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -111,6 +119,10 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -119,12 +131,12 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
-  --radius-3xl: 1.75rem;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-3xl: 10px;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
