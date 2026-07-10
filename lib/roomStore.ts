@@ -44,13 +44,16 @@ export const useRoomStore = create<RoomState>((set) => ({
       const { roomMetrics, roomCharacter, roomDiagram } = state.analysis
       const furniture = furnitureLayout || roomDiagram.floorPlan.furnitureLayout
 
+      const isES = (typeof window !== "undefined" ? localStorage.getItem("locale") : null) !== "en"
+
       const { frequencyResponse, treatmentPlan } = recalculateForPositions(
         roomMetrics.roomModes,
         roomCharacter,
         roomMetrics.volume,
         roomDiagram.floorPlan.width,
         roomDiagram.floorPlan.length,
-        { ...positions, furnitureLayout: furniture }
+        { ...positions, furnitureLayout: furniture },
+        isES
       )
 
       return {

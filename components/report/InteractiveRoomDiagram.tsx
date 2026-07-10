@@ -47,7 +47,7 @@ function DraggableItem({ id, x, y, children }: DraggableItemProps) {
     opacity: isDragging ? 0.8 : 1,
   }
   return (
-    <g ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <g ref={setNodeRef as unknown as React.Ref<SVGGElement>} style={style} {...listeners} {...attributes}>
       {children}
     </g>
   )

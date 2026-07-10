@@ -32,11 +32,17 @@ export function classifyNoiseLevel(db: number): NoiseMeasurementResult['classifi
   return 'muy_ruidoso'
 }
 
+function getAudioContextCtor(): typeof AudioContext | undefined {
+  if (typeof window === 'undefined') return undefined
+  // Older iOS Safari only exposes the vendor-prefixed constructor.
+  return window.AudioContext ?? (window as any).webkitAudioContext
+}
+
 export function isAudioSupported(): boolean {
   return typeof navigator !== 'undefined' &&
     !!navigator.mediaDevices &&
     typeof navigator.mediaDevices.getUserMedia === 'function' &&
-    typeof AudioContext !== 'undefined'
+    !!getAudioContextCtor()
 }
 
 export class AudioMeasurementEngine {
@@ -58,7 +64,14 @@ export class AudioMeasurementEngine {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
       })
-      this.audioContext = new AudioContext()
+      const AudioContextCtor = getAudioContextCtor()
+      if (!AudioContextCtor) return false
+      this.audioContext = new AudioContextCtor()
+      // Safari/Chrome can start a freshly created context "suspended" even after a user
+      // gesture; without resuming it, getFloatTimeDomainData silently returns zeros.
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume()
+      }
       const source = this.audioContext.createMediaStreamSource(this.stream)
       this.analyser = this.audioContext.createAnalyser()
       this.analyser.fftSize = 2048
@@ -115,7 +128,8 @@ export class AudioMeasurementEngine {
   startClapDetection(
     onNoiseFloor: (db: number) => void,
     onDetected: () => void,
-    onDecay: (curve: Array<{ time: number; amplitude: number }>) => void
+    onDecay: (curve: Array<{ time: number; amplitude: number }>) => void,
+    onDecayComplete: () => void
   ): void {
     // Phase 1: measure noise floor for 500ms
     const floorReadings: number[] = []
@@ -148,7 +162,7 @@ export class AudioMeasurementEngine {
 
         if (peakDb > threshold) {
           onDetected()
-          this.captureDecay(onDecay)
+          this.captureDecay(onDecay, onDecayComplete)
           return
         }
         this.animFrameId = requestAnimationFrame(detectImpulse)
@@ -158,7 +172,10 @@ export class AudioMeasurementEngine {
     measureFloor()
   }
 
-  private captureDecay(onDecay: (curve: Array<{ time: number; amplitude: number }>) => void): void {
+  private captureDecay(
+    onDecay: (curve: Array<{ time: number; amplitude: number }>) => void,
+    onDecayComplete: () => void
+  ): void {
     this.decayCurve = []
     this.peakLevel = -Infinity
     const captureStart = performance.now()
@@ -177,6 +194,7 @@ export class AudioMeasurementEngine {
 
       if (elapsed > 3000 || (elapsed > 200 && db < this.noiseFloorDb + 3)) {
         cancelAnimationFrame(this.animFrameId)
+        onDecayComplete()
         return
       }
       this.animFrameId = requestAnimationFrame(loop)

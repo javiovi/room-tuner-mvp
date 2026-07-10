@@ -13,10 +13,15 @@ import {
 import {
   generateProductRecommendations,
   getProductById,
-  calculateTreatmentCost,
 } from "@/lib/acousticProducts"
 import { enrichProductsWithRealPrices } from "@/lib/productPricing"
 import { createServerClient } from "@/lib/supabase/client"
+import type { Database, Json } from "@/lib/supabase/database.types"
+import { analyzeRoomRequestSchema } from "@/lib/validation/schemas"
+
+type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"]
+type ProjectRow = Database["public"]["Tables"]["projects"]["Row"]
+type AnalysisInsert = Database["public"]["Tables"]["analyses"]["Insert"]
 
 const N8N_URL = process.env.N8N_WEBHOOK_URL
 
@@ -29,8 +34,15 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const locale = body.locale || "es"
-    const project = body as RoomProject
+    const parsed = analyzeRoomRequestSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const { locale: parsedLocale, ...project } = parsed.data
+    const locale = parsedLocale || "es"
     const supabase = createServerClient()
 
     // Validate required fields
@@ -45,24 +57,26 @@ export async function POST(req: Request) {
     // TODO: Replace with actual auth.uid() when auth is implemented
 
     // Save or update project in Supabase
+    const projectInsert: ProjectInsert = {
+      user_id: null,
+      name: 'Mi Espacio',
+      goal: project.goal,
+      length_m: project.lengthM,
+      width_m: project.widthM,
+      height_m: project.heightM,
+      floor_type: project.floorType,
+      wall_type: project.wallType,
+      speaker_placement: project.speakerPlacement,
+      listening_position: project.listeningPosition,
+      furniture: project.furniture || [],
+      noise_measurement: project.noiseMeasurement ?? null,
+      status: 'analyzing',
+    }
     const { data: savedProject, error: projectError } = await supabase
       .from('projects')
-      .upsert({
-        user_id: null,
-        name: 'Mi Espacio',
-        goal: project.goal,
-        length_m: project.lengthM,
-        width_m: project.widthM,
-        height_m: project.heightM,
-        floor_type: project.floorType,
-        wall_type: project.wallType,
-        speaker_placement: project.speakerPlacement,
-        listening_position: project.listeningPosition,
-        furniture: project.furniture || [],
-        noise_measurement: project.noiseMeasurement,
-        status: 'analyzing',
-      })
+      .upsert(projectInsert)
       .select()
+      .returns<ProjectRow[]>()
       .single()
 
     if (projectError) {
@@ -112,24 +126,26 @@ export async function POST(req: Request) {
 
     // Save analysis to Supabase
     if (savedProject?.id) {
+      const analysisInsert: AnalysisInsert = {
+        project_id: savedProject.id,
+        summary: analysis.summary,
+        room_character: analysis.roomCharacter,
+        priority_score: analysis.priorityScore,
+        room_metrics: analysis.roomMetrics as unknown as Json,
+        frequency_response: analysis.frequencyResponse as unknown as Json,
+        recommendations: {
+          freeChanges: analysis.freeChanges,
+          lowBudgetChanges: analysis.lowBudgetChanges,
+          advancedChanges: analysis.advancedChanges,
+          materialsAnalysis: analysis.materialsAnalysis,
+        } as unknown as Json,
+        room_diagram: analysis.roomDiagram as unknown as Json,
+        version: '1.0',
+        calculation_time_ms: calculationTime,
+      }
       const { error: analysisError } = await supabase
         .from('analyses')
-        .upsert({
-          project_id: savedProject.id,
-          summary: analysis.summary,
-          room_character: analysis.roomCharacter,
-          priority_score: analysis.priorityScore,
-          room_metrics: analysis.roomMetrics,
-          frequency_response: analysis.frequencyResponse,
-          recommendations: {
-            freeChanges: analysis.freeChanges,
-            lowBudgetChanges: analysis.lowBudgetChanges,
-            advancedChanges: analysis.advancedChanges,
-          },
-          room_diagram: analysis.roomDiagram,
-          version: '1.0',
-          calculation_time_ms: calculationTime,
-        })
+        .upsert(analysisInsert, { onConflict: 'project_id' })
 
       if (analysisError) {
         console.error('Error saving analysis:', analysisError)
@@ -176,7 +192,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
   const metrics = calculateRoomMetrics(lengthM, widthM, heightM)
 
   // === STEP 2: Calculate room modes ===
-  const roomModes = calculateRoomModes(lengthM, widthM, heightM)
+  const roomModes = calculateRoomModes(lengthM, widthM, heightM, isES)
 
   // === STEP 3: Calculate absorption ===
   const absorption = calculateTotalAbsorption(project)
@@ -198,20 +214,22 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
   const frequencyResponse = estimateFrequencyResponse(
     roomModes,
     roomCharacter,
-    metrics.volume
+    metrics.volume,
+    isES
   )
 
   // === STEP 7: Calculate optimal speaker positions ===
   const positions = calculateOptimalPositions(
     lengthM,
     widthM,
-    project.equipmentPosition || "indefinido"
+    project.speakerPlacement || "indefinido",
+    isES
   )
 
   // === STEP 8: Generate recommendations ===
 
   // Free recommendations
-  const freeRecommendations = generateFreeRecommendations(project, roomCharacter, positions)
+  const freeRecommendations = generateFreeRecommendations(project, roomCharacter, positions, isES)
 
   // Low budget recommendations
   const lowBudgetRecs = generateProductRecommendations(
@@ -240,10 +258,9 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
   }
 
   const lowBudgetProducts = convertToProductRecommendations(lowBudgetRecs, currency, isES, isES ? enrichedProducts : undefined)
-  const lowBudgetCost = calculateTreatmentCost(
-    lowBudgetRecs.map((r) => ({ id: r.productId, quantity: r.quantity })),
-    currency
-  )
+  // Sum from the line items themselves (not a separate catalog-only lookup) so the
+  // total always reconciles with what's shown per-item, including ML-enriched prices.
+  const lowBudgetCost = lowBudgetProducts.reduce((sum, p) => sum + p.totalPrice, 0)
 
   // Advanced recommendations
   const advancedRecs = generateProductRecommendations(
@@ -253,13 +270,10 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
     "advanced"
   )
   const advancedProducts = convertToProductRecommendations(advancedRecs, currency, isES)
-  const advancedCost = calculateTreatmentCost(
-    advancedRecs.map((r) => ({ id: r.productId, quantity: r.quantity })),
-    currency
-  )
+  const advancedCost = advancedProducts.reduce((sum, p) => sum + p.totalPrice, 0)
 
   // === STEP 9: Generate summary ===
-  const summary = generateSummary(project, roomCharacter, metrics, rt60, roomModes)
+  const summary = generateSummary(project, roomCharacter, metrics, rt60, roomModes, isES)
 
   // === STEP 10: Create room diagram data ===
   const roomDiagram = {
@@ -346,7 +360,8 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
 function generateFreeRecommendations(
   project: RoomProject,
   roomCharacter: "viva" | "equilibrada" | "seca",
-  positions: ReturnType<typeof calculateOptimalPositions>
+  positions: ReturnType<typeof calculateOptimalPositions>,
+  isES: boolean
 ): string[] {
   const recommendations: string[] = []
 
@@ -355,44 +370,66 @@ function generateFreeRecommendations(
 
   // Listening position advice
   recommendations.push(
-    "Evitar punto de escucha exactamente en el centro del espacio (50% de profundidad)"
+    isES
+      ? "Evitar punto de escucha exactamente en el centro del espacio (50% de profundidad)"
+      : "Avoid placing the listening position exactly at the center of the room (50% depth)"
   )
 
   // Room character specific
   if (roomCharacter === "viva") {
     recommendations.push(
-      "Agregar mantas gruesas en las paredes para absorción temporal"
+      isES
+        ? "Agregar mantas gruesas en las paredes para absorción temporal"
+        : "Add thick blankets on the walls for temporary absorption"
     )
     recommendations.push(
-      "Colocar almohadones en las esquinas para reducir acumulación de graves"
+      isES
+        ? "Colocar almohadones en las esquinas para reducir acumulación de graves"
+        : "Place pillows in the corners to reduce bass buildup"
     )
-    recommendations.push("Abrir puertas de placares para añadir absorción difusa")
+    recommendations.push(
+      isES
+        ? "Abrir puertas de placares para añadir absorción difusa"
+        : "Open closet doors to add diffuse absorption"
+    )
   } else if (roomCharacter === "seca") {
     recommendations.push(
-      "Remover exceso de materiales absorbentes si el espacio suena muy apagado"
+      isES
+        ? "Remover exceso de materiales absorbentes si el espacio suena muy apagado"
+        : "Remove excess absorbent material if the space sounds too dead"
     )
     recommendations.push(
-      "Mantener superficies duras y lisas para preservar brillo natural"
+      isES
+        ? "Mantener superficies duras y lisas para preservar brillo natural"
+        : "Keep hard, smooth surfaces to preserve natural brightness"
     )
   } else {
     recommendations.push(
-      "El espacio tiene buen balance, enfocarse en optimizar posiciones"
+      isES
+        ? "El espacio tiene buen balance, enfocarse en optimizar posiciones"
+        : "The space has good balance, focus on optimizing positions"
     )
   }
 
   // Furniture recommendations
   if (!project.furniture || project.furniture.length === 0) {
     recommendations.push(
-      "Agregar muebles como biblioteca o sofá para romper reflexiones paralelas"
+      isES
+        ? "Agregar muebles como biblioteca o sofá para romper reflexiones paralelas"
+        : "Add furniture like a bookshelf or sofa to break up parallel reflections"
     )
   }
 
   // General tips
   recommendations.push(
-    "Despejar espacio entre parlantes y paredes (mínimo 30cm)"
+    isES
+      ? "Despejar espacio entre parlantes y paredes (mínimo 30cm)"
+      : "Clear space between speakers and walls (minimum 30cm)"
   )
   recommendations.push(
-    "Experimentar con pequeños cambios de posición antes de comprar tratamiento"
+    isES
+      ? "Experimentar con pequeños cambios de posición antes de comprar tratamiento"
+      : "Experiment with small position changes before buying treatment"
   )
 
   return recommendations
@@ -450,41 +487,55 @@ function generateSummary(
   roomCharacter: "viva" | "equilibrada" | "seca",
   metrics: ReturnType<typeof calculateRoomMetrics>,
   rt60: { low: number; mid: number; high: number },
-  roomModes: ReturnType<typeof calculateRoomModes>
+  roomModes: ReturnType<typeof calculateRoomModes>,
+  isES: boolean
 ): string {
-  const goal =
-    project.goal === "music"
+  const goal = isES
+    ? project.goal === "music"
       ? "escuchar música"
       : project.goal === "instrument"
         ? "tocar instrumento"
         : "trabajar y concentrarse"
+    : project.goal === "music"
+      ? "listening to music"
+      : project.goal === "instrument"
+        ? "playing an instrument"
+        : "working and focusing"
 
-  const characterDesc = {
-    viva: "viva (reverberante)",
-    equilibrada: "equilibrada",
-    seca: "seca (muy absorbente)",
-  }[roomCharacter]
+  const characterDesc = isES
+    ? { viva: "viva (reverberante)", equilibrada: "equilibrada", seca: "seca (muy absorbente)" }[roomCharacter]
+    : { viva: "lively (reverberant)", equilibrada: "balanced", seca: "dry (highly absorbent)" }[roomCharacter]
 
   const problematicModes = roomModes.filter(
     (m) => m.frequency < 200 && m.severity === "high"
   )
 
-  let summary = `Análisis para espacio de ${metrics.volume.toFixed(1)}m³ optimizada para ${goal}. `
-  summary += `El espacio tiene carácter acústico ${characterDesc} con RT60 promedio de ${rt60.mid.toFixed(2)}s. `
+  let summary = isES
+    ? `Análisis para espacio de ${metrics.volume.toFixed(1)}m³ optimizada para ${goal}. `
+    : `Analysis for a ${metrics.volume.toFixed(1)}m³ space optimized for ${goal}. `
+  summary += isES
+    ? `El espacio tiene carácter acústico ${characterDesc} con RT60 promedio de ${rt60.mid.toFixed(2)}s. `
+    : `The space has ${characterDesc} acoustic character with an average RT60 of ${rt60.mid.toFixed(2)}s. `
 
   if (roomCharacter === "viva") {
-    summary += `Se recomienda agregar absorción para controlar reverberación excesiva. `
+    summary += isES
+      ? `Se recomienda agregar absorción para controlar reverberación excesiva. `
+      : `We recommend adding absorption to control excessive reverberation. `
   } else if (roomCharacter === "seca") {
-    summary += `El espacio es muy absorbente, considerar agregar difusión para recuperar vitalidad. `
+    summary += isES
+      ? `El espacio es muy absorbente, considerar agregar difusión para recuperar vitalidad. `
+      : `The space is very absorbent, consider adding diffusion to recover liveliness. `
   } else {
-    summary += `El balance acústico es bueno, enfocarse en tratamiento de puntos específicos. `
+    summary += isES
+      ? `El balance acústico es bueno, enfocarse en tratamiento de puntos específicos. `
+      : `The acoustic balance is good, focus on treating specific points. `
   }
 
   if (problematicModes.length > 0) {
-    summary += `Se detectaron ${problematicModes.length} modos problemáticos en graves (${problematicModes
-      .slice(0, 3)
-      .map((m) => `${m.frequency.toFixed(0)}Hz`)
-      .join(", ")}), requieren trampas de graves en esquinas.`
+    const freqs = problematicModes.slice(0, 3).map((m) => `${m.frequency.toFixed(0)}Hz`).join(", ")
+    summary += isES
+      ? `Se detectaron ${problematicModes.length} modos problemáticos en graves (${freqs}), requieren trampas de graves en esquinas.`
+      : `Detected ${problematicModes.length} problematic bass modes (${freqs}), corner bass traps are needed.`
   }
 
   return summary

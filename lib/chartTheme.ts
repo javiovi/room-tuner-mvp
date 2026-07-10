@@ -35,7 +35,21 @@ export const chartTheme = {
   },
 } as const
 
-export type ChartTheme = typeof chartTheme.light
+export interface ChartTheme {
+  primary: string
+  secondary: string
+  warning: string
+  destructive: string
+  success: string
+  grid: string
+  axis: string
+  diagramBg: string
+  diagramStroke: string
+  diagramGrid: string
+  diagramText: string
+  heatmapLow: string
+  heatmapHigh: string
+}
 
 export function useChartTheme(isDark: boolean): ChartTheme {
   return isDark ? chartTheme.dark : chartTheme.light

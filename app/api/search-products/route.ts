@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { searchProductsQuerySchema } from "@/lib/validation/schemas"
 
 /**
  * MercadoLibre Product Search API
@@ -47,15 +48,18 @@ const CACHE_TTL = 1000 * 60 * 60 // 1 hora
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
-    const query = searchParams.get("q")
-    const limit = parseInt(searchParams.get("limit") || "5")
+    const parsed = searchProductsQuerySchema.safeParse({
+      q: searchParams.get("q") ?? undefined,
+      limit: searchParams.get("limit") ?? undefined,
+    })
 
-    if (!query) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Query parameter 'q' is required" },
+        { error: "Invalid query parameters", details: parsed.error.flatten() },
         { status: 400 }
       )
     }
+    const { q: query, limit } = parsed.data
 
     // Check cache
     const cacheKey = `${query}-${limit}`

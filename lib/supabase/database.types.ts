@@ -11,6 +11,9 @@ export type Json =
   | Json[]
 
 export interface Database {
+  __InternalSupabase: {
+    PostgrestVersion: '13'
+  }
   public: {
     Tables: {
       projects: {
@@ -68,6 +71,7 @@ export interface Database {
           noise_measurement?: Json | null
           status?: 'draft' | 'analyzing' | 'completed'
         }
+        Relationships: []
       }
       analyses: {
         Row: {
@@ -112,6 +116,15 @@ export interface Database {
           version?: string
           calculation_time_ms?: number | null
         }
+        Relationships: [
+          {
+            foreignKeyName: 'analyses_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
       }
       products: {
         Row: {
@@ -168,6 +181,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       measurements: {
         Row: {
@@ -197,7 +211,20 @@ export interface Database {
           dimensions?: Json
           raw_data?: Json | null
         }
+        Relationships: [
+          {
+            foreignKeyName: 'measurements_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }

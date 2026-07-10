@@ -94,36 +94,23 @@ async function searchProductPriceClient(searchTerm: string): Promise<MLProductRe
 }
 
 /**
- * Generate search term for MercadoLibre based on product category
+ * Search term for MercadoLibre — sourced directly from the product's own
+ * linkML query so the live search always matches what the catalog links to.
  */
 function generateSearchTerm(product: AcousticProduct): string {
-  const searchTerms: Record<string, string> = {
-    'foam-panel-5cm': 'panel espuma acustica 5cm',
-    'foam-panel-10cm': 'panel espuma acustica 10cm',
-    'rockwool-panel-60x120': 'panel lana de roca acustica',
-    'pro-acoustic-panel-60x120': 'panel acustico profesional',
-    'corner-bass-trap-basic': 'trampa graves esquina acustica',
-    'corner-bass-trap-pro': 'bass trap esquina profesional',
-    'superchunk-diy-kit': 'lana de roca trampa graves',
-    'membrane-bass-trap': 'absorber membrana graves',
-    'qrd-diffuser-wood': 'difusor acustico QRD',
-    'skyline-diffuser': 'difusor skyline acustico',
-    'poly-diffuser': 'difusor acustico poliédrico',
-    'thick-rug-2x3': 'alfombra pelo grueso 2x3',
-    'thick-rug-3x4': 'alfombra gruesa 3x4',
-    'acoustic-carpet-tile': 'alfombra modular acustica',
-    'heavy-curtain': 'cortina gruesa blackout',
-    'velvet-curtain': 'cortina terciopelo pesado',
-    'acoustic-curtain-pro': 'cortina acustica profesional',
-    'door-seal-kit': 'burletes puerta antiruido',
-    'acoustic-foam-adhesive': 'adhesivo espuma acustica',
-    'isolation-pads': 'pads aislacion monitores',
-    'speaker-stands': 'soportes parlantes monitores',
-    'bass-shaker': 'bass shaker transductor',
-  }
+  return product.searchTermML || `${product.category} acustico`
+}
 
-  // Return specific search term or fallback to category + "acustico"
-  return searchTerms[product.id] || `${product.category} acustico`
+/**
+ * Reject an ML hit that isn't actually a plausible match for this product —
+ * wrong currency, or a price wildly outside the catalog's own range (a sign
+ * the top search result is an unrelated item, not the accessory itself).
+ */
+function isPlausibleMatch(product: AcousticProduct, mlProduct: MLProductResult): boolean {
+  if (mlProduct.currency !== "ARS") return false
+  const catalogPrice = product.priceARS
+  if (!catalogPrice) return true
+  return mlProduct.price >= catalogPrice * 0.2 && mlProduct.price <= catalogPrice * 5
 }
 
 /**
@@ -136,9 +123,14 @@ export async function enrichProductWithRealPrice(
   const { useServer = false } = options
   const searchTerm = generateSearchTerm(product)
 
-  const mlProduct = useServer
+  const mlResult = useServer
     ? await searchProductPriceServer(searchTerm)
     : await searchProductPriceClient(searchTerm)
+
+  const mlProduct = mlResult && isPlausibleMatch(product, mlResult) ? mlResult : null
+  if (mlResult && !mlProduct) {
+    console.warn(`[Pricing] Rejected implausible ML match for "${product.id}":`, mlResult.price, mlResult.currency)
+  }
 
   if (mlProduct) {
     return {

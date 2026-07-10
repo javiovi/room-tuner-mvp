@@ -19,6 +19,13 @@ export interface RoomMode {
   nz?: number
 }
 
+function ordinalSuffix(n: number): string {
+  if (n % 10 === 1 && n % 100 !== 11) return "st"
+  if (n % 10 === 2 && n % 100 !== 12) return "nd"
+  if (n % 10 === 3 && n % 100 !== 13) return "rd"
+  return "th"
+}
+
 /**
  * Calculate room modes: axial, tangential, and oblique
  * Axial: f = n*c / (2*L) — strongest (~0dB reference)
@@ -28,7 +35,8 @@ export interface RoomMode {
 export function calculateRoomModes(
   length: number,
   width: number,
-  height: number
+  height: number,
+  isES: boolean = true
 ): RoomMode[] {
   const modes: RoomMode[] = []
   const MAX_FREQ = 500
@@ -44,7 +52,7 @@ export function calculateRoomModes(
       modes.push({
         frequency: roundFreq(fL), type: 'axial', dimension: 'length',
         severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
-        description: `${n}° modo longitudinal (${length}m)`,
+        description: isES ? `${n}° modo longitudinal (${length}m)` : `${n}${ordinalSuffix(n)} longitudinal mode (${length}m)`,
         nx: n, ny: 0, nz: 0,
       })
     }
@@ -54,7 +62,7 @@ export function calculateRoomModes(
       modes.push({
         frequency: roundFreq(fW), type: 'axial', dimension: 'width',
         severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
-        description: `${n}° modo transversal (${width}m)`,
+        description: isES ? `${n}° modo transversal (${width}m)` : `${n}${ordinalSuffix(n)} transverse mode (${width}m)`,
         nx: 0, ny: n, nz: 0,
       })
     }
@@ -64,7 +72,7 @@ export function calculateRoomModes(
       modes.push({
         frequency: roundFreq(fH), type: 'axial', dimension: 'height',
         severity: n === 1 ? 'high' : n <= 3 ? 'medium' : 'low',
-        description: `${n}° modo vertical (${height}m)`,
+        description: isES ? `${n}° modo vertical (${height}m)` : `${n}${ordinalSuffix(n)} vertical mode (${height}m)`,
         nx: 0, ny: 0, nz: n,
       })
     }
@@ -94,7 +102,7 @@ export function calculateRoomModes(
         modes.push({
           frequency: roundFreq(f), type: 'tangential', dimension: 'mixed',
           severity,
-          description: `Tangencial (${nx},${ny},${nz})`,
+          description: isES ? `Tangencial (${nx},${ny},${nz})` : `Tangential (${nx},${ny},${nz})`,
           nx, ny, nz,
         })
       }
@@ -113,7 +121,7 @@ export function calculateRoomModes(
         modes.push({
           frequency: roundFreq(f), type: 'oblique', dimension: 'mixed',
           severity: 'low',
-          description: `Oblicuo (${nx},${ny},${nz})`,
+          description: isES ? `Oblicuo (${nx},${ny},${nz})` : `Oblique (${nx},${ny},${nz})`,
           nx, ny, nz,
         })
       }
@@ -446,7 +454,8 @@ export function calculateRoomRatios(
 export function estimateFrequencyResponse(
   roomModes: RoomMode[],
   roomCharacter: 'viva' | 'equilibrada' | 'seca',
-  volume: number
+  volume: number,
+  isES: boolean = true
 ): Array<{ frequency: number; response: number; issue: boolean; description?: string }> {
   const response: Array<{ frequency: number; response: number; issue: boolean; description?: string }> = []
 
@@ -514,8 +523,8 @@ export function estimateFrequencyResponse(
       issue: isIssue,
       description: isIssue
         ? responseDb > 6
-          ? `Pico de +${responseDb.toFixed(1)}dB`
-          : `Valle de ${responseDb.toFixed(1)}dB`
+          ? isES ? `Pico de +${responseDb.toFixed(1)}dB` : `Peak of +${responseDb.toFixed(1)}dB`
+          : isES ? `Valle de ${responseDb.toFixed(1)}dB` : `Dip of ${responseDb.toFixed(1)}dB`
         : undefined,
     })
   })
@@ -601,7 +610,8 @@ export function calculateRoomMetrics(
 export function calculateOptimalPositions(
   length: number,
   width: number,
-  equipmentPosition: 'pared_larga' | 'pared_corta' | 'indefinido'
+  equipmentPosition: NonNullable<RoomProject["speakerPlacement"]>,
+  isES: boolean = true
 ): {
   speakers: Array<{ x: number; y: number }> // Normalized 0-1
   listeningPosition: { x: number; y: number } // Normalized 0-1
@@ -612,12 +622,12 @@ export function calculateOptimalPositions(
   // Default: speakers on short wall (most common)
   let speakerWall: 'short' | 'long' = 'short'
 
-  if (equipmentPosition === 'pared_larga') {
+  if (equipmentPosition === 'pared-larga-centrado') {
     speakerWall = 'long'
-  } else if (equipmentPosition === 'pared_corta') {
+  } else if (equipmentPosition === 'pared-corta-centrado') {
     speakerWall = 'short'
   } else {
-    // Auto-determine: prefer short wall if room is not too wide
+    // 'esquina', 'pared-lateral', 'indefinido': auto-determine from room aspect ratio
     speakerWall = width / length > 0.7 ? 'short' : 'long'
   }
 
@@ -637,8 +647,16 @@ export function calculateOptimalPositions(
     // Listening position: 38% rule (avoid 50% which is room mode null)
     listeningPosition = { x: 0.5, y: 0.38 }
 
-    recommendations.push(`Parlantes separados ${Math.round(width * (1 - 2 * speakerSpacing) * 100) / 100}m`)
-    recommendations.push(`Punto de escucha a ${Math.round(length * 0.38 * 100) / 100}m de pared frontal`)
+    recommendations.push(
+      isES
+        ? `Parlantes separados ${Math.round(width * (1 - 2 * speakerSpacing) * 100) / 100}m`
+        : `Speakers spaced ${Math.round(width * (1 - 2 * speakerSpacing) * 100) / 100}m apart`
+    )
+    recommendations.push(
+      isES
+        ? `Punto de escucha a ${Math.round(length * 0.38 * 100) / 100}m de pared frontal`
+        : `Listening position ${Math.round(length * 0.38 * 100) / 100}m from front wall`
+    )
   } else {
     // Speakers on long wall (length direction)
     const speakerDistanceFromWall = 0.15
@@ -651,12 +669,18 @@ export function calculateOptimalPositions(
 
     listeningPosition = { x: 0.38, y: 0.5 }
 
-    recommendations.push(`Configuración en pared larga`)
-    recommendations.push(`Parlantes separados ${Math.round(length * (1 - 2 * speakerSpacing) * 100) / 100}m`)
+    recommendations.push(isES ? `Configuración en pared larga` : `Long-wall configuration`)
+    recommendations.push(
+      isES
+        ? `Parlantes separados ${Math.round(length * (1 - 2 * speakerSpacing) * 100) / 100}m`
+        : `Speakers spaced ${Math.round(length * (1 - 2 * speakerSpacing) * 100) / 100}m apart`
+    )
   }
 
-  recommendations.push('Formar triángulo equilátero con punto de escucha')
-  recommendations.push('Evitar esquinas para los parlantes')
+  recommendations.push(
+    isES ? 'Formar triángulo equilátero con punto de escucha' : 'Form an equilateral triangle with the listening position'
+  )
+  recommendations.push(isES ? 'Evitar esquinas para los parlantes' : 'Avoid placing speakers in corners')
 
   return {
     speakers,
@@ -683,7 +707,8 @@ export function recalculateForPositions(
   volume: number,
   roomWidth: number,
   roomLength: number,
-  positions: PositionUpdate
+  positions: PositionUpdate,
+  isES: boolean = true
 ): {
   frequencyResponse: Array<{ frequency: number; response: number; issue: boolean; description?: string }>
   treatmentPlan: Array<{
@@ -694,7 +719,7 @@ export function recalculateForPositions(
   }>
 } {
   // 1. Recalculate frequency response with position-based modifiers
-  const baseResponse = estimateFrequencyResponse(roomModes, roomCharacter, volume)
+  const baseResponse = estimateFrequencyResponse(roomModes, roomCharacter, volume, isES)
   const listenerY = positions.listeningPosition.y
   const listenerX = positions.listeningPosition.x
 
@@ -739,7 +764,9 @@ export function recalculateForPositions(
       response: newResponse,
       issue: isIssue,
       description: isIssue
-        ? newResponse > 6 ? `Pico de +${newResponse.toFixed(1)}dB` : `Valle de ${newResponse.toFixed(1)}dB`
+        ? newResponse > 6
+          ? isES ? `Pico de +${newResponse.toFixed(1)}dB` : `Peak of +${newResponse.toFixed(1)}dB`
+          : isES ? `Valle de ${newResponse.toFixed(1)}dB` : `Dip of ${newResponse.toFixed(1)}dB`
         : undefined,
     }
   })

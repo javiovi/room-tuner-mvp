@@ -41,19 +41,19 @@ export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
       () => {
         setState("decay")
       },
-      // onDecay
+      // onDecay — fires every frame while the decay curve is being captured; no per-frame
+      // side effects here, completion is handled once by onDecayComplete below.
+      () => {},
+      // onDecayComplete — the engine calls this exactly once, right when its own capture
+      // loop naturally stops (early-exit or 3s cap), instead of guessing with a timeout.
       () => {
-        // Decay curve updating — we check when it's done
-        // The engine stops automatically, then we call analyzeClapResult
-        setTimeout(() => {
-          const clapResult = engine.analyzeClapResult()
-          if (clapResult) {
-            setResult(clapResult)
-            setState("done")
-            onComplete(clapResult)
-          }
-          engine.dispose()
-        }, 3500) // Wait for decay capture to finish (max 3s + buffer)
+        const clapResult = engine.analyzeClapResult()
+        if (clapResult) {
+          setResult(clapResult)
+          setState("done")
+          onComplete(clapResult)
+        }
+        engine.dispose()
       }
     )
 

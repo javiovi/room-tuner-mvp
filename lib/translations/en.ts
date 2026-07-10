@@ -266,6 +266,9 @@ export const en: Translations = {
     tip1: "Listening position can dramatically change your perception.",
     tip2: "Furniture also helps control reflections.",
     tip3: "Small adjustments often make a big difference in sound.",
+    errorTitle: "We couldn't analyze your space",
+    errorDesc: "Something went wrong calculating your report. Try again — no incomplete result was saved.",
+    retryButton: "Retry",
   },
 
   resultado: {
@@ -273,6 +276,9 @@ export const en: Translations = {
     subtitle: "Report with real acoustic calculations",
     noAnalysisTitle: "No analysis yet",
     noAnalysisDesc: "We couldn't load your space's results. Try running the analysis again or go back to the home page.",
+    rehydrating: "Recovering your analysis...",
+    rehydrateFailedTitle: "We couldn't recover this analysis",
+    rehydrateFailedDesc: "The link may have expired or the analysis no longer exists. Try running the analysis again.",
     criticalSingular: "critical",
     criticalPlural: "critical",
     improvementSingular: "improvement",
@@ -605,7 +611,7 @@ export const en: Translations = {
     installation: "Installation:",
     total: "Total",
     budgetTotal: "Total budget",
-    priceSource: "Real prices from MercadoLibre Argentina, updated",
+    priceSource: "Estimated from catalog prices, checked against the market when available",
     footerNote: "* This is an example with mock data. Your report will be customized for your space.",
   },
 } as const

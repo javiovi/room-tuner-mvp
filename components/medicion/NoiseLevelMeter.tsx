@@ -34,7 +34,7 @@ function getClassificationKey(classification: NoiseMeasurementResult['classifica
 
 export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, onError }: NoiseLevelMeterProps) {
   const { t } = useT()
-  const [state, setState] = useState<"idle" | "measuring" | "done">("idle")
+  const [state, setState] = useState<"idle" | "requesting" | "measuring" | "done">("idle")
   const [currentDb, setCurrentDb] = useState(0)
   const [secondsLeft, setSecondsLeft] = useState(duration)
   const [result, setResult] = useState<NoiseMeasurementResult | null>(null)
@@ -42,11 +42,13 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const startMeasurement = useCallback(async () => {
+    setState("requesting")
     const engine = new AudioMeasurementEngine()
     engineRef.current = engine
 
     const ok = await engine.requestPermission()
     if (!ok) {
+      setState("idle")
       onError?.(t.medicion.permissionDenied)
       return
     }
@@ -76,12 +78,33 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
   }, [duration, onComplete, onError, t.medicion.permissionDenied])
 
   useEffect(() => {
-    startMeasurement()
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
       engineRef.current?.dispose()
     }
-  }, [startMeasurement])
+  }, [])
+
+  // Idle state — mic access must start from a real user gesture (this button), not a
+  // mount effect: iOS Safari/Chrome can otherwise leave the AudioContext suspended and
+  // every reading silently comes back as 0 dB.
+  if (state === "idle" || state === "requesting") {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">{t.medicion.noiseMeasuring}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{t.medicion.noiseTip}</p>
+        </div>
+        <button
+          onClick={startMeasurement}
+          disabled={state === "requesting"}
+          className="w-full bg-primary text-primary-foreground py-3 px-4 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          <Mic className="w-4 h-4" />
+          {state === "requesting" ? t.medicion.noiseMeasuring : t.medicion.measureButton}
+        </button>
+      </div>
+    )
+  }
 
   if (state === "done" && result) {
     const classKey = getClassificationKey(result.classification) as keyof typeof t.medicion

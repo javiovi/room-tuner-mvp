@@ -221,6 +221,21 @@ function severityColor(sev: string) {
   return sev === 'high' ? c.danger : sev === 'medium' ? c.warning : c.success
 }
 
+/** @react-pdf/renderer's SVG <Text> supports `fontSize` at runtime but the published
+ * types (SVGPresentationAttributes) don't declare it — isolated cast so it's a single
+ * documented workaround instead of `as any` scattered at each call site. */
+function SvgLabel(props: {
+  x: number | string
+  y: number | string
+  fontSize: number | string
+  fill: string
+  textAnchor?: 'start' | 'middle' | 'end'
+  fontWeight?: string
+  children: React.ReactNode
+}) {
+  return <Text {...(props as React.ComponentProps<typeof Text>)} />
+}
+
 function ratingBadgeStyle(rating: string) {
   if (rating === 'good') return s.badgeSuccess
   if (rating === 'acceptable') return s.badgeWarning
@@ -288,11 +303,11 @@ function FrequencyChart({ data, l }: { data: FrequencyPoint[]; l: ReturnType<typ
       <Svg width={width} height={height}>
         <Line x1={pad.left} y1={zeroY} x2={width - pad.right} y2={zeroY} stroke={c.border} strokeWidth={0.75} strokeDasharray="2,2" />
         {points.length > 0 && <Polyline points={points} fill="none" stroke={c.accent} strokeWidth={1.5} />}
-        <Text x={pad.left} y={height - 3} fontSize={6} fill={c.muted}>20Hz</Text>
-        <Text x={xFor(1000)} y={height - 3} fontSize={6} fill={c.muted} textAnchor="middle">1kHz</Text>
-        <Text x={width - pad.right} y={height - 3} fontSize={6} textAnchor="end" fill={c.muted}>20kHz</Text>
-        <Text x={pad.left - 2} y={pad.top + 4} fontSize={6} textAnchor="end" fill={c.muted}>+12dB</Text>
-        <Text x={pad.left - 2} y={pad.top + chartH} fontSize={6} textAnchor="end" fill={c.muted}>-12dB</Text>
+        <SvgLabel x={pad.left} y={height - 3} fontSize={6} fill={c.muted}>20Hz</SvgLabel>
+        <SvgLabel x={xFor(1000)} y={height - 3} fontSize={6} fill={c.muted} textAnchor="middle">1kHz</SvgLabel>
+        <SvgLabel x={width - pad.right} y={height - 3} fontSize={6} textAnchor="end" fill={c.muted}>20kHz</SvgLabel>
+        <SvgLabel x={pad.left - 2} y={pad.top + 4} fontSize={6} textAnchor="end" fill={c.muted}>+12dB</SvgLabel>
+        <SvgLabel x={pad.left - 2} y={pad.top + chartH} fontSize={6} textAnchor="end" fill={c.muted}>-12dB</SvgLabel>
       </Svg>
     </View>
   )
@@ -589,12 +604,12 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
             <Rect x="40" y="20" width="320" height="250" fill="none" stroke={c.ink} strokeWidth="1" />
 
             {/* Dimension labels */}
-            <Text x="200" y="13" fontSize="10" textAnchor="middle" fill={c.muted}>
+            <SvgLabel x="200" y="13" fontSize="10" textAnchor="middle" fill={c.muted}>
               {project.lengthM?.toFixed(1)} m
-            </Text>
-            <Text x="368" y="145" fontSize="10" textAnchor="start" fill={c.muted}>
+            </SvgLabel>
+            <SvgLabel x="368" y="145" fontSize="10" textAnchor="start" fill={c.muted}>
               {project.widthM?.toFixed(1)} m
-            </Text>
+            </SvgLabel>
 
             {/* Speakers — sp.x/sp.y are already 0-1 normalized, do not divide by room meters */}
             {roomDiagram?.floorPlan?.speakerPositions?.map((sp, idx) => {
@@ -603,7 +618,7 @@ export function ReportPDFDocument({ project, analysis, locale }: ReportPDFDocume
               return (
                 <React.Fragment key={`sp-${idx}`}>
                   <Rect x={x - 7} y={y - 7} width="14" height="14" fill={c.accent} stroke={c.ink} strokeWidth="0.5" />
-                  <Text x={x} y={y - 12} fontSize="8" textAnchor="middle" fill={c.accent}>S{idx + 1}</Text>
+                  <SvgLabel x={x} y={y - 12} fontSize="8" textAnchor="middle" fill={c.accent}>S{idx + 1}</SvgLabel>
                 </React.Fragment>
               )
             })}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Mic, MicOff } from "lucide-react"
@@ -23,7 +23,14 @@ export default function MedicionPage() {
   const [noiseResult, setNoiseResult] = useState<NoiseMeasurementResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const audioSupported = isAudioSupported()
+  // isAudioSupported() reads `navigator`/`window`, which don't exist during SSR — computing
+  // it directly during render made the server always output the "not supported" branch and
+  // the client immediately disagree, a hydration mismatch. Match the server on first paint,
+  // then resolve the real value client-side.
+  const [audioSupported, setAudioSupported] = useState(false)
+  useEffect(() => {
+    setAudioSupported(isAudioSupported())
+  }, [])
 
   const handleStartMeasurement = () => {
     setError(null)

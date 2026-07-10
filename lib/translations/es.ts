@@ -264,6 +264,9 @@ export const es = {
     tip1: "La posici\u00f3n del punto de escucha puede cambiar much\u00edsimo la percepci\u00f3n.",
     tip2: "Los muebles tambi\u00e9n ayudan a controlar reflexiones.",
     tip3: "Peque\u00f1os ajustes suelen generar grandes diferencias en el sonido.",
+    errorTitle: "No pudimos analizar tu espacio",
+    errorDesc: "Hubo un problema calculando tu reporte. Prob\u00e1 de nuevo \u2014 no se guard\u00f3 ning\u00fan resultado incompleto.",
+    retryButton: "Reintentar",
   },
 
   resultado: {
@@ -271,6 +274,9 @@ export const es = {
     subtitle: "Reporte con c\u00e1lculos ac\u00fasticos reales",
     noAnalysisTitle: "A\u00fan no hay an\u00e1lisis",
     noAnalysisDesc: "No pudimos cargar el resultado de tu espacio. Prob\u00e1 volver a ejecutar el an\u00e1lisis o regresar al inicio.",
+    rehydrating: "Recuperando tu an\u00e1lisis...",
+    rehydrateFailedTitle: "No pudimos recuperar este an\u00e1lisis",
+    rehydrateFailedDesc: "El enlace puede haber expirado o el an\u00e1lisis ya no existe. Prob\u00e1 volver a ejecutar el an\u00e1lisis.",
     criticalSingular: "cr\u00edtico",
     criticalPlural: "cr\u00edticos",
     improvementSingular: "mejora",
@@ -603,9 +609,19 @@ export const es = {
     installation: "Instalaci\u00f3n:",
     total: "Total",
     budgetTotal: "Presupuesto total",
-    priceSource: "Precios reales de MercadoLibre Argentina actualizados",
+    priceSource: "Precios estimados en base a catálogo, verificados contra el mercado cuando es posible",
     footerNote: "* Este es un ejemplo con datos mock. Tu informe ser\u00e1 personalizado para tu espacio.",
   },
 } as const
 
-export type Translations = typeof es
+// Widen every literal string in the `as const` shape to `string` so `en.ts` can assign
+// its own (different) literal values while keeping the same nested key structure.
+type Widen<T> = T extends string
+  ? string
+  : T extends readonly (infer U)[]
+    ? Widen<U>[]
+    : T extends object
+      ? { [K in keyof T]: Widen<T[K]> }
+      : T
+
+export type Translations = Widen<typeof es>

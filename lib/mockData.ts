@@ -12,11 +12,8 @@ export const mockProject: RoomProject = {
   heightM: 2.7,
   floorType: "madera",
   wallType: "desnudas",
-  hasCarpet: false,
-  hasCurtains: false,
   furniture: ["sofa", "escritorio", "estanteria"],
-  speakerConfig: "stereo",
-  listeningPosition: "centro",
+  listeningPosition: "centro-sala",
 }
 
 export const mockAnalysis: EnhancedAnalysisResponse = {
@@ -38,6 +35,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
       lengthWidth: 1.18,
       lengthHeight: 1.67,
       widthHeight: 1.41,
+      rating: "acceptable",
+      message: "Proporciones aceptables, algunos modos pueden coincidir",
     },
     roomModes: [
       {
@@ -81,6 +80,17 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
       mid: 0.52,
       high: 0.38,
     },
+    rt60Evaluation: {
+      rating: "acceptable",
+      message: "Espacio levemente vivo, exceso moderado de reverberación",
+    },
+    totalAbsorption: 12.5,
+  },
+  materialsAnalysis: {
+    floorAbsorption: 0.08,
+    wallAbsorption: 0.05,
+    ceilingAbsorption: 0.02,
+    furnitureContribution: 0.9,
     totalAbsorption: 12.5,
   },
   frequencyResponse: [
@@ -121,6 +131,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
     items: [
       {
         category: "Absorción",
+        productId: "mock-absorci-n-1",
+        currency: "ARS",
         product: "Panel Espuma Acústica 60x60cm (5cm)",
         quantity: 8,
         unitPrice: 6500,
@@ -133,6 +145,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
       },
       {
         category: "Graves",
+        productId: "mock-graves-2",
+        currency: "ARS",
         product: "Trampa de Graves Esquina Básica",
         quantity: 4,
         unitPrice: 12000,
@@ -145,6 +159,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
       },
       {
         category: "Piso",
+        productId: "mock-piso-3",
+        currency: "ARS",
         product: "Alfombra Gruesa 2x3m",
         quantity: 1,
         unitPrice: 48000,
@@ -167,6 +183,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
     items: [
       {
         category: "Absorción Pro",
+        productId: "mock-absorci-n-pro-4",
+        currency: "ARS",
         product: "Panel Acústico Profesional 60x120cm (10cm)",
         quantity: 6,
         unitPrice: 34000,
@@ -179,6 +197,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
       },
       {
         category: "Difusión",
+        productId: "mock-difusi-n-5",
+        currency: "ARS",
         product: "Difusor QRD 60x60cm",
         quantity: 2,
         unitPrice: 38000,
@@ -191,6 +211,8 @@ export const mockAnalysis: EnhancedAnalysisResponse = {
       },
       {
         category: "Graves Pro",
+        productId: "mock-graves-pro-6",
+        currency: "ARS",
         product: "Trampa de Graves Profesional Esquina",
         quantity: 2,
         unitPrice: 48000,

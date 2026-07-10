@@ -71,7 +71,7 @@ export function RoomModesChart({ modes }: RoomModesChartProps) {
               domain={[0, 3]} ticks={[0, 1, 2, 3]}
               tickFormatter={(value) => intensityLabels[value] || ""}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.grid }} />
+            <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: theme.grid }} />
             <Bar dataKey="severityValue" radius={[4, 4, 0, 0]}>
               {chartData.map((mode, index) => (
                 <Cell key={`cell-${index}`} fill={getColor(mode.severity)} />
@@ -155,12 +155,25 @@ export function RoomModesChart({ modes }: RoomModesChartProps) {
   )
 }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload, t }: any) {
   if (!active || !payload || !payload[0]) return null
   const mode = payload[0].payload as RoomMode & { nx?: number; ny?: number; nz?: number }
-  const severityLabels = { high: "Alta", medium: "Media", low: "Baja" }
-  const dimensionLabels = { length: "Longitudinal", width: "Transversal", height: "Vertical", mixed: "Mixto" }
-  const typeLabels = { axial: "Axial", tangential: "Tangencial", oblique: "Oblicuo" }
+  const severityLabels = {
+    high: t.report.modes.severityLabelHigh,
+    medium: t.report.modes.severityLabelMedium,
+    low: t.report.modes.severityLabelLow,
+  }
+  const dimensionLabels = {
+    length: t.report.modes.dimLongitudinal,
+    width: t.report.modes.dimTransverse,
+    height: t.report.modes.dimVertical,
+    mixed: t.report.modes.dimMixed,
+  }
+  const typeLabels = {
+    axial: t.report.modes.typeAxial,
+    tangential: t.report.modes.typeTangential,
+    oblique: t.report.modes.typeOblique,
+  }
 
   return (
     <div className="bg-card rounded-sm border border-border p-3 space-y-1">
@@ -172,7 +185,7 @@ function CustomTooltip({ active, payload }: any) {
       <p className={`text-xs font-medium ${
         mode.severity === "high" ? "text-destructive" : mode.severity === "medium" ? "text-warning" : "text-primary"
       }`}>
-        Severidad: {severityLabels[mode.severity]}
+        {t.report.modes.severityFieldLabel} {severityLabels[mode.severity]}
       </p>
     </div>
   )

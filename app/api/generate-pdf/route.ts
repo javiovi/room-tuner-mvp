@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { ReportPDFDocument } from '@/components/report/pdf/ReportPDFDocument'
 import type { RoomProject, EnhancedAnalysisResponse } from '@/app/types/room'
+import { generatePdfRequestSchema } from '@/lib/validation/schemas'
 
 // Vercel serverless function config
 export const runtime = 'nodejs'
@@ -14,18 +15,17 @@ export const maxDuration = 60 // 60 seconds max execution
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { project, analysis, locale = "es" } = body as {
+    const parsed = generatePdfRequestSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const { project, analysis, locale = "es" } = parsed.data as {
       project: RoomProject
       analysis: EnhancedAnalysisResponse
       locale?: string
-    }
-
-    // Validate required data
-    if (!project || !analysis) {
-      return NextResponse.json(
-        { error: 'Missing project or analysis data' },
-        { status: 400 }
-      )
     }
 
     console.log('[PDF] Starting PDF generation...')

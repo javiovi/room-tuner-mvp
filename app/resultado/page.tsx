@@ -23,20 +23,90 @@ export default function ResultadoPage() {
   const analysis = useRoomStore((s) => s.analysis)
   const project = useRoomStore((s) => s.project)
   const updatePositions = useRoomStore((s) => s.updatePositions)
+  const updateProject = useRoomStore((s) => s.updateProject)
+  const setAnalysis = useRoomStore((s) => s.setAnalysis)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [unlockNotice, setUnlockNotice] = useState(false)
+  const [rehydrating, setRehydrating] = useState(false)
+  const [rehydrateFailed, setRehydrateFailed] = useState(false)
   const { t } = useT()
 
+  // On a hard refresh the store is empty (no persist middleware) but the analysis
+  // was already saved server-side — recover it from ?id= instead of showing "no analysis".
+  useEffect(() => {
+    if (analysis) return
+    const id = new URLSearchParams(window.location.search).get("id")
+    if (!id) return
+
+    setRehydrating(true)
+    setRehydrateFailed(false)
+    fetch(`/api/projects/${id}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data) => {
+        updateProject(data.project)
+        setAnalysis(data.analysis)
+      })
+      .catch(() => setRehydrateFailed(true))
+      .finally(() => setRehydrating(false))
+    // Only re-run if the store's analysis is cleared out from under us; the id in the
+    // URL doesn't change during this page's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysis])
+
+  // ── PAYWALL FLAG ──
+  // Sprint 1: forceUnlock for dev/testing. Sprint 2: replace with real unlock check.
+  const forceUnlock = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_FORCE_UNLOCK === "true") return true
+    if (typeof window !== "undefined") {
+      if (new URLSearchParams(window.location.search).get("unlock") === "1") return true
+      if (localStorage.getItem("roomtuner_force_unlock") === "true") return true
+    }
+    return false
+  }, [])
+  const isUnlocked = forceUnlock
+
+  // ── Track view_result_preview (once) ──
+  const trackedView = useRef(false)
+  useEffect(() => {
+    if (!isUnlocked && analysis && !trackedView.current) {
+      trackedView.current = true
+      const userLocale = localStorage.getItem("locale") || "es"
+      const localCurrency: "ARS" | "USD" = userLocale === "en" ? "USD" : "ARS"
+      const allProducts = [...analysis.lowBudgetChanges.items, ...analysis.advancedChanges.items]
+      const localProducts = allProducts.filter((p) => p.currency === localCurrency)
+      const teaserMin = localProducts.reduce((sum, p) => sum + p.totalPrice, 0)
+      const va = (window as unknown as { va?: (event: string, props?: Record<string, unknown>) => void }).va
+      const payload = {
+        goal: project?.goal ?? "unknown",
+        locale: userLocale,
+        issues_total: analysis.priorityScore.critical + analysis.priorityScore.improvements,
+        has_budget_teaser: localProducts.length > 0 && teaserMin > 0,
+      }
+      if (typeof va === "function") va("view_result_preview", payload)
+      console.debug("[analytics]", "view_result_preview", payload)
+    }
+  })
+
   if (!analysis) {
+    if (rehydrating) {
+      return (
+        <CenteredLayout>
+          <div className="space-y-4 text-center">
+            <p className="text-sm text-muted-foreground">{t.resultado.rehydrating}</p>
+          </div>
+        </CenteredLayout>
+      )
+    }
+
     return (
       <CenteredLayout>
         <div className="space-y-4 text-center">
           <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
-            {t.resultado.noAnalysisTitle}
+            {rehydrateFailed ? t.resultado.rehydrateFailedTitle : t.resultado.noAnalysisTitle}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {t.resultado.noAnalysisDesc}
+            {rehydrateFailed ? t.resultado.rehydrateFailedDesc : t.resultado.noAnalysisDesc}
           </p>
           <div className="pt-2">
             <Link
@@ -124,32 +194,6 @@ export default function ResultadoPage() {
     }
     console.debug("[analytics]", event, props)
   }
-
-  // ── PAYWALL FLAG ──
-  // Sprint 1: forceUnlock for dev/testing. Sprint 2: replace with real unlock check.
-  const forceUnlock = useMemo(() => {
-    if (process.env.NEXT_PUBLIC_FORCE_UNLOCK === "true") return true
-    if (typeof window !== "undefined") {
-      if (new URLSearchParams(window.location.search).get("unlock") === "1") return true
-      if (localStorage.getItem("roomtuner_force_unlock") === "true") return true
-    }
-    return false
-  }, [])
-  const isUnlocked = forceUnlock
-
-  // ── Track view_result_preview (once) ──
-  const trackedView = useRef(false)
-  useEffect(() => {
-    if (!isUnlocked && analysis && !trackedView.current) {
-      trackedView.current = true
-      track("view_result_preview", {
-        goal: project?.goal ?? "unknown",
-        locale: localStorage.getItem("locale") || "es",
-        issues_total: priorityScore.critical + priorityScore.improvements,
-        has_budget_teaser: hasBudgetTeaser,
-      })
-    }
-  })
 
   const handleUnlock = (source: "locked_tab" | "budget_teaser" | "pdf_locked" | "other" = "other") => {
     track("click_unlock_report", {
