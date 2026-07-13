@@ -10,6 +10,7 @@ import { OptionCard } from "@/components/OptionCard"
 import { InfoCallout } from "@/components/InfoCallout"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
+import type { RoomProject } from "@/app/types/room"
 
 export default function DisposicionPage() {
   const router = useRouter()
@@ -26,8 +27,8 @@ export default function DisposicionPage() {
     if (!isValid) return
 
     updateProject({
-      speakerPlacement: formData.ubicacionEquipo as any,
-      listeningPosition: formData.dondeSientas as any,
+      speakerPlacement: formData.ubicacionEquipo as RoomProject["speakerPlacement"],
+      listeningPosition: formData.dondeSientas as RoomProject["listeningPosition"],
     })
 
     router.push("/muebles")

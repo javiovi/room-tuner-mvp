@@ -400,6 +400,7 @@ export const en: Translations = {
       severityLabelHigh: "High",
       severityLabelMedium: "Medium",
       severityLabelLow: "Low",
+      severityFieldLabel: "Severity:",
       criticalTitle: "Critical modes (require treatment):",
       criticalSolution: "Solution: Bass traps in corners and low-frequency treatment.",
       typeAxial: "Axial",

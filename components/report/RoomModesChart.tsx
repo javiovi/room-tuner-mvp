@@ -6,6 +6,7 @@ import type { RoomMode } from "@/app/types/room"
 import { InfoTooltip } from "@/components/InfoTooltip"
 import { useT } from "@/lib/i18n"
 import { useChartTheme } from "@/lib/chartTheme"
+import type { Translations } from "@/lib/translations/es"
 
 interface RoomModesChartProps {
   modes: RoomMode[]
@@ -155,9 +156,17 @@ export function RoomModesChart({ modes }: RoomModesChartProps) {
   )
 }
 
-function CustomTooltip({ active, payload, t }: any) {
+function CustomTooltip({
+  active,
+  payload,
+  t,
+}: {
+  active?: boolean
+  payload?: Array<{ payload: RoomMode & { nx?: number; ny?: number; nz?: number } }>
+  t: Translations
+}) {
   if (!active || !payload || !payload[0]) return null
-  const mode = payload[0].payload as RoomMode & { nx?: number; ny?: number; nz?: number }
+  const mode = payload[0].payload
   const severityLabels = {
     high: t.report.modes.severityLabelHigh,
     medium: t.report.modes.severityLabelMedium,

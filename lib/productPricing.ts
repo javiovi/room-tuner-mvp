@@ -15,7 +15,7 @@ interface MLProductResult {
   condition: string
 }
 
-interface EnrichedProduct extends AcousticProduct {
+export interface EnrichedProduct extends AcousticProduct {
   realPrice?: number
   realLink?: string
   realThumbnail?: string

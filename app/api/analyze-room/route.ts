@@ -4,6 +4,7 @@ import {
   calculateRoomModes,
   calculateRoomMetrics,
   calculateTotalAbsorption,
+  calculateFurnitureAbsorption,
   estimateRT60SmartByBand,
   evaluateRT60,
   determineRoomCharacter,
@@ -13,6 +14,7 @@ import {
 import {
   generateProductRecommendations,
   getProductById,
+  type AcousticProduct,
 } from "@/lib/acousticProducts"
 import { enrichProductsWithRealPrices } from "@/lib/productPricing"
 import { createServerClient } from "@/lib/supabase/client"
@@ -243,7 +245,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
   const productsToEnrich = lowBudgetRecs
     .slice(0, 4)
     .map(r => getProductById(r.productId))
-    .filter(Boolean) as any[]
+    .filter((p): p is AcousticProduct => Boolean(p))
 
   let enrichedProducts = productsToEnrich
   if (isES) {
@@ -284,7 +286,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
       listeningPosition: positions.listeningPosition,
       furnitureLayout: generateFurnitureLayout(project.furniture || [], widthM, lengthM),
     },
-    treatmentPlan: generateTreatmentPlan(roomCharacter, lowBudgetRecs, advancedRecs),
+    treatmentPlan: generateTreatmentPlan(roomCharacter),
   }
 
   // === STEP 11: Count priorities ===
@@ -313,7 +315,10 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
       floorAbsorption: absorption.low / metrics.floorArea,
       wallAbsorption: absorption.mid / metrics.wallArea,
       ceilingAbsorption: 0.02, // Assumed hard ceiling
-      furnitureContribution: (project.furniture?.length || 0) * 0.3,
+      furnitureContribution: (() => {
+        const f = calculateFurnitureAbsorption(project.furniture || [])
+        return Math.round(((f.low + f.mid + f.high) / 3) * 100) / 100
+      })(),
       totalAbsorption: absorption.average,
     },
 
@@ -443,7 +448,7 @@ function convertToProductRecommendations(
   recommendations: ReturnType<typeof generateProductRecommendations>,
   currency: "USD" | "ARS",
   isES: boolean,
-  enrichedProducts?: any[]
+  enrichedProducts?: AcousticProduct[]
 ): ProductRecommendation[] {
   return recommendations.map((rec) => {
     // Try to find enriched product first (only for ES/ML)
@@ -585,9 +590,7 @@ function generateFurnitureLayout(
  * Generate treatment plan for diagram
  */
 function generateTreatmentPlan(
-  roomCharacter: "viva" | "equilibrada" | "seca",
-  lowBudget: ReturnType<typeof generateProductRecommendations>,
-  advanced: ReturnType<typeof generateProductRecommendations>
+  roomCharacter: "viva" | "equilibrada" | "seca"
 ): Array<{
   type: "absorber" | "diffuser" | "bass_trap"
   position: { x: number; y: number }

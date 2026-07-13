@@ -4,6 +4,7 @@ import { ArrowRight, Clock } from "lucide-react"
 import { InfoTooltip } from "@/components/InfoTooltip"
 import { InfoCallout } from "@/components/InfoCallout"
 import { useT } from "@/lib/i18n"
+import type { Translations } from "@/lib/translations/es"
 
 interface ActionItem {
   title: string
@@ -97,7 +98,7 @@ export function ActionPlan({ roomCharacter, hasBudget = false }: ActionPlanProps
   )
 }
 
-function TimelineSection({ title, subtitle, items, t }: { title: string; subtitle: string; items: ActionItem[]; t: any }) {
+function TimelineSection({ title, subtitle, items, t }: { title: string; subtitle: string; items: ActionItem[]; t: Translations }) {
   if (items.length === 0) return null
   return (
     <div className="space-y-3">

@@ -88,9 +88,9 @@ export function FrequencyResponseChart({ data }: FrequencyResponseChartProps) {
   )
 }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: FrequencyPoint }> }) {
   if (!active || !payload || !payload[0]) return null
-  const data = payload[0].payload as FrequencyPoint
+  const data = payload[0].payload
 
   return (
     <div className="bg-card rounded-sm border border-border p-3">

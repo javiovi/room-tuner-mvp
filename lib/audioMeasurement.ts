@@ -35,7 +35,7 @@ export function classifyNoiseLevel(db: number): NoiseMeasurementResult['classifi
 function getAudioContextCtor(): typeof AudioContext | undefined {
   if (typeof window === 'undefined') return undefined
   // Older iOS Safari only exposes the vendor-prefixed constructor.
-  return window.AudioContext ?? (window as any).webkitAudioContext
+  return window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
 }
 
 export function isAudioSupported(): boolean {
@@ -49,7 +49,7 @@ export class AudioMeasurementEngine {
   private audioContext: AudioContext | null = null
   private analyser: AnalyserNode | null = null
   private stream: MediaStream | null = null
-  private dataArray: Float32Array | null = null
+  private dataArray: Float32Array<ArrayBuffer> | null = null
   private animFrameId: number = 0
   private noiseReadings: number[] = []
   private startTime: number = 0

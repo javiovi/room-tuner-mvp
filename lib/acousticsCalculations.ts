@@ -328,7 +328,50 @@ export const absorptionCoefficients = {
   },
 }
 
+// Effective absorptive surface area per furniture item (m²) — a coefficient alone
+// isn't sabins, it needs an area. These are rough real-world footprints (seat +
+// back + arms for a sofa, mattress + covers for a bed, etc.), not the flat 1m²
+// placeholder used before, which underestimated furniture absorption by ~10x and
+// biased every room toward "viva".
+const furnitureEffectiveArea: Record<keyof typeof absorptionCoefficients.furniture, number> = {
+  sofa: 4,
+  silla: 1,
+  puff: 1.5,
+  estanteria: 3,
+  armario: 2.5,
+  cajonera: 1.5,
+  escritorio: 1.5,
+  mesa: 1.5,
+  rack: 1,
+  cama: 6,
+  plantas: 1,
+  instrumentos: 1.5,
+  alfombra: 4,
+}
+
 // ===== ABSORPTION CALCULATIONS =====
+
+/**
+ * Furniture absorption in sabins: effective area (m²) × coefficient per item.
+ */
+export function calculateFurnitureAbsorption(furniture: string[]): {
+  low: number
+  mid: number
+  high: number
+} {
+  const result = { low: 0, mid: 0, high: 0 }
+  furniture.forEach((item) => {
+    const furnitureKey = item as keyof typeof absorptionCoefficients.furniture
+    const furnitureCoeff = absorptionCoefficients.furniture[furnitureKey]
+    const area = furnitureEffectiveArea[furnitureKey]
+    if (furnitureCoeff && area) {
+      result.low += area * furnitureCoeff.low
+      result.mid += area * furnitureCoeff.mid
+      result.high += area * furnitureCoeff.high
+    }
+  })
+  return result
+}
 
 /**
  * Calculate total absorption in sabins
@@ -360,22 +403,18 @@ export function calculateTotalAbsorption(project: RoomProject): {
   const ceilingCoeff = { low: 0.02, mid: 0.02, high: 0.03 } // Assume hard ceiling
 
   // Calculate base absorption from surfaces
-  let absorption = {
+  const absorption = {
     low: floorArea * floorCoeff.low + wallArea * wallCoeff.low + ceilingArea * ceilingCoeff.low,
     mid: floorArea * floorCoeff.mid + wallArea * wallCoeff.mid + ceilingArea * ceilingCoeff.mid,
     high: floorArea * floorCoeff.high + wallArea * wallCoeff.high + ceilingArea * ceilingCoeff.high,
   }
 
-  // Add furniture contribution (assume ~1m² effective area per item)
-  furniture.forEach((item) => {
-    const furnitureKey = item as keyof typeof absorptionCoefficients.furniture
-    const furnitureCoeff = absorptionCoefficients.furniture[furnitureKey]
-    if (furnitureCoeff) {
-      absorption.low += furnitureCoeff.low
-      absorption.mid += furnitureCoeff.mid
-      absorption.high += furnitureCoeff.high
-    }
-  })
+  // Add furniture contribution: sabins = effective area (m²) × coefficient, same
+  // formula as every other surface — furniture isn't exempt from the unit.
+  const furnitureAbsorption = calculateFurnitureAbsorption(furniture)
+  absorption.low += furnitureAbsorption.low
+  absorption.mid += furnitureAbsorption.mid
+  absorption.high += furnitureAbsorption.high
 
   const average = (absorption.low + absorption.mid + absorption.high) / 3
 

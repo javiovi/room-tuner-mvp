@@ -12,6 +12,7 @@ import { Button } from "@/components/Button"
 import { InfoCallout } from "@/components/InfoCallout"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
+import type { RoomProject } from "@/app/types/room"
 
 export default function EspacioPage() {
   const router = useRouter()
@@ -51,8 +52,8 @@ export default function EspacioPage() {
       lengthM: formData.largo ? Number(formData.largo) : undefined,
       widthM: formData.ancho ? Number(formData.ancho) : undefined,
       heightM: formData.altura ? Number(formData.altura) : undefined,
-      floorType: formData.tipoPiso as any,
-      wallType: formData.tipoParedes as any,
+      floorType: formData.tipoPiso as RoomProject["floorType"],
+      wallType: formData.tipoParedes as RoomProject["wallType"],
     })
 
     router.push("/disposicion")

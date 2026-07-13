@@ -398,6 +398,7 @@ export const es = {
       severityLabelHigh: "Alta",
       severityLabelMedium: "Media",
       severityLabelLow: "Baja",
+      severityFieldLabel: "Severidad:",
       criticalTitle: "Modos cr\u00edticos (requieren tratamiento):",
       criticalSolution: "Soluci\u00f3n: Trampas de graves en esquinas y tratamiento de bajas frecuencias.",
       typeAxial: "Axial",

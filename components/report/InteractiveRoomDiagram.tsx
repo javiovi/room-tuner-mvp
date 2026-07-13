@@ -34,12 +34,10 @@ interface InteractiveRoomDiagramProps {
 
 interface DraggableItemProps {
   id: string
-  x: number
-  y: number
   children: React.ReactNode
 }
 
-function DraggableItem({ id, x, y, children }: DraggableItemProps) {
+function DraggableItem({ id, children }: DraggableItemProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id })
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -217,7 +215,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
               const fx = toSvgX(item.x) - fw / 2
               const fy = toSvgY(item.y) - fh / 2
               return (
-                <DraggableItem key={`furniture-${idx}`} id={`furniture-${idx}`} x={toSvgX(item.x)} y={toSvgY(item.y)}>
+                <DraggableItem key={`furniture-${idx}`} id={`furniture-${idx}`}>
                   <rect x={fx} y={fy} width={fw} height={fh} fill={furnitureColor} fillOpacity={0.18} stroke={furnitureColor} strokeWidth="1.5" strokeDasharray="3 2" />
                   <text x={fx + fw / 2} y={fy + fh / 2 + 4} textAnchor="middle" fill={svgColors.dimText} fontSize="9" pointerEvents="none">{furnitureLabels[item.type as keyof typeof furnitureLabels] || item.type}</text>
                   <circle cx={toSvgX(item.x)} cy={toSvgY(item.y)} r={Math.max(fw, fh) / 2 + 4} fill="transparent" />
@@ -240,7 +238,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
             {speakerPositions.map((speaker, idx) => {
               const x = toSvgX(speaker.x), y = toSvgY(speaker.y)
               return (
-                <DraggableItem key={`speaker-${idx}`} id={idx === 0 ? "speaker-left" : "speaker-right"} x={x} y={y}>
+                <DraggableItem key={`speaker-${idx}`} id={idx === 0 ? "speaker-left" : "speaker-right"}>
                   <polygon points={`${x},${y - 15} ${x - 10},${y + 10} ${x + 10},${y + 10}`} fill={svgColors.primary} stroke={svgColors.roomStroke} strokeWidth="1" />
                   <text x={x} y={y + 5} textAnchor="middle" fill={svgColors.onFill} fontSize="12" fontWeight="bold" pointerEvents="none">{idx === 0 ? "L" : "R"}</text>
                   <circle cx={x} cy={y} r={20} fill="transparent" stroke={svgColors.primary} strokeWidth="1" strokeDasharray="2 2" opacity="0.3" />
@@ -248,7 +246,7 @@ export function InteractiveRoomDiagram({ diagram, roomModes, showHeatmap, onTogg
               )
             })}
 
-            <DraggableItem id="listening-position" x={toSvgX(listeningPosition.x)} y={toSvgY(listeningPosition.y)}>
+            <DraggableItem id="listening-position">
               <circle cx={toSvgX(listeningPosition.x)} cy={toSvgY(listeningPosition.y)} r={12} fill={svgColors.listening} stroke={svgColors.roomStroke} strokeWidth="1" />
               <circle cx={toSvgX(listeningPosition.x) - 8} cy={toSvgY(listeningPosition.y)} r={3} fill={svgColors.onFill} pointerEvents="none" />
               <circle cx={toSvgX(listeningPosition.x) + 8} cy={toSvgY(listeningPosition.y)} r={3} fill={svgColors.onFill} pointerEvents="none" />

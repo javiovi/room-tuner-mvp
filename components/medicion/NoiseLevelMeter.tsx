@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Mic, MicOff } from "lucide-react"
+import { Mic } from "lucide-react"
 import { AudioMeasurementEngine, type NoiseMeasurementResult } from "@/lib/audioMeasurement"
 import { useT } from "@/lib/i18n"
 

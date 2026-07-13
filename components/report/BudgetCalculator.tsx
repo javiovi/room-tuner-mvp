@@ -9,10 +9,9 @@ import { InfoCallout } from "@/components/InfoCallout"
 interface BudgetCalculatorProps {
   lowBudgetProducts: ProductRecommendation[]
   advancedProducts: ProductRecommendation[]
-  currency?: "USD" | "ARS"
 }
 
-export function BudgetCalculator({ lowBudgetProducts, advancedProducts, currency = "ARS" }: BudgetCalculatorProps) {
+export function BudgetCalculator({ lowBudgetProducts, advancedProducts }: BudgetCalculatorProps) {
   const allProducts = [...lowBudgetProducts, ...advancedProducts]
   const [selected, setSelected] = useState<Map<string, number>>(new Map())
   const { t, locale } = useT()

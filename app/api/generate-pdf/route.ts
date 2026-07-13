@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     console.log('[PDF] PDF generated successfully, size:', buffer.length, 'bytes')
 
     // Return PDF as downloadable file
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

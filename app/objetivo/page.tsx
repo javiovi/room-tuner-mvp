@@ -19,11 +19,14 @@ export default function ObjetivoPage() {
   // Pre-set goal from landing page mode selection (stored in localStorage)
   useEffect(() => {
     const stored = localStorage.getItem("roomtuner_mode")
-    if (stored && VALID_MODES.includes(stored as any) && !selectedObjectiveId) {
+    if (stored && (VALID_MODES as readonly string[]).includes(stored) && !selectedObjectiveId) {
       setSelectedObjectiveId(stored)
       setGoal(stored as "music" | "instrument" | "work")
       localStorage.removeItem("roomtuner_mode")
     }
+    // Intentionally runs once on mount to consume a value set by the landing page;
+    // `!selectedObjectiveId` is a guard against re-applying it, not a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const objectives = [
