@@ -20,6 +20,7 @@ import { enrichProductsWithRealPrices } from "@/lib/productPricing"
 import { createServerClient } from "@/lib/supabase/client"
 import type { Database, Json } from "@/lib/supabase/database.types"
 import { analyzeRoomRequestSchema } from "@/lib/validation/schemas"
+import { clientKey, rateLimit, tooManyRequests } from "@/lib/rateLimit"
 
 type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"]
 type ProjectRow = Database["public"]["Tables"]["projects"]["Row"]
@@ -34,8 +35,15 @@ const ML_PRICING_ENABLED = process.env.ENABLE_ML_PRICING === "true"
  * Analyze room and generate comprehensive report
  * Now saves project and analysis to Supabase
  */
+// Writes to the database with the service role and no auth in front, so this is the one
+// that matters most: an unlimited endpoint here means anyone can fill the project's Postgres.
+const RATE_LIMIT = { limit: 10, windowMs: 60_000 }
+
 export async function POST(req: Request) {
   const startTime = Date.now()
+
+  const limit = rateLimit(clientKey(req, "analyze-room"), RATE_LIMIT)
+  if (!limit.ok) return tooManyRequests(limit)
 
   try {
     const body = await req.json()

@@ -3,6 +3,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { ReportPDFDocument } from '@/components/report/pdf/ReportPDFDocument'
 import type { RoomProject, EnhancedAnalysisResponse } from '@/app/types/room'
 import { generatePdfRequestSchema } from '@/lib/validation/schemas'
+import { clientKey, rateLimit, tooManyRequests } from '@/lib/rateLimit'
 
 // Vercel serverless function config
 export const runtime = 'nodejs'
@@ -12,7 +13,13 @@ export const maxDuration = 60 // 60 seconds max execution
  * PDF Generation API
  * Renders the room analysis report as a downloadable PDF
  */
+// Rendering a 9-page PDF is the most expensive thing this app does per request.
+const RATE_LIMIT = { limit: 5, windowMs: 60_000 }
+
 export async function POST(req: Request) {
+  const limit = rateLimit(clientKey(req, 'generate-pdf'), RATE_LIMIT)
+  if (!limit.ok) return tooManyRequests(limit)
+
   try {
     const body = await req.json()
     const parsed = generatePdfRequestSchema.safeParse(body)

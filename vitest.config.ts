@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.test.ts"],
-    exclude: ["node_modules/**", ".next/**"],
+    // Browser specs live in e2e/ and are run by Playwright, not here.
+    exclude: ["node_modules/**", ".next/**", "e2e/**"],
   },
 })

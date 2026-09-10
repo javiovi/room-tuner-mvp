@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { searchProductsQuerySchema } from "@/lib/validation/schemas"
+import { clientKey, rateLimit, tooManyRequests } from "@/lib/rateLimit"
 
 /**
  * MercadoLibre Product Search API
@@ -45,7 +46,13 @@ const CACHE_TTL = 1000 * 60 * 60 // 1 hora
 /**
  * Search products on MercadoLibre
  */
+// A proxy onto someone else's API: keep our own IP from looking like the abuser.
+const RATE_LIMIT = { limit: 30, windowMs: 60_000 }
+
 export async function GET(req: Request) {
+  const limit = rateLimit(clientKey(req, "search-products"), RATE_LIMIT)
+  if (!limit.ok) return tooManyRequests(limit)
+
   try {
     const { searchParams } = new URL(req.url)
     const parsed = searchProductsQuerySchema.safeParse({

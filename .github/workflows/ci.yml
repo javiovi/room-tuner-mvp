@@ -1,0 +1,88 @@
+name: CI
+
+# Every push and every PR: the same four checks that were previously only run by hand.
+# A push that breaks types, lint, tests or the production build should fail here rather
+# than on Vercel — that is what broke the deploy in July.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  # A newer push supersedes an in-flight run on the same ref.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm, matching what Vercel uses for the real build — npm here would resolve
+      # different versions than production.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Types
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Tests
+        run: pnpm run test
+
+      # Last, because it's the slowest and the ones above localize failures better.
+      - name: Production build
+        run: pnpm run build
+        env:
+          # The build imports the Supabase client, which throws without these. They are
+          # placeholders: nothing in the build talks to a real database.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+
+  e2e:
+    name: End-to-end (mobile Safari)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # WebKit specifically: the app is used on phones, and its worst bugs so far
+      # (audio capture, hydration) were Safari-only.
+      - name: Install WebKit
+        run: pnpm exec playwright install --with-deps webkit
+
+      # Builds and serves the app itself (see playwright.config.ts), with placeholder
+      # database credentials — these specs assert on the UI, not on saved rows.
+      - name: Run specs
+        run: pnpm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
