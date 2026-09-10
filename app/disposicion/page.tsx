@@ -2,24 +2,37 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { OptionCard } from "@/components/OptionCard"
 import { InfoCallout } from "@/components/InfoCallout"
-import { useRoomStore } from "@/lib/roomStore"
+import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 import type { RoomProject } from "@/app/types/room"
 
 export default function DisposicionPage() {
   const router = useRouter()
   const updateProject = useRoomStore((s) => s.updateProject)
+  const project = useRoomStore((s) => s.project)
+  const hydrated = useRoomHydrated()
   const { t } = useT()
   const [formData, setFormData] = useState({
     ubicacionEquipo: "",
     dondeSientas: "",
   })
+
+  // Seed the selection from the restored store — see the same pattern in /espacio.
+  const seeded = useRef(false)
+  useEffect(() => {
+    if (!hydrated || seeded.current) return
+    seeded.current = true
+    setFormData((prev) => ({
+      ubicacionEquipo: project.speakerPlacement ?? prev.ubicacionEquipo,
+      dondeSientas: project.listeningPosition ?? prev.dondeSientas,
+    }))
+  }, [hydrated, project])
 
   const isValid = formData.ubicacionEquipo !== "" && formData.dondeSientas !== ""
 

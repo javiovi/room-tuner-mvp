@@ -25,7 +25,10 @@ type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"]
 type ProjectRow = Database["public"]["Tables"]["projects"]["Row"]
 type AnalysisInsert = Database["public"]["Tables"]["analyses"]["Insert"]
 
-const N8N_URL = process.env.N8N_WEBHOOK_URL
+// Off by default: MercadoLibre answers 403 to server-to-server requests from cloud IPs, so
+// leaving this on means every Spanish analysis waits on calls that are known to fail before
+// falling back to catalog prices. Set ENABLE_ML_PRICING=true to try anyway.
+const ML_PRICING_ENABLED = process.env.ENABLE_ML_PRICING === "true"
 
 /**
  * Analyze room and generate comprehensive report
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-    const { locale: parsedLocale, ...project } = parsed.data
+    const { locale: parsedLocale, projectId: existingProjectId, ...project } = parsed.data
     const locale = parsedLocale || "es"
     const supabase = createServerClient()
 
@@ -74,55 +77,42 @@ export async function POST(req: Request) {
       noise_measurement: project.noiseMeasurement ?? null,
       status: 'analyzing',
     }
-    const { data: savedProject, error: projectError } = await supabase
-      .from('projects')
-      .upsert(projectInsert)
-      .select()
-      .returns<ProjectRow[]>()
-      .single()
+    // Update the row this browser already owns when there is one; only insert otherwise.
+    // Without this, every re-run of the wizard left another orphan project behind.
+    let savedProject: ProjectRow | null = null
 
-    if (projectError) {
-      console.error('Error saving project:', projectError)
-      // Continue with analysis even if save fails
+    if (existingProjectId) {
+      const { data, error } = await supabase
+        .from('projects')
+        .update(projectInsert)
+        .eq('id', existingProjectId)
+        .select()
+        .returns<ProjectRow[]>()
+        .maybeSingle()
+
+      if (error) console.error('Error updating project:', error)
+      savedProject = data ?? null
     }
 
-    // If N8N webhook is configured, try to use it (for future AI enhancements)
-    let analysis: EnhancedAnalysisResponse
+    if (!savedProject) {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert(projectInsert)
+        .select()
+        .returns<ProjectRow[]>()
+        .single()
 
-    if (N8N_URL) {
-      try {
-        const n8nRes = await fetch(N8N_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...project,
-            projectId: savedProject?.id,
-            locale: "es-AR",
-            source: "web-mvp",
-            version: "0.2.0",
-          }),
-          signal: AbortSignal.timeout(5000), // 5 second timeout
-        })
-
-        if (n8nRes.ok) {
-          const data = await n8nRes.json()
-          // If N8N returns enhanced analysis, use it
-          if (data.roomMetrics) {
-            analysis = data
-          } else {
-            analysis = await generateLocalAnalysis(project, locale)
-          }
-        } else {
-          analysis = await generateLocalAnalysis(project, locale)
-        }
-      } catch (n8nError) {
-        console.warn("N8N webhook failed, using local analysis:", n8nError)
-        analysis = await generateLocalAnalysis(project, locale)
-      }
-    } else {
-      // Generate comprehensive analysis locally
-      analysis = await generateLocalAnalysis(project, locale)
+      // The analysis itself doesn't depend on the database, so a failed save degrades to an
+      // unsaved report rather than an error — but the response says so via `persisted`.
+      if (error) console.error('Error saving project:', error)
+      savedProject = data ?? null
     }
+
+    // The report comes from this project's own deterministic engine. There used to be an
+    // escape hatch here that let an external n8n workflow return the whole analysis instead,
+    // unvalidated and on the critical path; it computed nothing and was removed. If an LLM
+    // ever joins this flow, it should consume these calculations as tools, not replace them.
+    const analysis: EnhancedAnalysisResponse = await generateLocalAnalysis(project, locale)
 
     const calculationTime = Date.now() - startTime
 
@@ -151,7 +141,7 @@ export async function POST(req: Request) {
 
       if (analysisError) {
         console.error('Error saving analysis:', analysisError)
-        // Return analysis anyway
+        // Return the analysis anyway — the client is told it wasn't persisted.
       }
 
       // Update project status to completed
@@ -160,17 +150,19 @@ export async function POST(req: Request) {
         .update({ status: 'completed' })
         .eq('id', savedProject.id)
 
-      // Add projectId to response
       return NextResponse.json({
         ...analysis,
         projectId: savedProject.id,
+        // The report is only recoverable later if BOTH rows landed.
+        persisted: !analysisError,
         generatedAt: new Date().toISOString(),
       })
     }
 
-    // If save failed, return analysis without projectId
+    // Database unreachable: the report is real but exists only in the client's tab.
     return NextResponse.json({
       ...analysis,
+      persisted: false,
       generatedAt: new Date().toISOString(),
     })
   } catch (error) {
@@ -248,7 +240,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
     .filter((p): p is AcousticProduct => Boolean(p))
 
   let enrichedProducts = productsToEnrich
-  if (isES) {
+  if (isES && ML_PRICING_ENABLED) {
     enrichedProducts = await enrichProductsWithRealPrices(productsToEnrich, {
       useServer: true,
       batchSize: 2,

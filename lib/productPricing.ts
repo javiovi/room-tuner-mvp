@@ -32,7 +32,10 @@ async function searchProductPriceServer(searchTerm: string): Promise<MLProductRe
     const response = await fetch(
       `https://api.mercadolibre.com/sites/MLA/search?q=${encodeURIComponent(searchTerm)}&limit=1`,
       {
-        headers: { "Accept": "application/json" }
+        headers: { "Accept": "application/json" },
+        // A live price is a nice-to-have; the catalog price is the fallback. Never let this
+        // hold up the analysis — an unbounded fetch here is what made requests take 7s.
+        signal: AbortSignal.timeout(1500),
       }
     )
 
@@ -71,7 +74,9 @@ async function searchProductPriceServer(searchTerm: string): Promise<MLProductRe
 async function searchProductPriceClient(searchTerm: string): Promise<MLProductResult | null> {
   try {
     const response = await fetch(
-      `/api/search-products?q=${encodeURIComponent(searchTerm)}&limit=1`
+      `/api/search-products?q=${encodeURIComponent(searchTerm)}&limit=1`,
+      // Goes through our own route, which then calls MercadoLibre — allow for both hops.
+      { signal: AbortSignal.timeout(4000) }
     )
 
     if (!response.ok) {

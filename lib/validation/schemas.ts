@@ -29,6 +29,9 @@ export const roomProjectSchema = z.object({
 
 export const analyzeRoomRequestSchema = roomProjectSchema.extend({
   locale: z.enum(["es", "en"]).optional(),
+  // Id of a project this browser already saved. Re-analyzing then updates that row instead
+  // of leaving a new one behind for every tweak.
+  projectId: z.string().uuid().optional(),
 })
 
 const roomModeSchema = z.object({

@@ -277,6 +277,8 @@ export const en: Translations = {
     noAnalysisTitle: "No analysis yet",
     noAnalysisDesc: "We couldn't load your space's results. Try running the analysis again or go back to the home page.",
     rehydrating: "Recovering your analysis...",
+    notSavedTitle: "This report wasn't saved",
+    notSavedDesc: "You have the full report here, but we couldn't save it on the server \u2014 you won't be able to open it from another device. Download the PDF before closing if you need it.",
     rehydrateFailedTitle: "We couldn't recover this analysis",
     rehydrateFailedDesc: "The link may have expired or the analysis no longer exists. Try running the analysis again.",
     criticalSingular: "critical",

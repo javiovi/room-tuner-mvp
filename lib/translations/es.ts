@@ -275,6 +275,8 @@ export const es = {
     noAnalysisTitle: "A\u00fan no hay an\u00e1lisis",
     noAnalysisDesc: "No pudimos cargar el resultado de tu espacio. Prob\u00e1 volver a ejecutar el an\u00e1lisis o regresar al inicio.",
     rehydrating: "Recuperando tu an\u00e1lisis...",
+    notSavedTitle: "Este informe no se guard\u00f3",
+    notSavedDesc: "Lo ten\u00e9s completo ac\u00e1, pero no pudimos guardarlo en el servidor: no vas a poder abrirlo desde otro dispositivo. Si lo necesit\u00e1s, descarg\u00e1 el PDF antes de cerrar.",
     rehydrateFailedTitle: "No pudimos recuperar este an\u00e1lisis",
     rehydrateFailedDesc: "El enlace puede haber expirado o el an\u00e1lisis ya no existe. Prob\u00e1 volver a ejecutar el an\u00e1lisis.",
     criticalSingular: "cr\u00edtico",

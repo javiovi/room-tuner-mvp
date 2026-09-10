@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { OptionCard } from "@/components/OptionCard"
 import { Button } from "@/components/Button"
-import { useRoomStore } from "@/lib/roomStore"
+import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 
 const VALID_MODES = ["music", "instrument", "work"] as const
@@ -14,7 +14,18 @@ export default function ObjetivoPage() {
   const router = useRouter()
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<string | null>(null)
   const setGoal = useRoomStore((s) => s.setGoal)
+  const project = useRoomStore((s) => s.project)
+  const hydrated = useRoomHydrated()
   const { t } = useT()
+
+  // Restore the previous choice after a refresh. Runs after the localStorage effect below,
+  // so a mode just picked on the landing page still wins over an older stored goal.
+  const seeded = useRef(false)
+  useEffect(() => {
+    if (!hydrated || seeded.current) return
+    seeded.current = true
+    if (project.goal) setSelectedObjectiveId((prev) => prev ?? project.goal)
+  }, [hydrated, project])
 
   // Pre-set goal from landing page mode selection (stored in localStorage)
   useEffect(() => {

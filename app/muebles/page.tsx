@@ -2,13 +2,13 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { OptionCard } from "@/components/OptionCard"
 import { InfoCallout } from "@/components/InfoCallout"
-import { useRoomStore } from "@/lib/roomStore"
+import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 import {
   Armchair,
@@ -76,8 +76,18 @@ const furnitureOptions: FurnitureCategory[] = [
 export default function MueblesPage() {
   const router = useRouter()
   const updateProject = useRoomStore((s) => s.updateProject)
+  const project = useRoomStore((s) => s.project)
+  const hydrated = useRoomHydrated()
   const [selected, setSelected] = useState<string[]>([])
   const { t } = useT()
+
+  // Seed the selection from the restored store — see the same pattern in /espacio.
+  const seeded = useRef(false)
+  useEffect(() => {
+    if (!hydrated || seeded.current) return
+    seeded.current = true
+    if (project.furniture?.length) setSelected(project.furniture)
+  }, [hydrated, project])
 
   const toggleFurniture = (id: string) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))

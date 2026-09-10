@@ -80,7 +80,9 @@ export async function GET(req: Request) {
       {
         headers: {
           "Accept": "application/json"
-        }
+        },
+        // Bounded so a hanging upstream can't hold a serverless function open.
+        signal: AbortSignal.timeout(4000),
       }
     )
 

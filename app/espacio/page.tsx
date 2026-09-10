@@ -4,19 +4,21 @@ import type React from "react"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
 
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { InfoCallout } from "@/components/InfoCallout"
-import { useRoomStore } from "@/lib/roomStore"
+import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 import type { RoomProject } from "@/app/types/room"
 
 export default function EspacioPage() {
   const router = useRouter()
   const updateProject = useRoomStore((s) => s.updateProject)
+  const project = useRoomStore((s) => s.project)
+  const hydrated = useRoomHydrated()
   const { t } = useT()
   const [formData, setFormData] = useState({
     largo: "",
@@ -25,6 +27,21 @@ export default function EspacioPage() {
     tipoPiso: "",
     tipoParedes: "",
   })
+
+  // The form lives in local state, so restoring the store isn't enough — seed the inputs
+  // from it once, after a refresh or a restored tab brings the previous answers back.
+  const seeded = useRef(false)
+  useEffect(() => {
+    if (!hydrated || seeded.current) return
+    seeded.current = true
+    setFormData((prev) => ({
+      largo: project.lengthM?.toString() ?? prev.largo,
+      ancho: project.widthM?.toString() ?? prev.ancho,
+      altura: project.heightM?.toString() ?? prev.altura,
+      tipoPiso: project.floorType ?? prev.tipoPiso,
+      tipoParedes: project.wallType ?? prev.tipoParedes,
+    }))
+  }, [hydrated, project])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target

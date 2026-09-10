@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
-import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, Activity, X } from "lucide-react"
+import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, Activity, X, AlertTriangle } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { Tabs } from "@/components/Tabs"
 import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
-import { useRoomStore } from "@/lib/roomStore"
+import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
 import { FrequencyResponseChart } from "@/components/report/FrequencyResponseChart"
 import { RoomModesChart } from "@/components/report/RoomModesChart"
@@ -18,10 +18,13 @@ import { BudgetCalculator } from "@/components/report/BudgetCalculator"
 import { ActionPlan } from "@/components/report/ActionPlan"
 import { InfoTooltip } from "@/components/InfoTooltip"
 import { useT } from "@/lib/i18n"
+import { PAYWALL_ENABLED } from "@/lib/paywall"
 
 export default function ResultadoPage() {
   const analysis = useRoomStore((s) => s.analysis)
   const project = useRoomStore((s) => s.project)
+  const analysisPersisted = useRoomStore((s) => s.analysisPersisted)
+  const hydrated = useRoomHydrated()
   const updatePositions = useRoomStore((s) => s.updatePositions)
   const updateProject = useRoomStore((s) => s.updateProject)
   const setAnalysis = useRoomStore((s) => s.setAnalysis)
@@ -35,7 +38,9 @@ export default function ResultadoPage() {
   // On a hard refresh the store is empty (no persist middleware) but the analysis
   // was already saved server-side — recover it from ?id= instead of showing "no analysis".
   useEffect(() => {
-    if (analysis) return
+    // Nothing to decide until the store is back from sessionStorage: after a refresh the
+    // report is usually already there, and re-fetching it would be wasted work.
+    if (!hydrated || analysis) return
     const id = new URLSearchParams(window.location.search).get("id")
     if (!id) return
 
@@ -45,17 +50,22 @@ export default function ResultadoPage() {
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((data) => {
         updateProject(data.project)
-        setAnalysis(data.analysis)
+        // It came back from the server, so by definition it is saved.
+        setAnalysis(data.analysis, { projectId: id, persisted: true })
       })
       .catch(() => setRehydrateFailed(true))
       .finally(() => setRehydrating(false))
     // Only re-run if the store's analysis is cleared out from under us; the id in the
     // URL doesn't change during this page's lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysis])
+  }, [analysis, hydrated])
 
   // ── PAYWALL FLAG ──
-  // Sprint 1: forceUnlock for dev/testing. Sprint 2: replace with real unlock check.
+  // Dormant on purpose (see lib/paywall.ts): while the app is in open testing every
+  // visitor gets the full report. The gating below (freeTabs, budget teaser, locked
+  // PDF) stays wired up so it switches back on with one env var.
+  // Escape hatch from Sprint 1: unlocks the report even with the paywall on. When real
+  // payment lands, this is the seam where the purchase check goes.
   const forceUnlock = useMemo(() => {
     if (process.env.NEXT_PUBLIC_FORCE_UNLOCK === "true") return true
     if (typeof window !== "undefined") {
@@ -64,7 +74,7 @@ export default function ResultadoPage() {
     }
     return false
   }, [])
-  const isUnlocked = forceUnlock
+  const isUnlocked = !PAYWALL_ENABLED || forceUnlock
 
   // ── Track view_result_preview (once) ──
   const trackedView = useRef(false)
@@ -89,7 +99,7 @@ export default function ResultadoPage() {
   })
 
   if (!analysis) {
-    if (rehydrating) {
+    if (!hydrated || rehydrating) {
       return (
         <CenteredLayout>
           <div className="space-y-4 text-center">
@@ -567,7 +577,7 @@ export default function ResultadoPage() {
         <p className="text-xs text-muted-foreground">
           {t.resultado.subtitle}
         </p>
-        {forceUnlock && process.env.NODE_ENV !== "production" && (
+        {PAYWALL_ENABLED && forceUnlock && process.env.NODE_ENV !== "production" && (
           <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold rounded-sm bg-warning/10 text-warning border border-warning/40">
             DEV UNLOCK
           </span>
@@ -575,6 +585,18 @@ export default function ResultadoPage() {
       </div>
 
       <StandingWaveMotif variant="hero" room={room} className="h-16 w-full" />
+
+      {/* The report exists only in this tab — say so, instead of letting the user find out
+          by opening the link on another device. */}
+      {!analysisPersisted && (
+        <div className="flex items-start gap-2.5 border border-warning/40 bg-warning/5 rounded-sm px-3 py-2.5">
+          <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" strokeWidth={2} />
+          <div className="space-y-0.5">
+            <p className="text-xs font-medium text-foreground">{t.resultado.notSavedTitle}</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{t.resultado.notSavedDesc}</p>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs tabs={tabs} defaultTab="resumen" />

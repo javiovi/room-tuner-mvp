@@ -9,6 +9,7 @@ import { ReportPreview } from "@/components/ReportPreview"
 import { Button } from "@/components/Button"
 import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useT } from "@/lib/i18n"
+import { PAYWALL_ENABLED } from "@/lib/paywall"
 
 type Mode = "music" | "instrument" | "work"
 
@@ -153,6 +154,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── FREE vs PAID ── */}
+      {/* Hidden while the paywall is dormant: during open testing the full report and
+          the PDF are free for everyone, so a locked tier here would misdescribe the
+          product. Comes back with the paywall. */}
+      {PAYWALL_ENABLED && (
       <section className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
         <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-2">
           {t.landing.freeVsPaidTitle}
@@ -199,6 +204,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── HOW IT WORKS ── */}
       <section className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">

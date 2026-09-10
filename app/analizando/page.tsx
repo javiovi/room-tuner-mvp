@@ -1,18 +1,20 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AlertTriangle } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
-import { useRoomStore } from "@/lib/roomStore"
+import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 
 export default function AnalizandoPage() {
   const router = useRouter()
   const project = useRoomStore((s) => s.project)
+  const projectId = useRoomStore((s) => s.projectId)
   const setAnalysis = useRoomStore((s) => s.setAnalysis)
+  const hydrated = useRoomHydrated()
   const { t } = useT()
   const [status, setStatus] = useState<"loading" | "error">("loading")
 
@@ -30,7 +32,9 @@ export default function AnalizandoPage() {
       const res = await fetch("/api/analyze-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...project, locale }),
+        // Sending the id of a project we already saved updates that row instead of
+        // leaving a new one behind every time the user tweaks a measurement and re-runs.
+        body: JSON.stringify({ ...project, projectId: projectId ?? undefined, locale }),
       })
 
       const data = await res.json()
@@ -43,16 +47,24 @@ export default function AnalizandoPage() {
         return
       }
 
-      setAnalysis(data)
+      setAnalysis(data, {
+        projectId: data.projectId ?? null,
+        persisted: Boolean(data.persisted),
+      })
       router.push(data.projectId ? `/resultado?id=${data.projectId}` : "/resultado")
     } catch {
       setStatus("error")
     }
-  }, [project, router, setAnalysis])
+  }, [project, projectId, router, setAnalysis])
 
+  // Wait for the store to come back from sessionStorage: on a refresh of this page the
+  // first render still has an empty project, and analyzing that would 400.
+  const started = useRef(false)
   useEffect(() => {
+    if (!hydrated || started.current) return
+    started.current = true
     run()
-  }, [run])
+  }, [hydrated, run])
 
   if (status === "error") {
     return (
