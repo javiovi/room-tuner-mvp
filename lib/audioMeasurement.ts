@@ -1,5 +1,7 @@
 // Web Audio API engine for microphone noise level measurement and clap test RT60
 
+import { logError } from "@/lib/logger"
+
 export interface NoiseMeasurementResult {
   averageDb: number
   peakDb: number
@@ -79,7 +81,10 @@ export class AudioMeasurementEngine {
       source.connect(this.analyser)
       this.dataArray = new Float32Array(this.analyser.fftSize)
       return true
-    } catch {
+    } catch (error) {
+      // Denied permission, no microphone, insecure context, a browser that won't resume
+      // the AudioContext — all land here and all look identical to the user. Say which.
+      logError("medicion", "could not start audio capture", error)
       return false
     }
   }

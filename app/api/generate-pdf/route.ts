@@ -4,6 +4,7 @@ import { ReportPDFDocument } from '@/components/report/pdf/ReportPDFDocument'
 import type { RoomProject, EnhancedAnalysisResponse } from '@/app/types/room'
 import { generatePdfRequestSchema } from '@/lib/validation/schemas'
 import { clientKey, rateLimit, tooManyRequests } from '@/lib/rateLimit'
+import { logError, logWarn } from '@/lib/logger'
 
 // Vercel serverless function config
 export const runtime = 'nodejs'
@@ -18,12 +19,16 @@ const RATE_LIMIT = { limit: 5, windowMs: 60_000 }
 
 export async function POST(req: Request) {
   const limit = rateLimit(clientKey(req, 'generate-pdf'), RATE_LIMIT)
-  if (!limit.ok) return tooManyRequests(limit)
+  if (!limit.ok) {
+    logWarn('generate-pdf', 'rate limited a client', { retryAfterSeconds: limit.retryAfterSeconds })
+    return tooManyRequests(limit)
+  }
 
   try {
     const body = await req.json()
     const parsed = generatePdfRequestSchema.safeParse(body)
     if (!parsed.success) {
+      logWarn('generate-pdf', 'rejected an invalid payload', parsed.error.flatten())
       return NextResponse.json(
         { error: 'Invalid request body', details: parsed.error.flatten() },
         { status: 400 }
@@ -58,7 +63,7 @@ export async function POST(req: Request) {
       },
     })
   } catch (error) {
-    console.error('[PDF Generation] Error:', error)
+    logError('generate-pdf', 'could not render the PDF', error)
     return NextResponse.json(
       {
         error: 'Failed to generate PDF',

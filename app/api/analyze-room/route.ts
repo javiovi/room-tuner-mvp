@@ -21,6 +21,7 @@ import { createServerClient } from "@/lib/supabase/client"
 import type { Database, Json } from "@/lib/supabase/database.types"
 import { analyzeRoomRequestSchema } from "@/lib/validation/schemas"
 import { clientKey, rateLimit, tooManyRequests } from "@/lib/rateLimit"
+import { logError, logWarn } from "@/lib/logger"
 
 type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"]
 type ProjectRow = Database["public"]["Tables"]["projects"]["Row"]
@@ -43,12 +44,20 @@ export async function POST(req: Request) {
   const startTime = Date.now()
 
   const limit = rateLimit(clientKey(req, "analyze-room"), RATE_LIMIT)
-  if (!limit.ok) return tooManyRequests(limit)
+  if (!limit.ok) {
+    // No client identifier in the log line on purpose — knowing it happened is enough,
+    // and an IP is personal data we have no reason to keep.
+    logWarn("analyze-room", "rate limited a client", { retryAfterSeconds: limit.retryAfterSeconds })
+    return tooManyRequests(limit)
+  }
 
   try {
     const body = await req.json()
     const parsed = analyzeRoomRequestSchema.safeParse(body)
     if (!parsed.success) {
+      // Worth a line: a real user hitting this means the wizard sent something the schema
+      // rejects, which is a bug on our side, not theirs.
+      logWarn("analyze-room", "rejected an invalid payload", parsed.error.flatten())
       return NextResponse.json(
         { error: "Invalid request body", details: parsed.error.flatten() },
         { status: 400 }
@@ -60,6 +69,7 @@ export async function POST(req: Request) {
 
     // Validate required fields
     if (!project.lengthM || !project.widthM || !project.heightM) {
+      logWarn("analyze-room", "rejected a request with no room dimensions")
       return NextResponse.json(
         { error: "Missing room dimensions" },
         { status: 400 }
@@ -98,7 +108,7 @@ export async function POST(req: Request) {
         .returns<ProjectRow[]>()
         .maybeSingle()
 
-      if (error) console.error('Error updating project:', error)
+      if (error) logError("analyze-room", "could not update the existing project", error)
       savedProject = data ?? null
     }
 
@@ -112,7 +122,7 @@ export async function POST(req: Request) {
 
       // The analysis itself doesn't depend on the database, so a failed save degrades to an
       // unsaved report rather than an error — but the response says so via `persisted`.
-      if (error) console.error('Error saving project:', error)
+      if (error) logError("analyze-room", "could not save the project — the report will not be recoverable", error)
       savedProject = data ?? null
     }
 
@@ -148,7 +158,7 @@ export async function POST(req: Request) {
         .upsert(analysisInsert, { onConflict: 'project_id' })
 
       if (analysisError) {
-        console.error('Error saving analysis:', analysisError)
+        logError("analyze-room", "could not save the analysis — the report will not be recoverable", analysisError)
         // Return the analysis anyway — the client is told it wasn't persisted.
       }
 
@@ -174,7 +184,7 @@ export async function POST(req: Request) {
       generatedAt: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("Error analyzing room:", error)
+    logError("analyze-room", "request failed", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -254,7 +264,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
       batchSize: 2,
       delay: 300
     }).catch(err => {
-      console.warn('[Analysis] Failed to enrich products with real prices:', err)
+      logWarn("analyze-room", "falling back to catalog prices", err)
       return productsToEnrich
     })
   }

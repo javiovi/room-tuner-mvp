@@ -84,3 +84,32 @@ test.describe("wizard", () => {
     await expect(page.getByRole("button", { name: /Presupuesto/ })).toBeVisible()
   })
 })
+
+test.describe("when the analysis fails", () => {
+  test("shows an error screen with a retry, and leaves a log line behind", async ({ page }) => {
+    const logged: string[] = []
+    page.on("console", (message) => {
+      if (message.type() === "error") logged.push(message.text())
+    })
+
+    // The API answering 500 is the one failure the user can't do anything about, and
+    // until now it left no trace anywhere.
+    await page.route("**/api/analyze-room", (route) =>
+      route.fulfill({ status: 500, contentType: "application/json", body: '{"error":"Internal server error"}' })
+    )
+
+    await page.goto("/espacio")
+    await fillSpaceFields(page)
+    await page.getByRole("button", { name: "Continuar" }).click()
+    // Let the app's own navigation land before taking over, or the two interrupt each other.
+    await expect(page).toHaveURL(/\/disposicion/)
+    await page.goto("/analizando")
+
+    // The user gets a way out, not a spinner forever.
+    await expect(page.getByRole("button", { name: /Reintentar|Try again/i })).toBeVisible({ timeout: 30_000 })
+    expect(page.url()).toContain("/analizando")
+
+    // And whoever is debugging gets told what happened.
+    expect(logged.join("\n")).toContain("[analizando]")
+  })
+})

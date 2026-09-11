@@ -7,6 +7,7 @@ import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
+import { logError } from "@/lib/logger"
 import { useT } from "@/lib/i18n"
 
 export default function AnalizandoPage() {
@@ -43,6 +44,12 @@ export default function AnalizandoPage() {
       // res.ok alone isn't enough, confirm the shape actually looks like an analysis
       // before trusting it and navigating away.
       if (!res.ok || !data || typeof data !== "object" || !data.roomMetrics) {
+        // The user is stuck on an error screen; leave something behind that says why.
+        logError("analizando", "the analysis response was not usable", {
+          status: res.status,
+          error: data?.error,
+          details: data?.details,
+        })
         setStatus("error")
         return
       }
@@ -52,7 +59,8 @@ export default function AnalizandoPage() {
         persisted: Boolean(data.persisted),
       })
       router.push(data.projectId ? `/resultado?id=${data.projectId}` : "/resultado")
-    } catch {
+    } catch (error) {
+      logError("analizando", "the analysis request never completed", error)
       setStatus("error")
     }
   }, [project, projectId, router, setAnalysis])

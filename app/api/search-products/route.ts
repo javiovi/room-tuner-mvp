@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { searchProductsQuerySchema } from "@/lib/validation/schemas"
 import { clientKey, rateLimit, tooManyRequests } from "@/lib/rateLimit"
+import { logError, logWarn } from "@/lib/logger"
 
 /**
  * MercadoLibre Product Search API
@@ -51,7 +52,10 @@ const RATE_LIMIT = { limit: 30, windowMs: 60_000 }
 
 export async function GET(req: Request) {
   const limit = rateLimit(clientKey(req, "search-products"), RATE_LIMIT)
-  if (!limit.ok) return tooManyRequests(limit)
+  if (!limit.ok) {
+    logWarn("search-products", "rate limited a client", { retryAfterSeconds: limit.retryAfterSeconds })
+    return tooManyRequests(limit)
+  }
 
   try {
     const { searchParams } = new URL(req.url)
@@ -61,6 +65,7 @@ export async function GET(req: Request) {
     })
 
     if (!parsed.success) {
+      logWarn("search-products", "rejected invalid query parameters", parsed.error.flatten())
       return NextResponse.json(
         { error: "Invalid query parameters", details: parsed.error.flatten() },
         { status: 400 }
@@ -125,7 +130,7 @@ export async function GET(req: Request) {
       source: "mercadolibre"
     })
   } catch (error) {
-    console.error("[ML API] Error searching products:", error)
+    logError("search-products", "MercadoLibre search failed", error)
     return NextResponse.json(
       {
         error: "Error searching products",

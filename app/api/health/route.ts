@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/client"
+import { logError } from "@/lib/logger"
 
 // Never cached: a cached health check is worse than none.
 export const dynamic = "force-dynamic"
@@ -33,6 +34,8 @@ export async function GET() {
   }
 
   const ok = db === "up"
+  // A health check that fails silently is the same problem this endpoint exists to solve.
+  if (!ok) logError("health", "database is not reachable", detail)
 
   return NextResponse.json(
     {

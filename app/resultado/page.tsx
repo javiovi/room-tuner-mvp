@@ -8,6 +8,7 @@ import { Button } from "@/components/Button"
 import { Tabs } from "@/components/Tabs"
 import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
+import { logError } from "@/lib/logger"
 import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
 import { FrequencyResponseChart } from "@/components/report/FrequencyResponseChart"
 import { RoomModesChart } from "@/components/report/RoomModesChart"
@@ -53,7 +54,10 @@ export default function ResultadoPage() {
         // It came back from the server, so by definition it is saved.
         setAnalysis(data.analysis, { projectId: id, persisted: true })
       })
-      .catch(() => setRehydrateFailed(true))
+      .catch((error) => {
+        logError("resultado", "could not recover the saved report", error)
+        setRehydrateFailed(true)
+      })
       .finally(() => setRehydrating(false))
     // Only re-run if the store's analysis is cleared out from under us; the id in the
     // URL doesn't change during this page's lifetime.
@@ -165,7 +169,7 @@ export default function ResultadoPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (error) {
-      console.error('Error downloading PDF:', error)
+      logError("resultado", "the PDF download failed", error)
       alert(t.resultado.pdfError)
     } finally {
       setPdfLoading(false)

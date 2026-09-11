@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/client"
 import type { Database, Json } from "@/lib/supabase/database.types"
 import type { RoomProject, EnhancedAnalysisResponse } from "@/app/types/room"
+import { logError } from "@/lib/logger"
 
 type ProjectRow = Database["public"]["Tables"]["projects"]["Row"]
 type AnalysisRow = Database["public"]["Tables"]["analyses"]["Row"]
@@ -46,7 +47,7 @@ export async function GET(
       analysis: mapAnalysisRow(analysisRow),
     })
   } catch (error) {
-    console.error("Error fetching project:", error)
+    logError("projects", "could not read the saved project", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
