@@ -21,17 +21,6 @@ function getBarColor(db: number): string {
   return "bg-red-500"
 }
 
-function getClassificationKey(classification: NoiseMeasurementResult['classification']): string {
-  const map: Record<string, string> = {
-    muy_silencioso: "noiseClassMuySilencioso",
-    silencioso: "noiseClassSilencioso",
-    normal: "noiseClassNormal",
-    ruidoso: "noiseClassRuidoso",
-    muy_ruidoso: "noiseClassMuyRuidoso",
-  }
-  return map[classification] || "noiseClassNormal"
-}
-
 export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, onError }: NoiseLevelMeterProps) {
   const { t } = useT()
   const [state, setState] = useState<"idle" | "requesting" | "measuring" | "done">("idle")
@@ -40,6 +29,7 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
   const [result, setResult] = useState<NoiseMeasurementResult | null>(null)
   const engineRef = useRef<AudioMeasurementEngine | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const completeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const startMeasurement = useCallback(async () => {
     setState("requesting")
@@ -47,9 +37,10 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
     engineRef.current = engine
 
     const ok = await engine.requestPermission()
+    if (engineRef.current !== engine) return
     if (!ok) {
       setState("idle")
-      onError?.(t.medicion.permissionDenied)
+      onError?.(t.medicion.audioErrors[engine.error])
       return
     }
 
@@ -60,27 +51,29 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
       setCurrentDb(Math.round(db))
     })
 
+    const startedAt = performance.now()
     timerRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          // Measurement complete
-          if (timerRef.current) clearInterval(timerRef.current)
-          const measureResult = engine.stopNoiseLevel()
-          engine.dispose()
-          setResult(measureResult)
-          setState("done")
-          onComplete(measureResult)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }, [duration, onComplete, onError, t.medicion.permissionDenied])
+      if (engineRef.current === engine) setSecondsLeft(Math.max(0, duration - Math.floor((performance.now() - startedAt) / 1000)))
+    }, 250)
+    completeTimerRef.current = setTimeout(() => {
+      if (engineRef.current !== engine) return
+      if (timerRef.current) clearInterval(timerRef.current)
+      const measureResult = engine.stopNoiseLevel()
+      engine.dispose()
+      engineRef.current = null
+      setResult(measureResult)
+      setSecondsLeft(0)
+      setState("done")
+      onComplete(measureResult)
+    }, duration * 1000)
+  }, [duration, onComplete, onError, t.medicion.audioErrors])
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
+      if (completeTimerRef.current) clearTimeout(completeTimerRef.current)
       engineRef.current?.dispose()
+      engineRef.current = null
     }
   }, [])
 
@@ -100,21 +93,13 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
           className="w-full bg-primary text-primary-foreground py-3 px-4 font-semibold text-sm rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <Mic className="w-4 h-4" />
-          {state === "requesting" ? t.medicion.noiseMeasuring : t.medicion.measureButton}
+          {state === "requesting" ? t.medicion.requesting : t.medicion.measureButton}
         </button>
       </div>
     )
   }
 
   if (state === "done" && result) {
-    const classKey = getClassificationKey(result.classification) as keyof typeof t.medicion
-    const classLabel = t.medicion[classKey] as string
-
-    const resultMsg =
-      result.averageDb < 40 ? t.medicion.noiseResultGood :
-      result.averageDb < 60 ? t.medicion.noiseResultOk :
-      t.medicion.noiseResultBad
-
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
@@ -125,25 +110,16 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
         <div className="bg-muted rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{t.medicion.noiseAverage}</span>
-            <span className="text-2xl font-semibold font-mono text-foreground">{result.averageDb} dB</span>
+            <span className="text-2xl font-semibold font-mono text-foreground">{result.averageDb} · {t.experiments.relative}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{t.medicion.noisePeak}</span>
-            <span className="text-sm font-mono text-foreground">{result.peakDb} dB</span>
+            <span className="text-sm font-mono text-foreground">{result.peakDb} · {t.experiments.relative}</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{t.medicion.noiseLevel}</span>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              result.averageDb < 40 ? "bg-green-500/10 text-green-600" :
-              result.averageDb < 60 ? "bg-yellow-500/10 text-yellow-600" :
-              "bg-red-500/10 text-red-600"
-            }`}>
-              {classLabel}
-            </span>
-          </div>
+
         </div>
 
-        <p className="text-xs text-muted-foreground">{resultMsg}</p>
+        <p className="text-xs text-muted-foreground">{t.experiments.noise}</p>
       </div>
     )
   }
@@ -166,7 +142,7 @@ export function NoiseLevelMeter({ duration = MEASUREMENT_DURATION, onComplete, o
             style={{ width: `${barWidth}%` }}
           />
           <span className="absolute inset-0 flex items-center justify-center text-sm font-mono font-semibold text-foreground">
-            {currentDb} dB
+            {currentDb} · {t.experiments.relative}
           </span>
         </div>
 

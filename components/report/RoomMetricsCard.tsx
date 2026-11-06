@@ -65,9 +65,11 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
         </div>
         <EvaluationBadge evaluation={metrics.rt60Evaluation} />
 
-        {/* Measured vs Calculated RT60 comparison */}
+        <p className="text-xs text-muted-foreground">{t.experiments.geometry}</p>
+        {/* Exploratory clap estimate, not a band measurement */}
         {metrics.measuredRT60 && (
           <div className="border border-border rounded-sm p-3 space-y-2">
+            <p className="text-xs text-muted-foreground">{t.experiments.clap}</p>
             <h4 className="text-xs font-medium text-foreground">{t.report.metrics.rt60Comparison}</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="text-center">
@@ -80,14 +82,14 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
               </div>
             </div>
             <div className="text-[10px] text-muted-foreground text-center">
-              {t.report.metrics.rt60MeasuredConfidence}{" "}
+              {t.experiments.confidence}{" "}
               <span className={`font-medium ${
                 metrics.measuredRT60.confidence === "high" ? "text-success" :
                 metrics.measuredRT60.confidence === "medium" ? "text-warning" :
                 "text-destructive"
               }`}>
-                {metrics.measuredRT60.confidence === "high" ? t.report.metrics.rt60Eyring :
-                 metrics.measuredRT60.confidence === "medium" ? "Media" : "Baja"}
+                {metrics.measuredRT60.confidence === "high" ? t.experiments.high :
+                 metrics.measuredRT60.confidence === "medium" ? t.experiments.medium : t.experiments.low}
               </span>
             </div>
           </div>

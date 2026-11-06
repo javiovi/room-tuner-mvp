@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { es, type Translations } from "@/lib/translations/es"
 import { en } from "@/lib/translations/en"
 
-type Locale = "es" | "en"
+import { LOCALE_STORAGE_KEY, readLocale, type Locale } from "@/lib/locale"
 
 interface I18nContextValue {
   locale: Locale
@@ -24,15 +24,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("es")
 
   useEffect(() => {
-    const stored = localStorage.getItem("locale") as Locale | null
-    if (stored && (stored === "es" || stored === "en")) {
-      setLocaleState(stored)
-    }
+    setLocaleState(readLocale())
   }, [])
+
+  useEffect(() => { document.documentElement.lang = locale }, [locale])
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale)
-    localStorage.setItem("locale", newLocale)
+    try { localStorage.setItem(LOCALE_STORAGE_KEY, newLocale) } catch { /* Keep language in memory. */ }
   }
 
   return (

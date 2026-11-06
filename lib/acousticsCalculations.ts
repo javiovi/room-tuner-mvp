@@ -1,3 +1,4 @@
+import { rt60Reference } from "@/lib/rt60Reference"
 // Room Acoustics Calculations
 // Based on established acoustic physics formulas
 
@@ -247,13 +248,7 @@ export function evaluateRT60(
   rating: 'good' | 'acceptable' | 'problematic'
   message: string
 } {
-  const idealRanges = {
-    music: { min: 0.3, max: 0.5 },
-    instrument: { min: 0.4, max: 0.7 },
-    work: { min: 0.2, max: 0.4 },
-  }
-
-  const range = idealRanges[purpose]
+  const range = rt60Reference(purpose)
 
   if (rt60 >= range.min && rt60 <= range.max) {
     return {

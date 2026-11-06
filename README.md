@@ -1,27 +1,48 @@
 # RoomTuner
 
-An experimental acoustic room analysis tool that helps you optimize your listening space with retro vibes and modern analysis.
+Experimental web app for planning simple acoustic improvements in a domestic space.
+Describe a room, compare a current and proposed layout, try one change and record
+whether it helped. Spanish and English; designed for mobile use.
 
-## What is RoomTuner?
+Room dimensions and generic material coefficients produce estimates, not a measured
+frequency response. The frequency curve is illustrative. Microphone noise and clap
+captures are exploratory and uncalibrated. Layout distances describe geometry,
+not a validated improvement in sound. Catalog prices are indicative.
 
-RoomTuner is a web application designed to analyze and provide recommendations for improving the acoustic properties of your room. Whether you're setting up a music listening space, a practice room for your instrument, or a focused work environment, RoomTuner guides you through a step-by-step analysis of your space and delivers actionable recommendations.
+## Development
 
-## What It Does
+Requires Node 22+ and pnpm (version pinned in `package.json`).
 
- **Guided Analysis Flow** - Walks you through collecting key information about your space:
-   - Your primary goal (music listening, instrument practice, or focused work)
-   - Room type and dimensions
-   - Surface materials (floors, walls)
-   - Equipment and furniture placement
-   - Ambient noise levels
- **Smart Recommendations** - Provides tiered suggestions based on your specific room:
-   - **Free changes** - No-cost adjustments you can make immediately
-   - **Low-budget improvements** - Affordable upgrades for better acoustics
-   - **Advanced solutions** - Professional-grade enhancements for serious audio enthusiasts
+```sh
+pnpm install --frozen-lockfile
+cp .env.example .env.local
+# Fill in the Supabase credentials in .env.local.
+pnpm dev
+```
 
+```sh
+pnpm exec tsc --noEmit
+pnpm lint
+pnpm test
+pnpm build
+pnpm exec playwright install webkit
+pnpm test:e2e
+```
 
+Browser tests use placeholder database credentials; they verify the interface,
+not remote persistence or acoustic accuracy. `/api/health` checks database availability.
 
+## Data and access during the pilot
 
-## Current Status
+Reports are readable by anyone with their report URL. There are no user accounts
+or private report access controls. Each analysis creates a new report; a read link
+does not authorize overwriting an existing report. Avoid entering sensitive data.
 
-This is a **beta/experimental MVP**. The initial analysis provides approximate recommendations based on basic acoustic principles. The interface and user experience are fully functional, with room for expansion in analysis sophistication.
+Layout edits, experiment results and notes stay in the current browser and can be
+included in the PDF; they do not sync across devices. A report that could not be
+saved is marked as unsaved. The session can retain it in the same tab.
+
+The paywall and live product pricing are disabled by default. Do not enable the
+paywall before implementing payment verification. Pilot analytics record categorical
+steps and outcomes, without report ids, dimensions or notes. Browser error logs
+remain on the device; centralized client error reporting is not implemented.

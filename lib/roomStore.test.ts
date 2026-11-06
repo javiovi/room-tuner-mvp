@@ -98,3 +98,22 @@ describe("roomStore analysis metadata", () => {
     expect(useRoomStore.getState().analysisPersisted).toBe(false)
   })
 })
+
+
+describe("switching reports", () => {
+  it("clears the old saved id when the next report could not be saved", async () => {
+    const { useRoomStore } = await loadStore(createFakeStorage())
+    const report = { generatedAt: "first" } as EnhancedAnalysisResponse
+    useRoomStore.getState().setAnalysis(report, { projectId: "old", persisted: true })
+    useRoomStore.getState().setAnalysis({ ...report, generatedAt: "second" }, { projectId: null, persisted: false })
+    expect(useRoomStore.getState().projectId).toBeNull()
+    expect(useRoomStore.getState().analysisPersisted).toBe(false)
+  })
+
+  it("replaces answers instead of inheriting another room's microphone data", async () => {
+    const { useRoomStore } = await loadStore(createFakeStorage())
+    useRoomStore.getState().updateProject({ goal: "music", measuredRT60: { value: .7, method: "T20", confidence: "high" }, concern: "bass" })
+    useRoomStore.getState().replaceProject({ goal: "work", dimensionSource: "approximate", concern: "noise" })
+    expect(useRoomStore.getState().project).toEqual({ goal: "work", dimensionSource: "approximate", concern: "noise" })
+  })
+})

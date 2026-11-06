@@ -97,6 +97,17 @@ export default function MedicionPage() {
         </p>
       </div>
 
+      <p className="text-xs text-muted-foreground">{t.experiments.noise} {t.experiments.clap}</p>
+
+      <Button variant="secondary" onClick={handleContinue} className="w-full">
+        {t.medicion.skipButton}
+      </Button>
+      {step !== "idle" && step !== "done" && (
+        <Button variant="secondary" onClick={() => { setError(null); setStep("idle") }} className="w-full">
+          {t.medicion.cancel}
+        </Button>
+      )}
+
       {/* Step progress (only shown when measuring) */}
       {step !== "idle" && (
         <div className="flex items-center justify-center gap-2 py-2">
@@ -122,7 +133,7 @@ export default function MedicionPage() {
 
       {/* Error message */}
       {error && (
-        <div className="border border-destructive/40 bg-destructive/5 text-destructive rounded-sm p-3 text-xs flex items-center gap-2">
+        <div role="alert" className="border border-destructive/40 bg-destructive/5 text-destructive rounded-sm p-3 text-xs flex items-center gap-2">
           <MicOff className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -143,9 +154,6 @@ export default function MedicionPage() {
                 {t.medicion.measureButton}
               </Button>
             )}
-            <Button variant="secondary" onClick={() => router.push("/analizando")} className="w-full">
-              {t.medicion.skipButton}
-            </Button>
           </>
         )}
 
@@ -169,7 +177,7 @@ export default function MedicionPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{t.medicion.noiseAverage}</span>
-                  <span className="text-lg font-semibold font-mono text-foreground">{noiseResult.averageDb} dB</span>
+                  <span className="text-lg font-semibold font-mono text-foreground">{noiseResult.averageDb} · {t.experiments.relative}</span>
                 </div>
               </div>
             )}
@@ -200,7 +208,7 @@ export default function MedicionPage() {
             <div className="border border-primary/30 rounded-sm p-4 text-center">
               <p className="text-sm font-semibold text-foreground">{t.medicion.measuringComplete}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {noiseResult && `${t.medicion.noiseLevel}: ${noiseResult.averageDb} dB`}
+                {noiseResult && `${t.medicion.noiseLevel}: ${noiseResult.averageDb} · ${t.experiments.relative}`}
               </p>
             </div>
             <Button onClick={handleContinue} className="w-full">

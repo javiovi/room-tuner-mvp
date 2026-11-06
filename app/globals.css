@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.plan-object-preview { transition: transform 1100ms cubic-bezier(.22, .7, .25, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .plan-object-preview { transition: none; }
+}
+
 /* ============================================
    LIGHT MODE (default)
    Blueprint: graphite + cyanotype cyan, architectural drafting register

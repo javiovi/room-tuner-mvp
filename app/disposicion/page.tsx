@@ -1,5 +1,7 @@
 "use client"
 
+import { DEFAULT_MOVES } from "@/lib/layoutTrial"
+
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
@@ -18,6 +20,7 @@ export default function DisposicionPage() {
   const project = useRoomStore((s) => s.project)
   const hydrated = useRoomHydrated()
   const { t } = useT()
+  const [moves, setMoves] = useState(DEFAULT_MOVES)
   const [formData, setFormData] = useState({
     ubicacionEquipo: "",
     dondeSientas: "",
@@ -28,6 +31,7 @@ export default function DisposicionPage() {
   useEffect(() => {
     if (!hydrated || seeded.current) return
     seeded.current = true
+    setMoves(project.moveConstraints ?? DEFAULT_MOVES)
     setFormData((prev) => ({
       ubicacionEquipo: project.speakerPlacement ?? prev.ubicacionEquipo,
       dondeSientas: project.listeningPosition ?? prev.dondeSientas,
@@ -40,6 +44,7 @@ export default function DisposicionPage() {
     if (!isValid) return
 
     updateProject({
+      moveConstraints: moves,
       speakerPlacement: formData.ubicacionEquipo as RoomProject["speakerPlacement"],
       listeningPosition: formData.dondeSientas as RoomProject["listeningPosition"],
     })
@@ -78,6 +83,11 @@ export default function DisposicionPage() {
         <p className="text-xs md:text-sm text-muted-foreground">{t.disposicion.subtitle}</p>
       </div>
 
+      <fieldset className="border border-border p-4 space-y-2">
+        <legend className="text-sm font-medium">{t.layoutTrial.restrictions}</legend>
+        {(["speakers", "listening", "furniture"] as const).map(key => <label key={key} className="flex items-center gap-2 min-h-10 text-sm"><input type="checkbox" checked={moves[key]} onChange={e => setMoves(prev => ({ ...prev, [key]: e.target.checked }))} />{t.layoutTrial[key]}</label>)}
+        <p className="text-xs text-muted-foreground">{t.layoutTrial.constraintsHint}</p>
+      </fieldset>
       <div className="space-y-8">
         <div className="space-y-2">
           <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">

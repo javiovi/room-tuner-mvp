@@ -24,7 +24,7 @@ export function FrequencyResponseChart({ data }: FrequencyResponseChartProps) {
         <InfoTooltip text={t.tooltips.frequency} />
       </div>
       <p className="text-xs text-muted-foreground">
-        {t.report.frequency.description}
+        {t.experiments.illustration}
       </p>
 
       <div className="w-full h-64 mt-4">
@@ -70,20 +70,7 @@ export function FrequencyResponseChart({ data }: FrequencyResponseChartProps) {
         </div>
       </div>
 
-      {data.filter(d => d.issue).length > 0 && (
-        <div className="mt-3 p-3 rounded-sm border border-destructive/20 bg-destructive/5">
-          <h3 className="text-xs font-medium text-destructive mb-2">{t.report.frequency.issuesTitle}</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {data.filter(d => d.issue).slice(0, 6).map((point, i) => (
-              <div key={i} className="text-xs text-muted-foreground">
-                <span className="font-mono text-destructive font-medium">
-                  {point.frequency >= 1000 ? `${(point.frequency / 1000).toFixed(1)}kHz` : `${point.frequency}Hz`}
-                </span>: {point.description}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }

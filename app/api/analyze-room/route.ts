@@ -1,10 +1,10 @@
+import { correctedMaterials } from "@/lib/reportModel"
 import { NextResponse } from "next/server"
 import type { RoomProject, EnhancedAnalysisResponse, ProductRecommendation } from "@/app/types/room"
 import {
   calculateRoomModes,
   calculateRoomMetrics,
   calculateTotalAbsorption,
-  calculateFurnitureAbsorption,
   estimateRT60SmartByBand,
   evaluateRT60,
   determineRoomCharacter,
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-    const { locale: parsedLocale, projectId: existingProjectId, ...project } = parsed.data
+    const { locale: parsedLocale, ...project } = parsed.data
     const locale = parsedLocale || "es"
     const supabase = createServerClient()
 
@@ -95,42 +95,39 @@ export async function POST(req: Request) {
       noise_measurement: project.noiseMeasurement ?? null,
       status: 'analyzing',
     }
-    // Update the row this browser already owns when there is one; only insert otherwise.
-    // Without this, every re-run of the wizard left another orphan project behind.
-    let savedProject: ProjectRow | null = null
-
-    if (existingProjectId) {
-      const { data, error } = await supabase
-        .from('projects')
-        .update(projectInsert)
-        .eq('id', existingProjectId)
-        .select()
-        .returns<ProjectRow[]>()
-        .maybeSingle()
-
-      if (error) logError("analyze-room", "could not update the existing project", error)
-      savedProject = data ?? null
-    }
-
-    if (!savedProject) {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert(projectInsert)
-        .select()
-        .returns<ProjectRow[]>()
-        .single()
-
-      // The analysis itself doesn't depend on the database, so a failed save degrades to an
-      // unsaved report rather than an error — but the response says so via `persisted`.
-      if (error) logError("analyze-room", "could not save the project — the report will not be recoverable", error)
-      savedProject = data ?? null
-    }
+    // A public report link grants read access only. Until ownership exists, each
+    // analysis gets a new id: accepting an existing id would let readers overwrite it.
+    const { data: savedProject, error: saveError } = await supabase
+      .from('projects')
+      .insert(projectInsert)
+      .select()
+      .returns<ProjectRow[]>()
+      .single()
+    if (saveError) logError("analyze-room", "could not save the project — the report will not be recoverable", saveError)
 
     // The report comes from this project's own deterministic engine. There used to be an
     // escape hatch here that let an external n8n workflow return the whole analysis instead,
     // unvalidated and on the critical path; it computed nothing and was removed. If an LLM
     // ever joins this flow, it should consume these calculations as tools, not replace them.
     const analysis: EnhancedAnalysisResponse = await generateLocalAnalysis(project, locale)
+    analysis.inputContext = project
+    if (project.dimensionSource === "approximate") {
+      analysis.summary = locale === "en"
+        ? "Start by arranging the sketch to resemble your space and compare a free layout experiment. Add room measurements for acoustic estimates."
+        : "Empezá acomodando el esquema para que se parezca a tu espacio y compará una distribución sin costo. Agregá las medidas para obtener estimaciones acústicas."
+      analysis.roomCharacter = "equilibrada"
+      analysis.roomMetrics.roomModes = []
+      analysis.frequencyResponse = []
+      analysis.roomMetrics.rt60Estimate = { low: 0, mid: 0, high: 0 }
+      analysis.roomMetrics.rt60Evaluation = { rating: "acceptable", message: analysis.summary }
+      analysis.freeChanges.items = []
+      for (const block of [analysis.lowBudgetChanges, analysis.advancedChanges]) {
+        block.items = []
+        block.totalEstimatedCost.min = 0
+        block.totalEstimatedCost.max = 0
+      }
+      analysis.roomDiagram.treatmentPlan = []
+    }
 
     const calculationTime = Date.now() - startTime
 
@@ -148,6 +145,7 @@ export async function POST(req: Request) {
           lowBudgetChanges: analysis.lowBudgetChanges,
           advancedChanges: analysis.advancedChanges,
           materialsAnalysis: analysis.materialsAnalysis,
+          inputContext: analysis.inputContext,
         } as unknown as Json,
         room_diagram: analysis.roomDiagram as unknown as Json,
         version: '1.0',
@@ -321,16 +319,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
       totalAbsorption: absorption.average,
     },
 
-    materialsAnalysis: {
-      floorAbsorption: absorption.low / metrics.floorArea,
-      wallAbsorption: absorption.mid / metrics.wallArea,
-      ceilingAbsorption: 0.02, // Assumed hard ceiling
-      furnitureContribution: (() => {
-        const f = calculateFurnitureAbsorption(project.furniture || [])
-        return Math.round(((f.low + f.mid + f.high) / 3) * 100) / 100
-      })(),
-      totalAbsorption: absorption.average,
-    },
+    materialsAnalysis: correctedMaterials(project, absorption.average),
 
     frequencyResponse,
 
@@ -381,10 +370,10 @@ function generateFreeRecommendations(
   const recommendations: string[] = []
 
   // Speaker placement
-  recommendations.push(...positions.recommendations)
+  if (project.moveConstraints?.speakers !== false) recommendations.push(...positions.recommendations)
 
   // Listening position advice
-  recommendations.push(
+  if (project.moveConstraints?.listening !== false) recommendations.push(
     isES
       ? "Evitar punto de escucha exactamente en el centro del espacio (50% de profundidad)"
       : "Avoid placing the listening position exactly at the center of the room (50% depth)"
@@ -399,13 +388,13 @@ function generateFreeRecommendations(
     )
     recommendations.push(
       isES
-        ? "Colocar almohadones en las esquinas para reducir acumulación de graves"
-        : "Place pillows in the corners to reduce bass buildup"
+        ? "Comparar dos posiciones de escucha para evaluar dónde los graves resultan menos molestos"
+        : "Compare two listening positions to check where bass is less distracting"
     )
     recommendations.push(
       isES
-        ? "Abrir puertas de placares para añadir absorción difusa"
-        : "Open closet doors to add diffuse absorption"
+        ? "Probar cortinas o mantas existentes para evaluar reflexiones en medios y agudos, no aislamiento ni graves"
+        : "Try existing curtains or blankets to assess mid and high frequency reflections, not isolation or bass"
     )
   } else if (roomCharacter === "seca") {
     recommendations.push(
@@ -436,12 +425,12 @@ function generateFreeRecommendations(
   }
 
   // General tips
-  recommendations.push(
+  if (project.moveConstraints?.speakers !== false) recommendations.push(
     isES
-      ? "Despejar espacio entre parlantes y paredes (mínimo 30cm)"
-      : "Clear space between speakers and walls (minimum 30cm)"
+      ? "Revisar las indicaciones de ubicación del fabricante y comparar posiciones antes de fijar una distancia a la pared"
+      : "Check the manufacturer’s placement guidance and compare positions before choosing a wall distance"
   )
-  recommendations.push(
+  if (project.moveConstraints?.speakers !== false || project.moveConstraints?.listening !== false) recommendations.push(
     isES
       ? "Experimentar con pequeños cambios de posición antes de comprar tratamiento"
       : "Experiment with small position changes before buying treatment"
