@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test"
+import { readFileSync } from "node:fs"
 import { mockAnalysis } from "../lib/mockData"
 
-const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8XcAAAAASUVORK5CYII=", "base64")
+const photo = readFileSync(new URL("../public/placeholder.jpg", import.meta.url))
 test.beforeEach(async ({ page })=>{
   await page.addInitScript(analysis=>{
     if (!sessionStorage.getItem("roomtuner-session")) sessionStorage.setItem("roomtuner-session",JSON.stringify({ version:1,state:{
@@ -19,8 +20,9 @@ test("local photos keep observations after reload, isolate reports and delete co
   const uploads: string[] = []
   page.on("request",request=>{ if (request.method()==="POST") uploads.push(request.url()) })
   await openPhoto(page)
-  await page.getByLabel("Elegir foto de la habitación").setInputFiles({ name:"room.png",mimeType:"image/png",buffer:png })
-  await expect(page.getByRole("status").filter({hasText:"Guardado en este navegador."})).toBeVisible()
+  await page.getByLabel("Elegir foto de la habitación").setInputFiles({ name:"room.jpg",mimeType:"image/jpeg",buffer:photo })
+  await expect(page.getByTestId("room-photo")).toBeVisible()
+  await expect(page.getByRole("status").filter({hasText:"Guardado en este navegador."})).toHaveCount(2)
   await page.getByRole("button",{ name:"Agregar marca en el centro" }).click()
   await page.getByLabel("¿Qué observaste?").fill("Tráfico junto al marco")
   await page.getByLabel("Resultado de la comparación").selectOption("better")
@@ -61,7 +63,7 @@ test("rejects unsupported photos and reports storage failure without claiming su
   await expect(page.getByRole("status").filter({hasText:"No pudimos leer o guardar"})).toBeVisible()
   await expect(page.getByTestId("room-photo")).toHaveCount(0)
   await page.evaluate(()=>{IDBObjectStore.prototype.put=function(){throw new DOMException("Full","QuotaExceededError")}})
-  await page.getByLabel("Elegir foto de la habitación").setInputFiles({name:"room.png",mimeType:"image/png",buffer:png})
+  await page.getByLabel("Elegir foto de la habitación").setInputFiles({name:"room.jpg",mimeType:"image/jpeg",buffer:photo})
   await expect(page.getByRole("status").filter({hasText:"No pudimos leer o guardar"})).toBeVisible()
   await expect(page.getByTestId("room-photo")).toHaveCount(0)
 })
