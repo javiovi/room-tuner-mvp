@@ -32,11 +32,12 @@ test("local photos keep observations after reload, isolate reports and delete co
   await expect(page.getByRole("button",{name:"Guardar marcas y resultados"})).toBeDisabled()
   const snapshot = await page.evaluate(async()=>{
     const db = await new Promise<IDBDatabase>((resolve,reject)=>{const r=indexedDB.open("roomtuner-evidence-v1",1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
-    const value = await new Promise<{photo:Blob;zones:{x:number}[]}>((resolve,reject)=>{const r=db.transaction("rooms").objectStore("rooms").get("photo-room-a");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+    const value = await new Promise<{photoBytes:ArrayBuffer;photoType:string;zones:{x:number}[]}>((resolve,reject)=>{const r=db.transaction("rooms").objectStore("rooms").get("photo-room-a");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
     db.close()
-    return {type:value.photo.type,x:value.zones[0].x,session:sessionStorage.getItem("roomtuner-session")}
+    return {type:value.photoType,bytes:value.photoBytes.byteLength,x:value.zones[0].x,session:sessionStorage.getItem("roomtuner-session")}
   })
   expect(snapshot.type).toBe("image/jpeg")
+  expect(snapshot.bytes).toBeGreaterThan(0)
   expect(snapshot.x).toBeCloseTo(.52)
   expect(snapshot.session).not.toContain("Tráfico junto al marco")
   await page.reload()
