@@ -159,6 +159,7 @@ export const enhancedAnalysisSchema = z.object({
 
 export const reportPersonalizationSchema = z.object({
   layout: z.object({
+    confirmed: z.boolean().optional(),
     current: roomDiagramSchema.shape.floorPlan,
     proposal: roomDiagramSchema.shape.floorPlan,
     moves: z.object({ speakers: z.boolean(), listening: z.boolean(), furniture: z.boolean() }),
@@ -166,7 +167,7 @@ export const reportPersonalizationSchema = z.object({
     source: z.enum(["user", "schematic"]),
   }).optional(),
   experiments: z.record(z.enum(["symmetry", "quiet", "position", "dry", "echo"]), z.object({
-    tried: z.boolean(), outcome: z.enum(["better", "same", "worse"]).optional(), note: z.string().max(500),
+    tried: z.boolean(), outcome: z.enum(["better", "same", "worse", "unable"]).optional(), note: z.string().max(500),
   })).optional(),
 })
 

@@ -10,7 +10,6 @@ import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { Tabs } from "@/components/Tabs"
-import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { logError } from "@/lib/logger"
 import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
@@ -19,10 +18,7 @@ import { RoomModesChart } from "@/components/report/RoomModesChart"
 import { ProductTable } from "@/components/report/ProductTable"
 import { LayoutTrial } from "@/components/report/LayoutTrial"
 import { TodayExperiments } from "@/components/report/TodayExperiments"
-import { RecommendationSection } from "@/components/report/RecommendationSection"
 import { BudgetCalculator } from "@/components/report/BudgetCalculator"
-import { ActionPlan } from "@/components/report/ActionPlan"
-import { InfoTooltip } from "@/components/InfoTooltip"
 import { useT } from "@/lib/i18n"
 import { PAYWALL_ENABLED } from "@/lib/paywall"
 
@@ -44,7 +40,7 @@ function ResultadoContent() {
   const [unlockNotice, setUnlockNotice] = useState(false)
   const [rehydrating, setRehydrating] = useState(false)
   const [rehydrateFailed, setRehydrateFailed] = useState(false)
-  const { t, locale } = useT()
+  const { t } = useT()
 
   // The URL identifies the report even if this tab has a different report cached.
   // Replace its answers rather than merging in fields from the previous room.
@@ -199,11 +195,9 @@ function ResultadoContent() {
   }
 
   const {
-    summary,
     roomCharacter,
     roomMetrics,
     frequencyResponse,
-    freeChanges,
     lowBudgetChanges,
     advancedChanges,
     roomDiagram,
@@ -228,124 +222,12 @@ function ResultadoContent() {
     setTimeout(() => setUnlockNotice(false), 3500)
   }
 
-  const goalLabels: Record<string, string> = {
-    music: t.resultado.goalMusic,
-    instrument: t.resultado.goalInstrument,
-    work: t.resultado.goalWork,
-  }
-
-  // ── Budget teaser: compute range in local currency only ──
-  const userLocale = typeof window !== "undefined" ? readLocale() : "es"
-  const localCurrency: "ARS" | "USD" = userLocale === "en" ? "USD" : "ARS"
-
-  const allProducts = [...lowBudgetChanges.items, ...advancedChanges.items]
-  const localProducts = allProducts.filter((p) => p.currency === localCurrency)
-
-  const teaserMin = localProducts.reduce((sum, p) => sum + p.totalPrice, 0)
-  const teaserMax = Math.round(teaserMin * 1.3) // +30% margen estimado
-  const hasBudgetTeaser = localProducts.length > 0 && teaserMin > 0
-
-  const formatBudget = (value: number) => {
-    if (localCurrency === "USD") {
-      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value)
-    }
-    return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value)
-  }
-
-  const room =
-    project.lengthM && project.widthM && project.heightM
-      ? { length: project.lengthM, width: project.widthM, height: project.heightM }
-      : undefined
-
   // ── Resumen tab content (shared between free and pro) ──
   const approximate = project.dimensionSource === "approximate"
   const planner = <LayoutTrial key={`layout-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} />
   const refine = <div className="space-y-3 border border-primary/30 p-4 rounded-sm"><p className="text-sm">{t.layoutTrial.needDimensions}</p><Link className="inline-block text-sm text-primary underline min-h-11" href="/espacio?precision=1">{t.layoutTrial.refine}</Link></div>
 
-  const resumenContent = (
-    <div className="space-y-4">
-      {approximate && <div className="text-xs text-primary">{t.layoutTrial.approx}</div>}
-      {planner}
-      {approximate && refine}
-      <TodayExperiments concern={project.concern} constraints={project.moveConstraints} key={`experiments-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} goal={project.goal} roomCharacter={roomCharacter} />
-      {!approximate && <details className="border border-border rounded-sm p-4">
-        <summary className="cursor-pointer text-sm font-medium">{t.experiments.details}</summary>
-        <div className="space-y-4 pt-4">
-      {/* Executive Summary */}
-      <div className="bg-card border border-border rounded-sm p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t.resultado.diagnosisTitle}
-          </h2>
-          <InfoTooltip text={t.tooltips.diagnosis} />
-        </div>
-        <p className="text-foreground text-sm leading-relaxed">{summary}</p>
-        <div className="flex items-center justify-between text-xs border-t border-dotted border-border pt-2 mt-2 flex-wrap gap-2">
-          <span className="text-muted-foreground">
-            {t.resultado.goalLabel}{" "}
-            <span className="text-foreground font-medium">
-              {goalLabels[project.goal ?? ""] ?? t.resultado.goalUndefined}
-            </span>
-          </span>
-          <span className="text-muted-foreground inline-flex items-center gap-1">
-            {t.resultado.characterLabel}{" "}
-            <span
-              className={
-                roomCharacter === "viva"
-                  ? "text-warning"
-                  : roomCharacter === "equilibrada"
-                    ? "text-primary"
-                    : "text-chart-3"
-              }
-            >
-              {roomCharacter.charAt(0).toUpperCase() + roomCharacter.slice(1)}
-            </span>
-            <InfoTooltip text={t.tooltips.character} />
-          </span>
-        </div>
-      </div>
-
-        <div className="space-y-2 text-xs text-muted-foreground">
-          <h3 className="font-medium text-foreground">{t.experiments.sources}</h3>
-          <p>{t.experiments.geometry}</p>
-          {roomMetrics.measuredRT60 && <p>{t.experiments.clap}</p>}
-          {project.noiseMeasurement?.taken && <p>{t.experiments.noise}</p>}
-          {!roomMetrics.measuredRT60 && !project.noiseMeasurement?.taken && <p>{t.experiments.noAudio}</p>}
-        </div>
-        </div>
-      </details>}
-      {!approximate && <details className="border border-border rounded-sm p-4">
-        <summary className="cursor-pointer text-sm font-medium">{t.experiments.more}</summary>
-        <div className="pt-4"><RecommendationSection recommendations={freeChanges} /></div>
-      </details>}
-
-      {/* Budget Teaser (free only) */}
-      {!isUnlocked && hasBudgetTeaser && (
-        <div className="bg-card border border-border rounded-sm p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">
-              {t.resultado.budgetTeaserLabel}
-            </h2>
-            <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-          </div>
-          <p className="text-2xl font-bold text-foreground text-center py-2">
-            {t.resultado.budgetTeaserRange
-              .replace("{min}", formatBudget(teaserMin))
-              .replace("{max}", formatBudget(teaserMax))}
-          </p>
-          <p className="text-[10px] text-muted-foreground text-center">
-            {t.resultado.budgetTeaserDisclaimer.replace("{currency}", localCurrency)}
-          </p>
-          <Button onClick={() => handleUnlock("budget_teaser")} variant="secondary" className="w-full flex items-center justify-center gap-1.5">
-            <Lock className="w-3 h-3" />
-            {t.resultado.budgetTeaserCta}
-          </Button>
-        </div>
-      )}
-
-
-    </div>
-  )
+  const resumenContent = <TodayExperiments key={`experiments-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} />
 
   // ── Locked "Informe completo" tab content ──
   const lockedReportContent = (
@@ -396,36 +278,21 @@ function ResultadoContent() {
     </div>
   )
 
+  const tried = Object.values(personalization.experiments ?? {}).some(record => record.tried)
   const tabs = [
     { id: "resumen", label: t.experiments.today, content: resumenContent },
-    { id: "diagrama", label: t.experiments.plan, content: planner },
-    ...(approximate ? [] : isUnlocked ? [
-      { id: "analisis", label: t.experiments.understand, content: approximate ? refine : (
-        <div className="space-y-4">
-          <RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} />
-          <RoomModesChart modes={roomMetrics.roomModes} />
-          <details className="border border-border rounded-sm p-4">
-            <summary className="cursor-pointer text-sm font-medium">{t.report.frequency.title}</summary>
-            <div className="pt-4"><FrequencyResponseChart data={frequencyResponse} /></div>
-          </details>
-        </div>
-      ) },
-      { id: "mejoras", label: t.experiments.invest, content: approximate ? refine : (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">{t.experiments.purchase}</p>
-          <BudgetCalculator lowBudgetProducts={lowBudgetChanges.items} advancedProducts={advancedChanges.items} />
-          <details className="border border-border rounded-sm p-4">
-            <summary className="cursor-pointer text-sm font-medium">{t.experiments.products}</summary>
-            <div className="space-y-4 pt-4"><ProductTable recommendations={lowBudgetChanges} /><ProductTable recommendations={advancedChanges} /></div>
-          </details>
-          <details className="border border-border rounded-sm p-4">
-            <summary className="cursor-pointer text-sm font-medium">{t.experiments.timeline}</summary>
-            <p className="text-xs text-muted-foreground py-3">{t.experiments.timelineNote}</p>
-            <ActionPlan roomCharacter={roomCharacter} hasBudget={true} />
-          </details>
-        </div>
-      ) },
-    ] : [{ id: "informe-completo", label: t.resultado.tabFullReport, badge: "PRO", content: lockedReportContent }]),
+    { id: "detalles", label: t.journey.details, content: <div className="space-y-4">
+      {approximate && refine}
+      <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.plan}</summary>{planner}</details>
+      {!approximate && isUnlocked && <>
+        <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.metrics.title}</summary><RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} /></details>
+        <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.modes.title}</summary><RoomModesChart modes={roomMetrics.roomModes} /></details>
+        <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.frequency.title}</summary><FrequencyResponseChart data={frequencyResponse} /></details>
+        <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.products}</summary><p className="text-sm text-muted-foreground">{t.experiments.purchase}</p>{tried ? <div className="space-y-4 pt-4"><BudgetCalculator lowBudgetProducts={lowBudgetChanges.items} advancedProducts={advancedChanges.items} /><ProductTable recommendations={lowBudgetChanges} /><ProductTable recommendations={advancedChanges} /></div> : <p className="text-sm py-3">{t.journey.purchase}</p>}</details>
+      </>}
+      {!approximate && !isUnlocked && lockedReportContent}
+      <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.sources}</summary><p className="text-sm">{t.experiments.geometry}</p><p className="text-sm mt-2">{t.experiments.illustration}</p></details>
+    </div> },
   ]
 
   return (
@@ -433,7 +300,7 @@ function ResultadoContent() {
       {/* Header */}
       <div className="space-y-2 text-center">
         <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
-          {approximate ? t.layoutTrial.quickHeading : t.resultado.title}
+          {t.resultado.title}
         </h1>
         <p className="text-xs text-muted-foreground">
           {t.resultado.subtitle}
@@ -445,13 +312,6 @@ function ResultadoContent() {
         )}
       </div>
 
-      <StandingWaveMotif variant="hero" room={room} className="h-16 w-full" />
-
-      {analysisPersisted && <p className="text-xs text-muted-foreground">
-        {locale === "en"
-          ? "Anyone with this report link can read it. Layout edits and trial notes stay in this browser; include them in the PDF to share them."
-          : "Quien tenga el enlace puede leer este informe. Los ajustes del plano y las notas quedan en este navegador; incluílos en el PDF para compartirlos."}
-      </p>}
 
       {/* The report exists only in this tab — say so, instead of letting the user find out
           by opening the link on another device. */}
@@ -528,6 +388,8 @@ function ResultadoContent() {
           </Link>
         </div>
       </div>
+
+      {analysisPersisted && <details className="text-xs text-muted-foreground"><summary className="cursor-pointer min-h-11">{t.journey.privacy}</summary><p>{t.journey.savedReport}</p></details>}
 
       {/* Footer note */}
       <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border">

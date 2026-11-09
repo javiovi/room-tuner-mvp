@@ -1,18 +1,24 @@
 import type { RoomProject } from "@/app/types/room"
 import type { Translations } from "@/lib/translations/es"
 
-export type ExperimentRecord = { tried: boolean; outcome?: "better" | "same" | "worse"; note: string }
+export type ExperimentRecord = { tried: boolean; outcome?: "better" | "same" | "worse" | "unable"; note: string }
 export type ExperimentRecords = Record<string, ExperimentRecord>
+export function experimentCatalog(c: Translations["experiments"]) {
+  return (["symmetry", "position", "quiet", "echo", "dry"] as const).map(id => ({ id, title: c[`${id}Title`], action: c[`${id}Action`], why: c[`${id}Why`], check: c[`${id}Check`] }))
+}
+
 export function getReportExperiments(project: RoomProject, character: "viva" | "equilibrada" | "seca", c: Translations["experiments"]) {
-  const items = [
-    project.goal === "music" && project.moveConstraints?.speakers !== false && project.concern !== "noise"
-      ? { id: "symmetry", title: c.symmetryTitle, action: c.symmetryAction, why: c.symmetryWhy, check: c.symmetryCheck }
-      : { id: "quiet", title: c.quietTitle, action: c.quietAction, why: c.quietWhy, check: c.quietCheck },
-    ...(project.moveConstraints?.listening !== false ? [{ id: "position", title: c.positionTitle, action: c.positionAction, why: c.positionWhy, check: c.positionCheck }] : []),
-    character === "seca" && project.concern !== "echo"
-      ? { id: "dry", title: c.dryTitle, action: c.dryAction, why: c.dryWhy, check: c.dryCheck }
-      : { id: "echo", title: c.echoTitle, action: c.echoAction, why: c.echoWhy, check: c.echoCheck },
+  const symmetry = { id: "symmetry", title: c.symmetryTitle, action: c.symmetryAction, why: c.symmetryWhy, check: c.symmetryCheck }
+  const position = { id: "position", title: c.positionTitle, action: c.positionAction, why: c.positionWhy, check: c.positionCheck }
+  const quiet = { id: "quiet", title: c.quietTitle, action: c.quietAction, why: c.quietWhy, check: c.quietCheck }
+  const echo = { id: "echo", title: c.echoTitle, action: c.echoAction, why: c.echoWhy, check: c.echoCheck }
+  const dry = { id: "dry", title: c.dryTitle, action: c.dryAction, why: c.dryWhy, check: c.dryCheck }
+  if (project.concern === "noise") return [quiet]
+  if (project.concern === "echo") return [echo]
+  const movable = [
+    ...(project.moveConstraints?.listening !== false ? [position] : []),
+    ...(project.goal === "music" && project.moveConstraints?.speakers !== false ? [symmetry] : []),
   ]
-  const priority = project.concern === "echo" ? "echo" : project.concern === "bass" ? "position" : project.concern === "noise" ? "quiet" : "symmetry"
-  return items.sort((a, b) => Number(b.id === priority) - Number(a.id === priority))
+  if (project.concern === "bass") return movable
+  return [...(project.goal === "music" ? [...movable].reverse() : []), character === "seca" ? dry : echo]
 }

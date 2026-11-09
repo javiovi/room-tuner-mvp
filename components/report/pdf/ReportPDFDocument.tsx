@@ -4,7 +4,7 @@ import type { EnhancedAnalysisResponse, RoomProject, ProductRecommendation } fro
 import { es } from "@/lib/translations/es"
 import { en } from "@/lib/translations/en"
 import { initialLayout, proposeLayout, DEFAULT_MOVES, type Layout } from "@/lib/layoutTrial"
-import { getReportExperiments } from "@/lib/reportExperiments"
+import { experimentCatalog, getReportExperiments } from "@/lib/reportExperiments"
 import { surfaceAbsorption, rt60Reference, rt60ChartMaximum, budgetTotal, type ReportPersonalization } from "@/lib/reportModel"
 
 const c = { ink: "#101820", text: "#3d4a54", muted: "#5c6b77", cyan: "#0284c7", green: "#147a5d", border: "#d7e0e7", light: "#f4f7f9" }
@@ -97,6 +97,7 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
   })()
   const effectiveProject = { ...project, moveConstraints: layouts.moves }
   const experiments = getReportExperiments(effectiveProject, analysis.roomCharacter, t.experiments)
+  const recordedExperiments = [...experiments, ...experimentCatalog(t.experiments).filter(item => personalization.experiments?.[item.id] && !experiments.some(candidate => candidate.id === item.id))]
   const { rows, furniture } = surfaceAbsorption(project)
   const range = rt60Reference(project.goal)
   const rt = analysis.roomMetrics.rt60Estimate
@@ -105,7 +106,7 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
   const wallNames = { desnudas: t.espacio.nakedWalls, vidrio: t.espacio.windowWalls, ladrillo: t.espacio.brickWalls, cuadros: t.espacio.framedWalls, bibliotecas: t.espacio.libraryWalls, cortinas: t.espacio.curtainWalls, paneles_madera: t.espacio.panelWalls, mixto: t.espacio.mixedWalls }
   const date = new Date(analysis.generatedAt).toLocaleDateString(english ? "en-US" : "es-AR", { timeZone: "America/Argentina/Buenos_Aires" })
   const money = (value: number, currency: string) => `${currency} ${new Intl.NumberFormat(english ? "en-US" : "es-AR", { maximumFractionDigits: 0 }).format(value)}`
-  const outcomes = { better: t.experiments.better, same: t.experiments.same, worse: t.experiments.worse }
+  const outcomes = { better: t.experiments.better, same: t.experiments.same, worse: t.experiments.worse, unable: t.journey.unable }
   const source = say("Calculado con dimensiones y materiales ingresados. Coeficientes genéricos y techo duro supuesto; no es una medición de la sala.", "Calculated from entered dimensions and materials. Generic coefficients and assumed hard ceiling; not a room measurement.")
   return <Document title={say("RoomTuner - Tu espacio y tus pruebas", "RoomTuner - Your space and experiments")} author="RoomTuner" language={locale}>
     <Page size="A4" style={s.page}>
@@ -120,7 +121,7 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
       <Text style={s.sub}>{t.layoutTrial.restrictions}</Text>
       <Text style={s.body}>{(["speakers", "listening", "furniture"] as const).map(k => `${t.layoutTrial[k]}: ${layouts.moves[k] ? say("se puede mover", "movable") : say("fijo", "fixed")}`).join(" / ")}</Text>
       <Text style={s.sub}>{say("La primera prueba para tu objetivo", "The first experiment for your goal")}</Text>
-      <View style={s.accent}><Text style={[s.body, { fontWeight: "bold" }]}>{experiments[0]?.title}</Text><Text style={s.body}>{experiments[0]?.action}</Text><Text style={s.body}>{experiments[0]?.why}</Text><Text style={s.body}>{experiments[0]?.check}</Text></View>
+      <View style={s.accent}><Text style={[s.body, { fontWeight: "bold" }]}>{experiments[0]?.title ?? t.journey.noTrial}</Text><Text style={s.body}>{experiments[0]?.action}</Text><Text style={s.body}>{experiments[0]?.why}</Text><Text style={s.body}>{experiments[0]?.check}</Text></View>
       <Text style={s.sub}>{say("Qué sabemos y qué falta comprobar", "What we know and what needs checking")}</Text>
       <Text style={s.body}>{source}</Text>
       <Text style={s.body}>{say(`El modelo estima ${rt.mid.toFixed(2)} s de reverberación en medios. Sirve para orientar una prueba de reflexiones, no para asegurar cómo suena cada asiento.`, `The model estimates ${rt.mid.toFixed(2)} s mid-frequency reverberation. It can guide a reflection experiment, but cannot establish how every seat sounds.`)}</Text>
@@ -137,12 +138,14 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
       </View>
       <Text style={s.small}>{say("Azul L/R: parlantes. Verde: lugar de escucha. Gris: muebles. Línea punteada: movimiento entre esquemas. Ambas vistas usan la misma escala.", "Blue L/R: speakers. Green: listening spot. Grey: furniture. Dashed lines: movement between layouts. Both views use the same scale.")}</Text>
       <Text style={s.body}>{say("Vista seleccionada al exportar", "Selected view when exported")}: {t.layoutTrial[layouts.view]}</Text>
+      {layouts.confirmed ? <>
       <Text style={s.sub}>{say("Movimientos a evaluar", "Movements to evaluate")}</Text>
       {([...layouts.current.speakerPositions.map((p, i) => ({ label: i === 0 ? t.layoutTrial.left : t.layoutTrial.right, from: p, to: layouts.proposal.speakerPositions[i] })), { label: t.layoutTrial.listening, from: layouts.current.listeningPosition, to: layouts.proposal.listeningPosition }]).map((item, i) => {
         const dx = (item.to.x - item.from.x) * layouts.current.width, dy = (item.to.y - item.from.y) * layouts.current.length
         return <View key={i} style={s.row}><Text style={s.cell}>{item.label}</Text><Text style={s.cell}>{Math.abs(dx) < .005 && Math.abs(dy) < .005 ? say("Sin cambio", "Unchanged") : say(`Horizontal ${dx.toFixed(2)} m / vertical ${dy.toFixed(2)} m`, `Horizontal ${dx.toFixed(2)} m / vertical ${dy.toFixed(2)} m`)}</Text></View>
       })}
       <Text style={s.small}>{say("Signos positivos: hacia la derecha y abajo en la planta. Las distancias dependen de las dimensiones ingresadas y de posiciones estimadas.", "Positive signs: right and down in the plan. Distances depend on entered room dimensions and estimated positions.")}</Text>
+      </> : <Text style={s.body}>{t.journey.confirmHint}</Text>}
       <Text style={s.body}>{t.layoutTrial.proposalNote}</Text><Text style={s.body}>{t.layoutTrial.layoutNote}</Text>
       <Text style={s.small}>{say("El plano no calcula una mejora de respuesta en dB. No se añadieron tratamientos genéricos ni se llamó óptima a una posición sin verificarla.", "The layout does not calculate a dB improvement. No generic treatments were added and no unverified position is labelled optimal.")}</Text><Footer english={english} />
     </Page>
@@ -164,9 +167,9 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
     </Page>
     <Page size="A4" style={s.page}>
       <Text style={s.title}>{say("Tus pruebas y resultados", "Your experiments and results")}</Text><Text style={s.body}>{t.experiments.protocol}</Text>
-      {experiments.map((item, i) => {
+      {recordedExperiments.map((item, i) => {
         const record = personalization.experiments?.[item.id]
-        return <View key={item.id} style={s.card} wrap={false}><Text style={s.sub}>{i + 1}. {item.title}</Text><Text style={s.body}>{item.action}</Text><Text style={s.small}>{item.why}</Text><Text style={s.body}>{item.check}</Text><Text style={[s.body, { color: c.cyan }]}>{record?.tried ? say("Probada", "Tried") : say("Todavía no registrada como probada", "Not yet recorded as tried")}{record?.tried && record.outcome ? ` / ${outcomes[record.outcome]}` : ""}</Text>{record?.note && <Text style={s.small}>{say("Tu nota", "Your note")}: {record.note}</Text>}</View>
+        return <View key={item.id} style={s.card} wrap={false}><Text style={s.sub}>{i + 1}. {item.title}</Text><Text style={s.body}>{item.action}</Text><Text style={s.small}>{item.why}</Text><Text style={s.body}>{item.check}</Text><Text style={[s.body, { color: c.cyan }]}>{record?.outcome === "unable" ? t.journey.unable : record?.tried ? say("Probada", "Tried") : say("Todavía no registrada como probada", "Not yet recorded as tried")}{record?.tried && record.outcome ? ` / ${outcomes[record.outcome]}` : ""}</Text>{record?.note && <Text style={s.small}>{say("Tu nota", "Your note")}: {record.note}</Text>}</View>
       })}
       <View style={s.accent}><Text style={s.body}>{say("Cómo decidir el siguiente paso", "How to choose the next step")}</Text><Text style={s.body}>{say("Si mejoró, conservá el cambio y comprobalo en otra escucha. Si quedó igual o empeoró, volvé a la distribución anterior y probá una sola alternativa. Si no podés distinguirlo, el resultado es inconcluso.", "If it improved, keep the change and check on another listening session. If unchanged or worse, restore the previous layout and test one alternative. If you cannot distinguish it, the result is inconclusive.")}</Text></View><Text style={s.small}>{say("Estas valoraciones son tuyas y subjetivas; no prueban una mejora medida en RT60 o dB. No se asignaron plazos de compra genéricos.", "These are your subjective ratings, not proof of a measured RT60 or dB improvement. No generic purchase deadlines were assigned.")}</Text><Footer english={english} />
     </Page>
