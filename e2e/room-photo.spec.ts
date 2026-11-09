@@ -29,6 +29,7 @@ test("local photos keep observations after reload, isolate reports and delete co
   await page.getByLabel("Resultado de la comparación").selectOption("better")
   await page.getByRole("button",{name:"1. Ventana",exact:true}).press("ArrowRight")
   await page.getByRole("button",{name:"Guardar marcas y resultados"}).click()
+  await expect(page.getByRole("status").filter({hasText:"Guardado en este navegador."})).toHaveCount(2)
   await expect(page.getByRole("button",{name:"Guardar marcas y resultados"})).toBeDisabled()
   const snapshot = await page.evaluate(async()=>{
     const db = await new Promise<IDBDatabase>((resolve,reject)=>{const r=indexedDB.open("roomtuner-evidence-v1",1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
