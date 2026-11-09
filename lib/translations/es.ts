@@ -256,11 +256,11 @@ export const es = {
 
     // Methodology
     methodologyTitle: "Cómo elegimos las pruebas",
-    methodologyItem1: "Estimamos RT60 con clap test (aprox)",
-    methodologyItem2: "Detectamos modos te\u00f3ricos por dimensiones",
-    methodologyItem3: "Priorizamos early reflections / bass buildup",
-    methodologyItem4: "Recomendaciones por presupuesto",
-    methodologyDisclaimer: "Las mediciones con micr\u00f3fono del dispositivo son aproximadas; el objetivo es orientar decisiones.",
+    methodologyItem1: "Elegimos una prueba según tu prioridad y tus restricciones.",
+    methodologyItem2: "Vos comparás la misma actividad cambiando una sola cosa.",
+    methodologyItem3: "Con medidas, calculamos estimaciones usando supuestos de materiales.",
+    methodologyItem4: "Los productos son opciones de catálogo para explorar después de probar.",
+    methodologyDisclaimer: "Las capturas de micrófono son exploratorias y su precisión no está validada. No prometemos una mejora medida.",
 
     // Final CTA
     finalCtaTitle: "Probá un cambio en tu espacio",
@@ -275,11 +275,11 @@ export const es = {
     title: "Para qu\u00e9 quer\u00e9s optimizar tu espacio?",
     subtitle: "Eleg\u00ed el objetivo principal",
     musicTitle: "Escuchar m\u00fasica",
-    musicDesc: "Optimizar para disfrutar de la mejor calidad de audio musical",
+    musicDesc: "Para escuchar música en tu espacio",
     instrumentTitle: "Tocar instrumento",
-    instrumentDesc: "Crear un entorno ideal para la pr\u00e1ctica instrumental",
+    instrumentDesc: "Para practicar un instrumento en tu espacio",
     workTitle: "Trabajar / concentrarme",
-    workDesc: "Mejorar la claridad del sonido y reducir distracciones",
+    workDesc: "Para trabajar, conversar o concentrarte",
   },
 
   espacio: {

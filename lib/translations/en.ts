@@ -258,11 +258,11 @@ export const en: Translations = {
 
     // Methodology
     methodologyTitle: "How we choose experiments",
-    methodologyItem1: "We estimate RT60 with clap test (approx)",
-    methodologyItem2: "We detect theoretical modes by dimensions",
-    methodologyItem3: "We prioritize early reflections / bass buildup",
-    methodologyItem4: "Recommendations by budget",
-    methodologyDisclaimer: "Device microphone measurements are approximate; the goal is to guide decisions.",
+    methodologyItem1: "We choose an experiment from your priority and constraints.",
+    methodologyItem2: "You compare the same activity while changing one thing.",
+    methodologyItem3: "With dimensions, we calculate estimates using material assumptions.",
+    methodologyItem4: "Products are catalog options to explore after experimenting.",
+    methodologyDisclaimer: "Microphone captures are exploratory and their accuracy is unvalidated. We do not promise a measured improvement.",
 
     // Final CTA
     finalCtaTitle: "Try a change in your space",
@@ -277,11 +277,11 @@ export const en: Translations = {
     title: "What do you want to optimize your space for?",
     subtitle: "Choose your main goal",
     musicTitle: "Listening to music",
-    musicDesc: "Optimize for the best musical audio quality",
+    musicDesc: "For listening to music in your space",
     instrumentTitle: "Playing an instrument",
-    instrumentDesc: "Create an ideal environment for instrument practice",
+    instrumentDesc: "For practising an instrument in your space",
     workTitle: "Working / focusing",
-    workDesc: "Improve sound clarity and reduce distractions",
+    workDesc: "For working, talking or concentrating",
   },
 
   espacio: {

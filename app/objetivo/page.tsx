@@ -45,7 +45,7 @@ export default function ObjetivoPage() {
         <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
           {t.layoutTrial.problem}
         </h1>
-        <p className="text-sm text-muted-foreground">{t.journey.basis}</p>
+        <p className="text-sm text-muted-foreground">{t.landing.step2Desc}</p>
       </div>
 
       <label className="block text-sm">{t.journey.problem}<select value={project.concern ?? "clarity"} onChange={e => updateProject({ concern: e.target.value as "clarity" | "echo" | "bass" | "noise" })} className="block w-full mt-2 border border-border bg-background p-3">{(["clarity", "echo", "bass", "noise"] as const).map(value => <option key={value} value={value}>{t.layoutTrial[value]}</option>)}</select></label>

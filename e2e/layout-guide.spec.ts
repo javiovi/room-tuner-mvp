@@ -61,7 +61,7 @@ test("unable is not counted as tried and another option retains the earlier note
 test("technical estimates do not prescribe treatment and English stays usable", async ({ page }) => {
   await page.goto("/resultado")
   await page.getByRole("tab",{name:"Quiero entender más"}).click()
-  await page.getByText("Modos de sala",{exact:true}).click()
+  await page.locator("summary").filter({hasText:/^Modos de sala$/}).click()
   await expect(page.getByText(/no indican cuánto se escuchan/i)).toBeVisible()
   await expect(page.getByText(/requieren tratamiento|Modos críticos|Alta severidad/i)).toHaveCount(0)
   await page.getByRole("button",{name:"Cambiar a inglés"}).click()
