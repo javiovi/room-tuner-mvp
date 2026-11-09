@@ -1,0 +1,38 @@
+export const evidenceCopy = {
+  es: {
+    title: "Investigá tu espacio con una foto", intro: "Marcá por dónde sospechás que entra el ruido y compará una prueba por zona.",
+    privacy: "La foto y tus marcas quedan solo en este navegador. No se suben, no aparecen en el enlace compartido ni en el PDF. Si borrás los datos del navegador, se pierden. Evitá incluir personas o información privada.",
+    limitation: "Las marcas son observaciones tuyas: la foto no mide el ruido ni confirma por dónde entra. Esto no es un mapa de calor acústico.",
+    upload: "Elegir foto de la habitación", camera: "Tomar foto", formats: "JPG, PNG o WebP, hasta 12 MB. Una foto por informe. Se guarda una copia reducida sin los metadatos originales.",
+    loading: "Preparando…", error: "No pudimos leer o guardar la foto. Probá JPG, PNG o WebP de hasta 12 MB y comprobá el espacio y los permisos de este navegador. Se pueden guardar hasta 10 habitaciones.",
+    mark: "Elegí una zona y tocá su lugar en la foto. También podés agregarla en el centro y moverla con las flechas.",
+    add: "Agregar marca en el centro", save: "Guardar marcas y resultados", saved: "Guardado en este navegador.", unsaved: "Tenés cambios sin guardar.",
+    remove: "Eliminar foto y marcas", removeZone: "Quitar marca", note: "¿Qué observaste?", outcome: "Resultado de la comparación", alt: "Foto de tu habitación con marcas que agregaste",
+    kinds: { window: "Ventana", door: "Puerta", wall: "Pared", desk: "Lugar de trabajo" },
+    outcomes: { untested: "Sin probar", better: "Mejoró", same: "Igual", worse: "Empeoró" },
+    checks: {
+      window: "Con el ruido exterior presente, compará abierta y cerrada. Después, con la ventana cerrada, escuchá cerca del marco y del vidrio. Si el cambio se concentra en una junta visible, revisá su ajuste antes de comprar burletes. No tapes ventilaciones.",
+      door: "Compará con la puerta abierta y cerrada durante un ruido parecido. Revisá si se ve luz bajo la puerta o en el marco. Un sellado apropiado puede ayudar si hay una rendija; no resuelve ruido que pasa por paredes. No alteres puertas cortafuego ni ventilación.",
+      wall: "Anotá si predominan voces, golpes o vibración y en qué horarios. Compará cerca de la pared y en tu asiento. Eso orienta qué investigar, pero no demuestra el recorrido del sonido. Espuma o paneles decorativos no sustituyen el aislamiento.",
+      desk: "Sin mover equipos pesados, compará tu asiento con otro punto más alejado de la entrada sospechada. Mantené la misma actividad y repetí cuando el ruido sea parecido. Anotá si mejora el confort para trabajar.",
+    },
+  },
+  en: {
+    title: "Explore your space with a photo", intro: "Mark suspected noise paths and compare a trial for each area.",
+    privacy: "Your photo and markers stay in this browser. They are not uploaded or included in the shared link or PDF. Clearing browser data deletes them. Avoid people and private information.",
+    limitation: "Markers are your observations: a photo cannot measure noise or confirm its path. This is not an acoustic heat map.",
+    upload: "Choose a room photo", camera: "Take a photo", formats: "JPG, PNG or WebP, up to 12 MB. One photo per report. A smaller copy is saved without the original metadata.",
+    loading: "Preparing…", error: "We could not read or save the photo. Try JPG, PNG or WebP up to 12 MB and check browser storage and permissions. Up to 10 rooms can be saved.",
+    mark: "Choose an area and tap its position on the photo. You can also add a marker in the center and move it with the arrow keys.",
+    add: "Add a marker in the center", save: "Save markers and results", saved: "Saved in this browser.", unsaved: "You have unsaved changes.",
+    remove: "Delete photo and markers", removeZone: "Remove marker", note: "What did you observe?", outcome: "Comparison result", alt: "Your room photo with markers you added",
+    kinds: { window: "Window", door: "Door", wall: "Wall", desk: "Workspace" },
+    outcomes: { untested: "Not tried", better: "Better", same: "Same", worse: "Worse" },
+    checks: {
+      window: "While outside noise is present, compare the window open and closed. With it closed, listen near the frame and glass. If a visible gap seems responsible, check its fit before buying seals. Never block ventilation.",
+      door: "Compare the door open and closed during similar noise. Look for light under the door or around its frame. Suitable seals may help with a gap, but cannot fix transmission through walls. Do not modify fire doors or ventilation.",
+      wall: "Note voices, impacts or vibration and their timing. Compare near the wall and at your seat. This guides investigation but does not prove the sound path. Foam and decorative panels do not replace sound insulation.",
+      desk: "Without moving heavy equipment, compare your seat with a point farther from the suspected entry. Keep the activity the same and repeat during similar noise. Note whether working feels more comfortable.",
+    },
+  },
+}
