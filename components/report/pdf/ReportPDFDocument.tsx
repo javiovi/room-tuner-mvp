@@ -93,7 +93,7 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
   const layouts = personalization.layout ?? (() => {
     const current = initialLayout(project, analysis.roomDiagram.floorPlan)
     const moves = project.moveConstraints ?? DEFAULT_MOVES
-    return { current, proposal: proposeLayout(current, moves), moves, view: "current" as const, source: "schematic" as const }
+    return { confirmed: false, current, proposal: proposeLayout(current, moves), moves, view: "current" as const, source: "schematic" as const }
   })()
   const effectiveProject = { ...project, moveConstraints: layouts.moves }
   const experiments = getReportExperiments(effectiveProject, analysis.roomCharacter, t.experiments)
