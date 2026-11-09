@@ -61,8 +61,8 @@ export function RoomPhoto({ reportKey, goal }: { reportKey: string; goal: string
     <p className="text-xs text-muted-foreground">{c.privacy}</p>
     <p className="text-xs text-muted-foreground">{c.limitation}</p>
     {!data ? <fieldset disabled={busy} className="space-y-3">
-      <label className="block text-sm">{c.upload}<input className="block mt-2 w-full text-xs" type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{ void upload(e.target.files?.[0]); e.target.value="" }} /></label>
-      <label className="block text-sm">{c.camera}<input className="block mt-2 w-full text-xs" type="file" accept="image/*" capture="environment" onChange={e=>{ void upload(e.target.files?.[0]); e.target.value="" }} /></label>
+      <label className="block text-sm">{c.upload}<input className="block mt-2 w-full text-xs" type="file" accept="image/jpeg,image/png,image/webp" onChange={async e=>{ const input=e.currentTarget; await upload(input.files?.[0]); input.value="" }} /></label>
+      <label className="block text-sm">{c.camera}<input className="block mt-2 w-full text-xs" type="file" accept="image/*" capture="environment" onChange={async e=>{ const input=e.currentTarget; await upload(input.files?.[0]); input.value="" }} /></label>
       <p className="text-xs text-muted-foreground">{c.formats}</p>
     </fieldset> : <fieldset disabled={busy} className="space-y-4 min-w-0">
       <p className="text-sm">{c.mark}</p>
