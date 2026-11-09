@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 112" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Afiná — habitación en perspectiva con ondas acústicas</title>
+  <style>
+    .frame { stroke: var(--brand-ink, #101820); }
+    .detail { stroke: var(--brand-detail, #94a3b8); }
+    .wave { stroke: var(--brand-accent, #0284c7); }
+    @media (prefers-color-scheme: dark) {
+      .frame { stroke: var(--brand-ink, #e7eef3); }
+      .detail { stroke: var(--brand-detail, #7e93a3); }
+      .wave { stroke: var(--brand-accent, #4fc3f7); }
+    }
+  </style>
+  <path d="M6 82 28 70 75 93 50 107Z" fill="#94a3b8" opacity=".2"/>
+  <path class="detail" d="M6 33 28 40V70L6 82M28 70 84 83" stroke-width="3.2" stroke-linejoin="miter"/>
+  <path class="frame" d="M6 82V33L50 8 94 33V82L51 107" stroke-width="3.8" stroke-linejoin="miter"/>
+  <g class="wave" stroke-width="3.2" stroke-linecap="butt">
+    <path d="M44 45C54 54 54 64 44 73"/>
+    <path d="M48 31C70 45 72 71 49 88"/>
+    <path d="M52 20C85 40 85 78 55 98"/>
+  </g>
+</svg>

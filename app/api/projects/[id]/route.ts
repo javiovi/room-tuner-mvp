@@ -42,9 +42,10 @@ export async function GET(
       return NextResponse.json({ error: "Analysis not found" }, { status: 404 })
     }
 
+    const analysis = mapAnalysisRow(analysisRow)
     return NextResponse.json({
-      project: mapProjectRow(project),
-      analysis: mapAnalysisRow(analysisRow),
+      project: { ...mapProjectRow(project), ...analysis.inputContext },
+      analysis,
     })
   } catch (error) {
     logError("projects", "could not read the saved project", error)
@@ -58,10 +59,10 @@ function mapProjectRow(row: ProjectRow): RoomProject {
     lengthM: row.length_m ?? undefined,
     widthM: row.width_m ?? undefined,
     heightM: row.height_m ?? undefined,
-    floorType: row.floor_type as RoomProject["floorType"],
-    wallType: row.wall_type as RoomProject["wallType"],
-    speakerPlacement: row.speaker_placement as RoomProject["speakerPlacement"],
-    listeningPosition: row.listening_position as RoomProject["listeningPosition"],
+    floorType: (row.floor_type ?? undefined) as RoomProject["floorType"],
+    wallType: (row.wall_type ?? undefined) as RoomProject["wallType"],
+    speakerPlacement: (row.speaker_placement ?? undefined) as RoomProject["speakerPlacement"],
+    listeningPosition: (row.listening_position ?? undefined) as RoomProject["listeningPosition"],
     furniture: (row.furniture as string[] | null) ?? [],
     noiseMeasurement: (row.noise_measurement as RoomProject["noiseMeasurement"] | null) ?? undefined,
   }
@@ -72,6 +73,7 @@ function mapAnalysisRow(row: AnalysisRow): EnhancedAnalysisResponse {
   const roomMetrics = row.room_metrics as unknown as EnhancedAnalysisResponse["roomMetrics"]
 
   return {
+    inputContext: recommendations.inputContext as unknown as RoomProject | undefined,
     summary: row.summary ?? "",
     roomCharacter: row.room_character ?? "equilibrada",
     priorityScore: row.priority_score as unknown as EnhancedAnalysisResponse["priorityScore"],

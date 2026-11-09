@@ -2,6 +2,11 @@ import { z } from "zod"
 
 export const roomProjectSchema = z.object({
   goal: z.enum(["music", "instrument", "work"]).nullable(),
+  concern: z.enum(["clarity", "echo", "bass", "noise"]).optional(),
+  dimensionSource: z.enum(["measured", "approximate"]).optional(),
+  roomSize: z.enum(["small", "medium", "large"]).optional(),
+  roomShape: z.enum(["square", "rectangle"]).optional(),
+  moveConstraints: z.object({ speakers: z.boolean(), listening: z.boolean(), furniture: z.boolean() }).optional(),
   lengthM: z.number().positive().max(50).optional(),
   widthM: z.number().positive().max(50).optional(),
   heightM: z.number().positive().max(10).optional(),
@@ -29,9 +34,6 @@ export const roomProjectSchema = z.object({
 
 export const analyzeRoomRequestSchema = roomProjectSchema.extend({
   locale: z.enum(["es", "en"]).optional(),
-  // Id of a project this browser already saved. Re-analyzing then updates that row instead
-  // of leaving a new one behind for every tweak.
-  projectId: z.string().uuid().optional(),
 })
 
 const roomModeSchema = z.object({
@@ -82,7 +84,7 @@ const productRecommendationBlockSchema = z.object({
   items: z.array(productRecommendationSchema),
 })
 
-const roomDiagramSchema = z.object({
+export const roomDiagramSchema = z.object({
   floorPlan: z.object({
     width: z.number(),
     length: z.number(),
@@ -109,6 +111,7 @@ const roomDiagramSchema = z.object({
 })
 
 export const enhancedAnalysisSchema = z.object({
+  inputContext: roomProjectSchema.optional(),
   summary: z.string(),
   roomCharacter: z.enum(["viva", "equilibrada", "seca"]),
   priorityScore: z.object({
@@ -154,7 +157,21 @@ export const enhancedAnalysisSchema = z.object({
   generatedAt: z.string(),
 })
 
+export const reportPersonalizationSchema = z.object({
+  layout: z.object({
+    current: roomDiagramSchema.shape.floorPlan,
+    proposal: roomDiagramSchema.shape.floorPlan,
+    moves: z.object({ speakers: z.boolean(), listening: z.boolean(), furniture: z.boolean() }),
+    view: z.enum(["current", "proposal"]),
+    source: z.enum(["user", "schematic"]),
+  }).optional(),
+  experiments: z.record(z.enum(["symmetry", "quiet", "position", "dry", "echo"]), z.object({
+    tried: z.boolean(), outcome: z.enum(["better", "same", "worse"]).optional(), note: z.string().max(500),
+  })).optional(),
+})
+
 export const generatePdfRequestSchema = z.object({
+  personalization: reportPersonalizationSchema.optional(),
   project: roomProjectSchema,
   analysis: enhancedAnalysisSchema,
   locale: z.enum(["es", "en"]).optional(),

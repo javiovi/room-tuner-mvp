@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { ReportPDFDocument } from '@/components/report/pdf/ReportPDFDocument'
+import type { ReportPersonalization } from "@/lib/reportModel"
 import type { RoomProject, EnhancedAnalysisResponse } from '@/app/types/room'
 import { generatePdfRequestSchema } from '@/lib/validation/schemas'
 import { clientKey, rateLimit, tooManyRequests } from '@/lib/rateLimit'
@@ -14,7 +15,7 @@ export const maxDuration = 60 // 60 seconds max execution
  * PDF Generation API
  * Renders the room analysis report as a downloadable PDF
  */
-// Rendering a 9-page PDF is the most expensive thing this app does per request.
+// PDF rendering is the most expensive thing this app does per request.
 const RATE_LIMIT = { limit: 5, windowMs: 60_000 }
 
 export async function POST(req: Request) {
@@ -34,9 +35,10 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-    const { project, analysis, locale = "es" } = parsed.data as {
+    const { project, analysis, personalization, locale = "es" } = parsed.data as {
       project: RoomProject
       analysis: EnhancedAnalysisResponse
+      personalization?: ReportPersonalization
       locale?: string
     }
 
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
 
     // Render PDF document using renderToBuffer (better for serverless)
     const buffer = await renderToBuffer(
-      ReportPDFDocument({ project, analysis, locale })
+      ReportPDFDocument({ project, analysis, personalization, locale })
     )
 
     console.log('[PDF] PDF generated successfully, size:', buffer.length, 'bytes')

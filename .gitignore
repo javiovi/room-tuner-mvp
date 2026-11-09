@@ -46,3 +46,9 @@ progress.md
 notes.md
 todo.md
 FEATURES.md
+# Local research and generated review assets
+/RESEARCH_*.md
+/VALIDACION_ACUSTICA.md
+/output/
+
+/.pnpm-store/

@@ -47,7 +47,11 @@ export function isAudioSupported(): boolean {
     !!getAudioContextCtor()
 }
 
+export type AudioCaptureError = "denied" | "missing" | "busy" | "timeout" | "unsupported" | "unknown"
+
 export class AudioMeasurementEngine {
+  private disposed = false
+  error: AudioCaptureError = "unknown"
   private audioContext: AudioContext | null = null
   private analyser: AnalyserNode | null = null
   private stream: MediaStream | null = null
@@ -62,30 +66,58 @@ export class AudioMeasurementEngine {
   private decayCurve: Array<{ time: number; amplitude: number }> = []
 
   async requestPermission(): Promise<boolean> {
+    let timer: ReturnType<typeof setTimeout> | undefined
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-      })
-      const AudioContextCtor = getAudioContextCtor()
-      if (!AudioContextCtor) return false
-      this.audioContext = new AudioContextCtor()
-      // Safari/Chrome can start a freshly created context "suspended" even after a user
-      // gesture; without resuming it, getFloatTimeDomainData silently returns zeros.
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume()
+      if (!isAudioSupported()) {
+        this.error = "unsupported"
+        return false
       }
-      const source = this.audioContext.createMediaStreamSource(this.stream)
-      this.analyser = this.audioContext.createAnalyser()
-      this.analyser.fftSize = 2048
-      this.analyser.smoothingTimeConstant = 0.8
-      source.connect(this.analyser)
-      this.dataArray = new Float32Array(this.analyser.fftSize)
-      return true
+      // getUserMedia cannot be aborted. Stop late streams after cancel/timeout instead.
+      const capture = navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      }).then((stream) => {
+        if (this.disposed) {
+          stream.getTracks().forEach(track => track.stop())
+          throw new Error("capture-cancelled")
+        }
+        this.stream = stream
+        return stream
+      })
+      const setup = async () => {
+        const stream = await capture
+        const AudioContextCtor = getAudioContextCtor()
+        if (!AudioContextCtor) throw new Error("capture-unsupported")
+        const context = new AudioContextCtor()
+        this.audioContext = context
+        if (context.state === "suspended") await context.resume()
+        if (this.disposed) return false
+        const source = context.createMediaStreamSource(stream)
+        this.analyser = context.createAnalyser()
+        this.analyser.fftSize = 2048
+        this.analyser.smoothingTimeConstant = 0.8
+        source.connect(this.analyser)
+        this.dataArray = new Float32Array(this.analyser.fftSize)
+        return true
+      }
+      return await Promise.race([
+        setup(),
+        new Promise<boolean>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("capture-timeout")), 10_000)
+        }),
+      ])
     } catch (error) {
-      // Denied permission, no microphone, insecure context, a browser that won't resume
-      // the AudioContext — all land here and all look identical to the user. Say which.
-      logError("medicion", "could not start audio capture", error)
+      const name = error instanceof Error ? error.name : ""
+      const message = error instanceof Error ? error.message : ""
+      this.error = name === "NotAllowedError" || name === "SecurityError" ? "denied"
+        : name === "NotFoundError" || name === "OverconstrainedError" ? "missing"
+        : name === "NotReadableError" || name === "AbortError" ? "busy"
+        : message === "capture-timeout" ? "timeout"
+        : message === "capture-unsupported" ? "unsupported" : "unknown"
+      if (!this.disposed) logError("medicion", "could not start audio capture", error)
+      this.dispose()
       return false
+    } finally {
+      if (timer) clearTimeout(timer)
     }
   }
 
@@ -283,13 +315,14 @@ export class AudioMeasurementEngine {
   }
 
   dispose(): void {
+    this.disposed = true
     cancelAnimationFrame(this.animFrameId)
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop())
       this.stream = null
     }
     if (this.audioContext) {
-      this.audioContext.close()
+      void this.audioContext.close().catch(() => {})
       this.audioContext = null
     }
     this.analyser = null

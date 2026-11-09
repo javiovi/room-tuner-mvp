@@ -1,8 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { trackPilot } from "@/lib/analytics"
+import { readLocale } from "@/lib/locale"
+
+import { Suspense, useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
-import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, Activity, X, AlertTriangle } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, X, AlertTriangle } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
 import { Tabs } from "@/components/Tabs"
@@ -13,7 +17,8 @@ import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
 import { FrequencyResponseChart } from "@/components/report/FrequencyResponseChart"
 import { RoomModesChart } from "@/components/report/RoomModesChart"
 import { ProductTable } from "@/components/report/ProductTable"
-import { InteractiveRoomDiagram } from "@/components/report/InteractiveRoomDiagram"
+import { LayoutTrial } from "@/components/report/LayoutTrial"
+import { TodayExperiments } from "@/components/report/TodayExperiments"
 import { RecommendationSection } from "@/components/report/RecommendationSection"
 import { BudgetCalculator } from "@/components/report/BudgetCalculator"
 import { ActionPlan } from "@/components/report/ActionPlan"
@@ -22,47 +27,60 @@ import { useT } from "@/lib/i18n"
 import { PAYWALL_ENABLED } from "@/lib/paywall"
 
 export default function ResultadoPage() {
+  return <Suspense><ResultadoContent /></Suspense>
+}
+
+function ResultadoContent() {
+  const requestedId = useSearchParams().get("id")
   const analysis = useRoomStore((s) => s.analysis)
   const project = useRoomStore((s) => s.project)
+  const personalization = useRoomStore(s => s.reportPersonalization)
+  const projectId = useRoomStore((s) => s.projectId)
   const analysisPersisted = useRoomStore((s) => s.analysisPersisted)
   const hydrated = useRoomHydrated()
-  const updatePositions = useRoomStore((s) => s.updatePositions)
-  const updateProject = useRoomStore((s) => s.updateProject)
+  const replaceProject = useRoomStore((s) => s.replaceProject)
   const setAnalysis = useRoomStore((s) => s.setAnalysis)
   const [pdfLoading, setPdfLoading] = useState(false)
-  const [showHeatmap, setShowHeatmap] = useState(false)
   const [unlockNotice, setUnlockNotice] = useState(false)
   const [rehydrating, setRehydrating] = useState(false)
   const [rehydrateFailed, setRehydrateFailed] = useState(false)
-  const { t } = useT()
+  const { t, locale } = useT()
 
-  // On a hard refresh the store is empty (no persist middleware) but the analysis
-  // was already saved server-side — recover it from ?id= instead of showing "no analysis".
+  // The URL identifies the report even if this tab has a different report cached.
+  // Replace its answers rather than merging in fields from the previous room.
   useEffect(() => {
-    // Nothing to decide until the store is back from sessionStorage: after a refresh the
-    // report is usually already there, and re-fetching it would be wasted work.
-    if (!hydrated || analysis) return
-    const id = new URLSearchParams(window.location.search).get("id")
-    if (!id) return
-
+    if (!hydrated) return
+    const cached = useRoomStore.getState()
+    setRehydrateFailed(false)
+    setRehydrating(false)
+    if (!requestedId || (cached.analysis && cached.projectId === requestedId)) return
+    const controller = new AbortController()
     setRehydrating(true)
     setRehydrateFailed(false)
-    fetch(`/api/projects/${id}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+    fetch(`/api/projects/${encodeURIComponent(requestedId)}`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`Report fetch: ${res.status}`))))
       .then((data) => {
-        updateProject(data.project)
-        // It came back from the server, so by definition it is saved.
-        setAnalysis(data.analysis, { projectId: id, persisted: true })
+        if (controller.signal.aborted) return
+        replaceProject(data.project)
+        setAnalysis(data.analysis, { projectId: requestedId, persisted: true })
       })
       .catch((error) => {
+        if (controller.signal.aborted) return
         logError("resultado", "could not recover the saved report", error)
         setRehydrateFailed(true)
       })
-      .finally(() => setRehydrating(false))
-    // Only re-run if the store's analysis is cleared out from under us; the id in the
-    // URL doesn't change during this page's lifetime.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysis, hydrated])
+      .finally(() => { if (!controller.signal.aborted) setRehydrating(false) })
+    return () => controller.abort()
+  }, [requestedId, hydrated, replaceProject, setAnalysis])
+
+  const openedReport = useRef<string | null>(null)
+  useEffect(() => {
+    if (!hydrated || !analysis || rehydrating || rehydrateFailed || (requestedId && requestedId !== projectId)) return
+    const key = projectId ?? analysis.generatedAt
+    if (openedReport.current === key) return
+    openedReport.current = key
+    trackPilot("report_opened", { goal: project.goal ?? "unknown", mode: project.dimensionSource ?? "measured", persisted: analysisPersisted })
+  }, [hydrated, analysis, rehydrating, rehydrateFailed, requestedId, projectId, project.goal, project.dimensionSource, analysisPersisted])
 
   // ── PAYWALL FLAG ──
   // Dormant on purpose (see lib/paywall.ts): while the app is in open testing every
@@ -74,7 +92,9 @@ export default function ResultadoPage() {
     if (process.env.NEXT_PUBLIC_FORCE_UNLOCK === "true") return true
     if (typeof window !== "undefined") {
       if (new URLSearchParams(window.location.search).get("unlock") === "1") return true
-      if (localStorage.getItem("roomtuner_force_unlock") === "true") return true
+      try {
+        if (localStorage.getItem("roomtuner_force_unlock") === "true") return true
+      } catch { /* Storage may be disabled; the default access policy still applies. */ }
     }
     return false
   }, [])
@@ -85,7 +105,7 @@ export default function ResultadoPage() {
   useEffect(() => {
     if (!isUnlocked && analysis && !trackedView.current) {
       trackedView.current = true
-      const userLocale = localStorage.getItem("locale") || "es"
+      const userLocale = readLocale()
       const localCurrency: "ARS" | "USD" = userLocale === "en" ? "USD" : "ARS"
       const allProducts = [...analysis.lowBudgetChanges.items, ...analysis.advancedChanges.items]
       const localProducts = allProducts.filter((p) => p.currency === localCurrency)
@@ -102,8 +122,8 @@ export default function ResultadoPage() {
     }
   })
 
-  if (!analysis) {
-    if (!hydrated || rehydrating) {
+  if (!analysis || rehydrating || rehydrateFailed || (requestedId && requestedId !== projectId)) {
+    if (!hydrated || rehydrating || (requestedId && requestedId !== projectId && !rehydrateFailed)) {
       return (
         <CenteredLayout>
           <div className="space-y-4 text-center">
@@ -149,7 +169,8 @@ export default function ResultadoPage() {
         body: JSON.stringify({
           project,
           analysis,
-          locale: localStorage.getItem("locale") || "es",
+          personalization,
+          locale: readLocale(),
         }),
       })
 
@@ -161,10 +182,11 @@ export default function ResultadoPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      const loc = localStorage.getItem("locale") || "es"
+      const loc = readLocale()
       a.download = `roomtuner-${loc === "en" ? "report" : "reporte"}-${new Date().toISOString().split('T')[0]}.pdf`
       document.body.appendChild(a)
       a.click()
+      trackPilot("pdf_downloaded", { mode: project.dimensionSource ?? "measured" })
 
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
@@ -179,7 +201,6 @@ export default function ResultadoPage() {
   const {
     summary,
     roomCharacter,
-    priorityScore,
     roomMetrics,
     frequencyResponse,
     freeChanges,
@@ -187,17 +208,6 @@ export default function ResultadoPage() {
     advancedChanges,
     roomDiagram,
   } = analysis
-
-  // ── Measurement quality helper ──
-  const getMeasurementQuality = (): "high" | "medium" | "low" => {
-    const measured = roomMetrics.measuredRT60
-    if (measured?.confidence === "high") return "high"
-    if (measured?.confidence === "medium") return "medium"
-    if (measured?.confidence === "low") return "low"
-    if (measured || project.noiseMeasurement?.taken || project.measuredRT60) return "medium"
-    return "low"
-  }
-  const measurementQuality = getMeasurementQuality()
 
   // ── Analytics helper ──
   const track = (event: string, props?: Record<string, unknown>) => {
@@ -218,8 +228,6 @@ export default function ResultadoPage() {
     setTimeout(() => setUnlockNotice(false), 3500)
   }
 
-  const totalIssues = priorityScore.critical + priorityScore.improvements
-
   const goalLabels: Record<string, string> = {
     music: t.resultado.goalMusic,
     instrument: t.resultado.goalInstrument,
@@ -227,7 +235,7 @@ export default function ResultadoPage() {
   }
 
   // ── Budget teaser: compute range in local currency only ──
-  const userLocale = typeof window !== "undefined" ? localStorage.getItem("locale") || "es" : "es"
+  const userLocale = typeof window !== "undefined" ? readLocale() : "es"
   const localCurrency: "ARS" | "USD" = userLocale === "en" ? "USD" : "ARS"
 
   const allProducts = [...lowBudgetChanges.items, ...advancedChanges.items]
@@ -250,27 +258,19 @@ export default function ResultadoPage() {
       : undefined
 
   // ── Resumen tab content (shared between free and pro) ──
+  const approximate = project.dimensionSource === "approximate"
+  const planner = <LayoutTrial key={`layout-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} />
+  const refine = <div className="space-y-3 border border-primary/30 p-4 rounded-sm"><p className="text-sm">{t.layoutTrial.needDimensions}</p><Link className="inline-block text-sm text-primary underline min-h-11" href="/espacio?precision=1">{t.layoutTrial.refine}</Link></div>
+
   const resumenContent = (
     <div className="space-y-4">
-      {/* Priority Score Badges */}
-      <div className="flex items-center justify-center gap-2 flex-wrap">
-        {priorityScore.critical > 0 && (
-          <div className="px-3 py-1 border border-destructive/30 text-destructive text-xs font-medium rounded-sm">
-            {priorityScore.critical} {priorityScore.critical > 1 ? t.resultado.criticalPlural : t.resultado.criticalSingular}
-          </div>
-        )}
-        {priorityScore.improvements > 0 && (
-          <div className="px-3 py-1 border border-warning/30 text-warning text-xs font-medium rounded-sm">
-            {priorityScore.improvements} {priorityScore.improvements > 1 ? t.resultado.improvementPlural : t.resultado.improvementSingular}
-          </div>
-        )}
-        {priorityScore.optimizations > 0 && (
-          <div className="px-3 py-1 border border-primary/30 text-primary text-xs font-medium rounded-sm">
-            {priorityScore.optimizations} {priorityScore.optimizations > 1 ? t.resultado.optimizationPlural : t.resultado.optimizationSingular}
-          </div>
-        )}
-      </div>
-
+      {approximate && <div className="text-xs text-primary">{t.layoutTrial.approx}</div>}
+      {planner}
+      {approximate && refine}
+      <TodayExperiments concern={project.concern} constraints={project.moveConstraints} key={`experiments-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} goal={project.goal} roomCharacter={roomCharacter} />
+      {!approximate && <details className="border border-border rounded-sm p-4">
+        <summary className="cursor-pointer text-sm font-medium">{t.experiments.details}</summary>
+        <div className="space-y-4 pt-4">
       {/* Executive Summary */}
       <div className="bg-card border border-border rounded-sm p-4 space-y-3">
         <div className="flex items-center justify-between">
@@ -305,61 +305,19 @@ export default function ResultadoPage() {
         </div>
       </div>
 
-      {/* Room Metrics */}
-      <RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} />
-
-      {/* Measurement Quality */}
-      <div className="bg-card border border-border rounded-sm p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold text-foreground">
-              {t.resultado.measurementQualityTitle}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 text-[10px] font-medium border rounded-sm ${
-              measurementQuality === "high"
-                ? "border-primary/30 text-primary"
-                : measurementQuality === "medium"
-                  ? "border-warning/30 text-warning"
-                  : "border-destructive/30 text-destructive"
-            }`}>
-              {measurementQuality === "high"
-                ? t.resultado.measurementQualityHighLabel
-                : measurementQuality === "medium"
-                  ? t.resultado.measurementQualityMediumLabel
-                  : t.resultado.measurementQualityLowLabel}
-            </span>
-            <InfoTooltip text={t.resultado.measurementQualityTooltip} />
-          </div>
+        <div className="space-y-2 text-xs text-muted-foreground">
+          <h3 className="font-medium text-foreground">{t.experiments.sources}</h3>
+          <p>{t.experiments.geometry}</p>
+          {roomMetrics.measuredRT60 && <p>{t.experiments.clap}</p>}
+          {project.noiseMeasurement?.taken && <p>{t.experiments.noise}</p>}
+          {!roomMetrics.measuredRT60 && !project.noiseMeasurement?.taken && <p>{t.experiments.noAudio}</p>}
         </div>
-        <p className="text-xs text-muted-foreground">
-          {measurementQuality === "high"
-            ? t.resultado.measurementQualityHighDesc
-            : measurementQuality === "medium"
-              ? t.resultado.measurementQualityMediumDesc
-              : t.resultado.measurementQualityLowDesc}
-        </p>
-        <ul className="space-y-1.5 text-xs text-foreground">
-          <li className="flex items-start gap-2">
-            <span className="text-primary mt-0.5">•</span>
-            {measurementQuality === "high"
-              ? t.resultado.measurementQualityHighTip1
-              : measurementQuality === "medium"
-                ? t.resultado.measurementQualityMediumTip1
-                : t.resultado.measurementQualityLowTip1}
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-primary mt-0.5">•</span>
-            {measurementQuality === "high"
-              ? t.resultado.measurementQualityHighTip2
-              : measurementQuality === "medium"
-                ? t.resultado.measurementQualityMediumTip2
-                : t.resultado.measurementQualityLowTip2}
-          </li>
-        </ul>
-      </div>
+        </div>
+      </details>}
+      {!approximate && <details className="border border-border rounded-sm p-4">
+        <summary className="cursor-pointer text-sm font-medium">{t.experiments.more}</summary>
+        <div className="pt-4"><RecommendationSection recommendations={freeChanges} /></div>
+      </details>}
 
       {/* Budget Teaser (free only) */}
       {!isUnlocked && hasBudgetTeaser && (
@@ -385,26 +343,7 @@ export default function ResultadoPage() {
         </div>
       )}
 
-      {/* Next Steps */}
-      <div className="bg-card border border-border rounded-sm p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">
-          {t.resultado.nextStepsTitle}
-        </h2>
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex gap-3">
-            <span className="font-mono text-primary">01</span>
-            <span>{t.resultado.nextStep1}</span>
-          </div>
-          <div className="flex gap-3">
-            <span className="font-mono text-primary">02</span>
-            <span>{t.resultado.nextStep2}</span>
-          </div>
-          <div className="flex gap-3">
-            <span className="font-mono text-primary">03</span>
-            <span>{t.resultado.nextStep3}</span>
-          </div>
-        </div>
-      </div>
+
     </div>
   )
 
@@ -457,126 +396,44 @@ export default function ResultadoPage() {
     </div>
   )
 
-  // ── Pro tabs (all original tabs) ──
-  const proTabs = [
-    {
-      id: "resumen",
-      label: t.resultado.tabSummary,
-      badge: totalIssues > 0 ? totalIssues : undefined,
-      content: resumenContent,
-    },
-    {
-      id: "analisis",
-      label: t.resultado.tabAnalysis,
-      badge: roomMetrics.roomModes.filter((m) => m.severity === "high" && m.frequency < 300).length,
-      content: (
+  const tabs = [
+    { id: "resumen", label: t.experiments.today, content: resumenContent },
+    { id: "diagrama", label: t.experiments.plan, content: planner },
+    ...(approximate ? [] : isUnlocked ? [
+      { id: "analisis", label: t.experiments.understand, content: approximate ? refine : (
         <div className="space-y-4">
-          <FrequencyResponseChart data={frequencyResponse} />
+          <RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} />
           <RoomModesChart modes={roomMetrics.roomModes} />
+          <details className="border border-border rounded-sm p-4">
+            <summary className="cursor-pointer text-sm font-medium">{t.report.frequency.title}</summary>
+            <div className="pt-4"><FrequencyResponseChart data={frequencyResponse} /></div>
+          </details>
         </div>
-      ),
-    },
-    {
-      id: "diagrama",
-      label: t.resultado.tabDiagram,
-      content: (
+      ) },
+      { id: "mejoras", label: t.experiments.invest, content: approximate ? refine : (
         <div className="space-y-4">
-          <InteractiveRoomDiagram
-            diagram={roomDiagram}
-            roomModes={roomMetrics.roomModes}
-            showHeatmap={showHeatmap}
-            onToggleHeatmap={() => setShowHeatmap(prev => !prev)}
-            onPositionsChange={(positions) => {
-              updatePositions(
-                { speakers: positions.speakers, listeningPosition: positions.listeningPosition },
-                positions.furnitureLayout
-              )
-            }}
-          />
+          <p className="text-sm text-muted-foreground">{t.experiments.purchase}</p>
+          <BudgetCalculator lowBudgetProducts={lowBudgetChanges.items} advancedProducts={advancedChanges.items} />
+          <details className="border border-border rounded-sm p-4">
+            <summary className="cursor-pointer text-sm font-medium">{t.experiments.products}</summary>
+            <div className="space-y-4 pt-4"><ProductTable recommendations={lowBudgetChanges} /><ProductTable recommendations={advancedChanges} /></div>
+          </details>
+          <details className="border border-border rounded-sm p-4">
+            <summary className="cursor-pointer text-sm font-medium">{t.experiments.timeline}</summary>
+            <p className="text-xs text-muted-foreground py-3">{t.experiments.timelineNote}</p>
+            <ActionPlan roomCharacter={roomCharacter} hasBudget={true} />
+          </details>
         </div>
-      ),
-    },
-    {
-      id: "cambios-gratis",
-      label: t.resultado.tabFree,
-      badge: freeChanges.items.length,
-      content: (
-        <div className="space-y-4">
-          <RecommendationSection recommendations={freeChanges} icon="check" />
-        </div>
-      ),
-    },
-    {
-      id: "productos",
-      label: t.resultado.tabProducts,
-      badge: lowBudgetChanges.items.length + advancedChanges.items.length,
-      content: (
-        <div className="space-y-6">
-          <ProductTable recommendations={lowBudgetChanges} />
-          <ProductTable recommendations={advancedChanges} />
-        </div>
-      ),
-    },
-    {
-      id: "presupuesto",
-      label: t.resultado.tabBudget,
-      content: (
-        <div className="space-y-4">
-          <BudgetCalculator
-            lowBudgetProducts={lowBudgetChanges.items}
-            advancedProducts={advancedChanges.items}
-          />
-        </div>
-      ),
-    },
-    {
-      id: "plan",
-      label: t.resultado.tabPlan,
-      content: (
-        <div className="space-y-4">
-          <ActionPlan
-            roomCharacter={roomCharacter}
-            hasBudget={true}
-          />
-        </div>
-      ),
-    },
+      ) },
+    ] : [{ id: "informe-completo", label: t.resultado.tabFullReport, badge: "PRO", content: lockedReportContent }]),
   ]
-
-  // ── Free tabs (limited) ──
-  const freeTabs = [
-    {
-      id: "resumen",
-      label: t.resultado.tabSummary,
-      badge: totalIssues > 0 ? totalIssues : undefined,
-      content: resumenContent,
-    },
-    {
-      id: "cambios-gratis",
-      label: t.resultado.tabFree,
-      badge: freeChanges.items.length,
-      content: (
-        <div className="space-y-4">
-          <RecommendationSection recommendations={freeChanges} icon="check" />
-        </div>
-      ),
-    },
-    {
-      id: "informe-completo",
-      label: t.resultado.tabFullReport,
-      badge: "PRO",
-      content: lockedReportContent,
-    },
-  ]
-
-  const tabs = isUnlocked ? proTabs : freeTabs
 
   return (
     <CenteredLayout>
       {/* Header */}
       <div className="space-y-2 text-center">
         <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
-          {t.resultado.title}
+          {approximate ? t.layoutTrial.quickHeading : t.resultado.title}
         </h1>
         <p className="text-xs text-muted-foreground">
           {t.resultado.subtitle}
@@ -590,6 +447,12 @@ export default function ResultadoPage() {
 
       <StandingWaveMotif variant="hero" room={room} className="h-16 w-full" />
 
+      {analysisPersisted && <p className="text-xs text-muted-foreground">
+        {locale === "en"
+          ? "Anyone with this report link can read it. Layout edits and trial notes stay in this browser; include them in the PDF to share them."
+          : "Quien tenga el enlace puede leer este informe. Los ajustes del plano y las notas quedan en este navegador; incluílos en el PDF para compartirlos."}
+      </p>}
+
       {/* The report exists only in this tab — say so, instead of letting the user find out
           by opening the link on another device. */}
       {!analysisPersisted && (
@@ -597,7 +460,7 @@ export default function ResultadoPage() {
           <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" strokeWidth={2} />
           <div className="space-y-0.5">
             <p className="text-xs font-medium text-foreground">{t.resultado.notSavedTitle}</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{t.resultado.notSavedDesc}</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{approximate ? t.layoutTrial.unsavedDescription : t.resultado.notSavedDesc}</p>
           </div>
         </div>
       )}
@@ -624,7 +487,7 @@ export default function ResultadoPage() {
 
       {/* Actions */}
       <div className="space-y-3 pt-4 border-t border-border">
-        {isUnlocked ? (
+        {!approximate && (isUnlocked ? (
           <Button
             type="button"
             onClick={handleDownloadPDF}
@@ -646,7 +509,7 @@ export default function ResultadoPage() {
             <Lock className="w-4 h-4" />
             {t.resultado.pdfLocked}
           </Button>
-        )}
+        ))}
 
         <div className="text-center pt-2 space-y-2">
           <Link

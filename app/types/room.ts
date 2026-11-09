@@ -5,6 +5,12 @@ export type RoomGoal = "music" | "instrument" | "work"
 export interface RoomProject {
   goal: RoomGoal | null
 
+  concern?: "clarity" | "echo" | "bass" | "noise"
+  dimensionSource?: "measured" | "approximate"
+  roomSize?: "small" | "medium" | "large"
+  roomShape?: "square" | "rectangle"
+  moveConstraints?: { speakers: boolean; listening: boolean; furniture: boolean }
+
   // Dimensiones
   lengthM?: number
   widthM?: number
@@ -133,6 +139,7 @@ export interface RoomDiagram {
 }
 
 export interface EnhancedAnalysisResponse {
+  inputContext?: RoomProject
   // Executive Summary
   summary: string
   roomCharacter: "viva" | "equilibrada" | "seca"

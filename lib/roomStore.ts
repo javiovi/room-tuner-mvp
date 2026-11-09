@@ -1,6 +1,9 @@
 // app/lib/roomStore.ts
 "use client"
 
+import type { ReportPersonalization } from "@/lib/reportModel"
+import { readLocale } from "@/lib/locale"
+
 import { useEffect, useState } from "react"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
@@ -16,12 +19,16 @@ interface AnalysisMeta {
 }
 
 interface RoomState {
+  reportPersonalization: ReportPersonalization
+  setReportLayout: (layout: NonNullable<ReportPersonalization["layout"]>) => void
+  setReportExperiments: (experiments: NonNullable<ReportPersonalization["experiments"]>) => void
   project: RoomProject
   analysis: EnhancedAnalysisResponse | null
   projectId: string | null
   analysisPersisted: boolean
 
   setGoal: (goal: RoomGoal) => void
+  replaceProject: (project: RoomProject) => void
   updateProject: (partial: Partial<RoomProject>) => void
   setAnalysis: (analysis: EnhancedAnalysisResponse, meta?: AnalysisMeta) => void
   updatePositions: (
@@ -34,6 +41,9 @@ interface RoomState {
 export const useRoomStore = create<RoomState>()(
   persist(
     (set) => ({
+      reportPersonalization: {},
+      setReportLayout: (layout) => set(state => ({ reportPersonalization: { ...state.reportPersonalization, layout } })),
+      setReportExperiments: (experiments) => set(state => ({ reportPersonalization: { ...state.reportPersonalization, experiments } })),
       project: {
         goal: null,
       },
@@ -46,6 +56,8 @@ export const useRoomStore = create<RoomState>()(
           project: { ...state.project, goal },
         })),
 
+      replaceProject: (project) => set({ project }),
+
       updateProject: (partial) =>
         set((state) => ({
           project: { ...state.project, ...partial },
@@ -54,7 +66,8 @@ export const useRoomStore = create<RoomState>()(
       setAnalysis: (analysis, meta) =>
         set((state) => ({
           analysis,
-          projectId: meta?.projectId ?? state.projectId,
+          reportPersonalization: state.analysis?.generatedAt === analysis.generatedAt ? state.reportPersonalization : {},
+          projectId: meta?.projectId ?? null,
           analysisPersisted: meta?.persisted ?? Boolean(meta?.projectId),
         })),
 
@@ -65,7 +78,7 @@ export const useRoomStore = create<RoomState>()(
           const { roomMetrics, roomCharacter, roomDiagram } = state.analysis
           const furniture = furnitureLayout || roomDiagram.floorPlan.furnitureLayout
 
-          const isES = (typeof window !== "undefined" ? localStorage.getItem("locale") : null) !== "en"
+          const isES = (typeof window !== "undefined" ? readLocale() : null) !== "en"
 
           const { frequencyResponse, treatmentPlan } = recalculateForPositions(
             roomMetrics.roomModes,
@@ -97,6 +110,7 @@ export const useRoomStore = create<RoomState>()(
 
       reset: () =>
         set({
+          reportPersonalization: {},
           project: { goal: null },
           analysis: null,
           projectId: null,
@@ -116,6 +130,7 @@ export const useRoomStore = create<RoomState>()(
       // first client render matches the prerendered HTML. See useRoomHydrated().
       skipHydration: true,
       partialize: (state) => ({
+        reportPersonalization: state.reportPersonalization,
         project: state.project,
         analysis: state.analysis,
         projectId: state.projectId,

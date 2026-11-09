@@ -11,7 +11,7 @@ interface ClapTestProps {
   onError?: (error: string) => void
 }
 
-type ClapState = "idle" | "measuring_floor" | "waiting_clap" | "decay" | "done"
+type ClapState = "idle" | "requesting" | "measuring_floor" | "waiting_clap" | "decay" | "done"
 
 export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
   const { t } = useT()
@@ -20,61 +20,64 @@ export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
   const [noiseFloor, setNoiseFloor] = useState(0)
   const engineRef = useRef<AudioMeasurementEngine | null>(null)
 
+  const timersRef = useRef<Array<ReturnType<typeof setTimeout>>>([])
+
+  const stop = useCallback(() => {
+    timersRef.current.forEach(clearTimeout)
+    timersRef.current = []
+    engineRef.current?.dispose()
+    engineRef.current = null
+  }, [])
+
   const start = useCallback(async () => {
+    stop()
+    setResult(null)
+    setState("requesting")
     const engine = new AudioMeasurementEngine()
     engineRef.current = engine
-
+    const active = () => engineRef.current === engine
+    const fail = (message: string) => {
+      if (!active()) return
+      stop()
+      setState("idle")
+      onError?.(message)
+    }
     const ok = await engine.requestPermission()
+    if (!active()) return
     if (!ok) {
-      onError?.(t.medicion.permissionDenied)
+      fail(t.medicion.audioErrors[engine.error])
       return
     }
-
     setState("measuring_floor")
-
+    // Stop waiting indefinitely when silence/no impulse is detected.
+    const waitTimer = setTimeout(() => fail(t.medicion.clapTimeout), 12_000)
+    timersRef.current.push(waitTimer)
     engine.startClapDetection(
-      // onNoiseFloor
-      (db) => {
-        setNoiseFloor(Math.round(db))
-      },
-      // onDetected
-      () => {
-        setState("decay")
-      },
-      // onDecay — fires every frame while the decay curve is being captured; no per-frame
-      // side effects here, completion is handled once by onDecayComplete below.
+      (db) => { if (active()) setNoiseFloor(Math.round(db)) },
+      () => { if (active()) { clearTimeout(waitTimer); setState("decay") } },
       () => {},
-      // onDecayComplete — the engine calls this exactly once, right when its own capture
-      // loop naturally stops (early-exit or 3s cap), instead of guessing with a timeout.
       () => {
+        if (!active()) return
         const clapResult = engine.analyzeClapResult()
-        if (clapResult) {
-          setResult(clapResult)
-          setState("done")
-          onComplete(clapResult)
+        if (!clapResult || !Number.isFinite(clapResult.rt60)) {
+          fail(t.medicion.clapInvalid)
+          return
         }
-        engine.dispose()
+        stop()
+        setResult(clapResult)
+        setState("done")
+        onComplete(clapResult)
       }
     )
+    timersRef.current.push(setTimeout(() => {
+      if (active()) setState((prev) => prev === "measuring_floor" ? "waiting_clap" : prev)
+    }, 600))
+  }, [onComplete, onError, stop, t.medicion])
 
-    // After 500ms floor measurement, transition to waiting
-    setTimeout(() => {
-      setState((prev) => (prev === "measuring_floor" ? "waiting_clap" : prev))
-    }, 600)
-  }, [onComplete, onError, t.medicion.permissionDenied])
-
-  const retry = useCallback(() => {
-    engineRef.current?.dispose()
-    setResult(null)
-    setState("idle")
-    start()
-  }, [start])
-
-  useEffect(() => {
-    return () => {
-      engineRef.current?.dispose()
-    }
-  }, [])
+  const retry = useCallback(() => { void start() }, [start])
+  const skip = () => { stop(); onSkip() }
+  const cancel = () => { stop(); setState("idle") }
+  useEffect(() => stop, [stop])
 
   const confidenceLabel = (c: string) => {
     if (c === "high") return t.medicion.clapTestConfidenceHigh
@@ -144,7 +147,7 @@ export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
             {t.medicion.clapTestStart}
           </button>
           <button
-            onClick={onSkip}
+            onClick={skip}
             className="flex-1 bg-secondary text-secondary-foreground py-3 px-4 font-semibold text-sm rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all"
           >
             {t.medicion.clapTestSkip}
@@ -158,6 +161,7 @@ export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
 
   // Active measurement states
   const statusText =
+    state === "requesting" ? t.medicion.requesting :
     state === "measuring_floor" ? t.medicion.clapTestMeasuringFloor :
     state === "waiting_clap" ? t.medicion.clapTestWaiting :
     state === "decay" ? t.medicion.clapTestDetected : ""
@@ -169,6 +173,10 @@ export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
         <span className="text-sm font-semibold">{statusText}</span>
       </div>
 
+      <div className="flex gap-2">
+        <button type="button" onClick={cancel} className="flex-1 border border-border rounded-sm p-3 text-sm">{t.medicion.cancel}</button>
+        <button type="button" onClick={skip} className="flex-1 border border-border rounded-sm p-3 text-sm">{t.medicion.clapTestSkip}</button>
+      </div>
       {/* Visual feedback */}
       <div className="flex justify-center py-4">
         <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center transition-all ${
@@ -186,7 +194,7 @@ export function ClapTest({ onComplete, onSkip, onError }: ClapTestProps) {
 
       {state === "measuring_floor" && (
         <p className="text-xs text-muted-foreground text-center">
-          {t.medicion.noiseLevel}: {noiseFloor} dB
+          {t.medicion.noiseLevel}: {noiseFloor} · {t.experiments.relative}
         </p>
       )}
     </div>

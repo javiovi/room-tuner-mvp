@@ -1,5 +1,8 @@
 "use client"
 
+import { trackPilot } from "@/lib/analytics"
+import { readLocale } from "@/lib/locale"
+
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AlertTriangle } from "lucide-react"
@@ -13,7 +16,6 @@ import { useT } from "@/lib/i18n"
 export default function AnalizandoPage() {
   const router = useRouter()
   const project = useRoomStore((s) => s.project)
-  const projectId = useRoomStore((s) => s.projectId)
   const setAnalysis = useRoomStore((s) => s.setAnalysis)
   const hydrated = useRoomHydrated()
   const { t } = useT()
@@ -29,13 +31,11 @@ export default function AnalizandoPage() {
   const run = useCallback(async () => {
     setStatus("loading")
     try {
-      const locale = localStorage.getItem("locale") || "es"
+      const locale = readLocale()
       const res = await fetch("/api/analyze-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Sending the id of a project we already saved updates that row instead of
-        // leaving a new one behind every time the user tweaks a measurement and re-runs.
-        body: JSON.stringify({ ...project, projectId: projectId ?? undefined, locale }),
+        body: JSON.stringify({ ...project, locale }),
       })
 
       const data = await res.json()
@@ -50,10 +50,12 @@ export default function AnalizandoPage() {
           error: data?.error,
           details: data?.details,
         })
+        trackPilot("analysis_failed")
         setStatus("error")
         return
       }
 
+      trackPilot("analysis_completed", { goal: project.goal ?? "unknown", mode: project.dimensionSource ?? "measured", persisted: Boolean(data.persisted) })
       setAnalysis(data, {
         projectId: data.projectId ?? null,
         persisted: Boolean(data.persisted),
@@ -61,9 +63,10 @@ export default function AnalizandoPage() {
       router.push(data.projectId ? `/resultado?id=${data.projectId}` : "/resultado")
     } catch (error) {
       logError("analizando", "the analysis request never completed", error)
+      trackPilot("analysis_failed")
       setStatus("error")
     }
-  }, [project, projectId, router, setAnalysis])
+  }, [project, router, setAnalysis])
 
   // Wait for the store to come back from sessionStorage: on a refresh of this page the
   // first render still has an empty project, and analyzing that would 400.
