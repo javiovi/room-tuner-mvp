@@ -49,6 +49,10 @@ export default function ObjetivoPage() {
       </div>
 
       <label className="block text-sm">{t.journey.problem}<select value={project.concern ?? "clarity"} onChange={e => updateProject({ concern: e.target.value as "clarity" | "echo" | "bass" | "noise" })} className="block w-full mt-2 border border-border bg-background p-3">{(["clarity", "echo", "bass", "noise"] as const).map(value => <option key={value} value={value}>{t.layoutTrial[value]}</option>)}</select></label>
+      {project.concern === "noise" && <div className="space-y-3">
+        <label className="block text-sm">{t.noise.source}<select className="block w-full mt-2 border border-border bg-background p-3" value={project.noiseSource ?? "unknown"} onChange={e => updateProject({ noiseSource: e.target.value as typeof project.noiseSource })}>{(["unknown", "outside", "inside", "neighbors"] as const).map(value=><option key={value} value={value}>{t.noise[value]}</option>)}</select></label>
+        {project.noiseSource !== "inside" && <label className="block text-sm">{t.noise.entry}<select className="block w-full mt-2 border border-border bg-background p-3" value={project.noiseEntry ?? "unknown"} onChange={e=>updateProject({noiseEntry:e.target.value as typeof project.noiseEntry})}>{(["unknown", "window", "door", "wall"] as const).map(value=><option key={value} value={value}>{t.noise[value]}</option>)}</select></label>}
+      </div>}
       <div>
         <h2 className="text-sm font-medium mb-3">{t.journey.context}</h2>
         {objectives.map((objective) => (

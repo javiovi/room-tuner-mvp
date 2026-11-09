@@ -1,3 +1,4 @@
+import { noiseGuidance } from "@/lib/noiseGuidance"
 import React from "react"
 import { Document, Page, Text, View, StyleSheet, Link, Svg, Rect, Circle, Line, Polyline } from "@react-pdf/renderer"
 import type { EnhancedAnalysisResponse, RoomProject, ProductRecommendation } from "@/app/types/room"
@@ -175,6 +176,11 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
     </Page>
     <Page size="A4" style={s.page}>
       <Text style={s.title}>{say("Compras opcionales: decidir después de probar", "Optional purchases: decide after testing")}</Text>
+      {project.concern === "noise" ? <>
+        <Text style={s.body}>{t.noise.basis}</Text>
+        {project.noiseSource === "inside" ? <Text style={s.body}>{t.experiments.quietWhy}</Text> : noiseGuidance(project, t.noise).map(item=><View key={item.title} style={s.card}><Text style={s.sub}>{item.title}</Text><Text style={s.body}>{item.body}</Text></View>)}
+        <Text style={s.small}>{t.noise.limit}</Text><Text style={s.small}>{t.noise.verify}</Text>
+      </> : <>
       <Text style={s.body}>{say("Son opciones del catálogo, no una prescripción validada para tu sala. Las cantidades se obtienen con reglas simples de área y carácter estimado; confirmá cobertura, rendimiento por frecuencia y ubicación antes de comprar.", "These are catalog options, not a validated prescription for your room. Quantities use simple area and estimated-character rules; confirm coverage, frequency performance and placement before buying.")}</Text>
       {[analysis.lowBudgetChanges, analysis.advancedChanges].filter(block => block.items.length).map((block, b) => <View key={b}>
         <Text style={s.sub}>{b === 0 ? say("Opciones de menor inversión", "Lower investment options") : say("Opciones de mayor inversión", "Higher investment options")}</Text>
@@ -184,7 +190,8 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
       </View>)}
       <Text style={s.sub}>{say("Qué puede resolver cada tipo", "What each type can address")}</Text><Text style={s.body}>{say("Absorbentes y textiles: reflexiones en medios/agudos según espesor y montaje. Trampas de graves: pedir datos de absorción en las frecuencias problemáticas; no todo producto de esquina sirve. Difusores: evaluar distancia de uso y banda antes de agregarlos. Aislantes de apoyo: vibración del equipo, no aislamiento de paredes.", "Absorbers and textiles: mid/treble reflections depending on thickness and mounting. Bass traps: request absorption data at the relevant frequencies; not every corner product works. Diffusers: check working distance and band. Isolation pads: equipment vibration, not wall sound isolation.")}</Text>
       <Text style={s.small}>{say("Fuente de precios: importes incluidos en el análisis, con catálogo de referencia. No hay cotización de proveedor confirmada ni fecha de actualización garantizada. Fecha del informe no equivale a fecha del precio. Envío e instalación no incluidos. Los enlaces pueden llevar a una búsqueda, no al producto exacto.", "Price source: values included in the analysis, using the reference catalog. No confirmed supplier quote or guaranteed update date. Report date is not price date. Shipping and installation excluded. Links may lead to a search, not an exact item.")}</Text>
-      <Text style={s.small}>{say("Los niveles de inversión son alternativas, no listas que deban sumarse. Antes de elegir, verificá las restricciones y repetí las pruebas relevantes.", "Investment levels are alternatives, not lists to add together. Check restrictions and repeat relevant experiments before choosing.")}</Text><Footer english={english} />
+      <Text style={s.small}>{say("Los niveles de inversión son alternativas, no listas que deban sumarse. Antes de elegir, verificá las restricciones y repetí las pruebas relevantes.", "Investment levels are alternatives, not lists to add together. Check restrictions and repeat relevant experiments before choosing.")}</Text>      </>}
+      <Footer english={english} />
     </Page>
     <Page size="A4" style={s.page}>
       <Text style={s.title}>{say("Apéndice: cálculos y referencias", "Appendix: calculations and references")}</Text>

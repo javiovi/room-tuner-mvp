@@ -5,6 +5,8 @@ export type RoomGoal = "music" | "instrument" | "work"
 export interface RoomProject {
   goal: RoomGoal | null
 
+  noiseSource?: "outside" | "inside" | "neighbors" | "unknown"
+  noiseEntry?: "window" | "door" | "wall" | "unknown"
   concern?: "clarity" | "echo" | "bass" | "noise"
   dimensionSource?: "measured" | "approximate"
   roomSize?: "small" | "medium" | "large"

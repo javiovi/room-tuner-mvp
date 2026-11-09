@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 test("the report link wins over another room cached in the same tab", async ({ page }) => {
   await page.route(`**/api/projects/${newId}`, route => route.fulfill({
-    json: { project: { goal: "work", dimensionSource: "approximate", concern: "noise", lengthM: 3, widthM: 3, heightM: 2.5 },
+    json: { project: { goal: "work", dimensionSource: "approximate", concern: "noise", noiseSource: "inside", lengthM: 3, widthM: 3, heightM: 2.5 },
       analysis: { ...mockAnalysis, generatedAt: "2026-11-06T12:00:00Z", inputContext: { dimensionSource: "approximate", concern: "noise" } } },
   }))
   await page.goto(`/resultado?id=${newId}`)
