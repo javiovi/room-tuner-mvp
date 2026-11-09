@@ -2,6 +2,8 @@ import { z } from "zod"
 
 export const roomProjectSchema = z.object({
   goal: z.enum(["music", "instrument", "work"]).nullable(),
+  noiseSource: z.enum(["outside", "inside", "neighbors", "unknown"]).optional(),
+  noiseEntry: z.enum(["window", "door", "wall", "unknown"]).optional(),
   concern: z.enum(["clarity", "echo", "bass", "noise"]).optional(),
   dimensionSource: z.enum(["measured", "approximate"]).optional(),
   roomSize: z.enum(["small", "medium", "large"]).optional(),
@@ -166,7 +168,7 @@ export const reportPersonalizationSchema = z.object({
     view: z.enum(["current", "proposal"]),
     source: z.enum(["user", "schematic"]),
   }).optional(),
-  experiments: z.record(z.enum(["symmetry", "quiet", "position", "dry", "echo"]), z.object({
+  experiments: z.record(z.enum(["symmetry", "quiet", "position", "dry", "echo", "windowClose", "doorClose", "quietSpot", "noisePath"]), z.object({
     tried: z.boolean(), outcome: z.enum(["better", "same", "worse", "unable"]).optional(), note: z.string().max(500),
   })).optional(),
 })

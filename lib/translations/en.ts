@@ -1,6 +1,33 @@
 import type { Translations } from "./es"
 
 export const en: Translations = {
+  noise: {
+    "source": "Where does the noise come from?",
+    "outside": "Street or outdoors",
+    "inside": "Equipment inside the room",
+    "neighbors": "Neighbours or another room",
+    "unknown": "Not sure",
+    "entry": "Where does it seem to enter?",
+    "window": "Window",
+    "door": "Door",
+    "wall": "Wall, ceiling or floor",
+    "options": "Improvements to consider",
+    "free": "With things you already have",
+    "budget": "If you find a gap",
+    "work": "If noise remains with everything closed",
+    "freeAdvice": "Compare with the opening properly closed. If you can move, try a more sheltered position or room while keeping the same activity. Do not cover ventilation or block exits.",
+    "sealAdvice": "A suitable weatherstrip may help a gap between the sash or leaf and frame. For a damaged fixed joint, consider a sealant compatible with that joint. Choose by opening type and gap size, not a generic soundproofing promise.",
+    "workAdvice": "A window may need closure repairs, a better complete assembly or secondary interior glazing. If noise comes through walls, ceilings or as vibration, assess that path before buying materials.",
+    "limit": "Curtains, rugs and absorptive panels can reduce indoor echoes; they do not replace isolation from incoming noise. We cannot promise a reduction in dB.",
+    "sources": "Basis for these options",
+    "when": "When it makes sense",
+    "sealWhen": "Only after finding a gap or damaged joint at that door or window.",
+    "verify": "After a change, compare from the same desk with a similar noise source. Do not attribute quieter traffic to the improvement.",
+    "unknownAdvice": "We do not yet know the entry path. Compare closures first; this information is insufficient to select isolation materials.",
+    "wallAdvice": "Noise through walls, ceilings, floors or vibration requires assessment of the complete assembly and its junctions. A weatherstrip or absorptive panel alone does not solve that transmission. Seek an assessment before building work or buying a lining.",
+    "doorWorkAdvice": "If closures and seals are sound but noise remains, assess the door, frame and seals as a whole. Replacing one part may leave other transmission paths.",
+    "basis": "These options are supported by noise-control guidance, but have not been verified in your room. We do not calculate how much they will help."
+},
   journey: {
     "start": "Start with this experiment",
     "problem": "Your priority",
@@ -123,6 +150,23 @@ export const en: Translations = {
     "preview": "View the layout and try another arrangement"
 },
   experiments: {
+    "windowCloseTitle": "Compare with the window properly closed",
+    "windowCloseAction": "If open or ajar, close and latch the window normally. Listen from your desk without changing music volume or switching equipment off. If already closed, check that the sash seats properly without forcing it.",
+    "windowCloseWhy": "The opening and its seals may be a path for outdoor noise.",
+    "windowCloseCheck": "Compare while outdoor noise is similar. Are voices or traffic less distracting? If a different vehicle passes, repeat before drawing a conclusion.",
+    "doorCloseTitle": "Compare with the door closed",
+    "doorCloseAction": "Close the door between your desk and the noise, then listen from the same position. Leave other openings unchanged.",
+    "doorCloseWhy": "It may reduce direct incoming noise if the door separates the source from your desk.",
+    "doorCloseCheck": "Is conversation easier or noise less distracting? Compare with a similar source without changing volume.",
+    "quietSpotTitle": "Try a more sheltered work position",
+    "quietSpotAction": "If you can move, compare your desk with another position or room away from the opening or surface where noise enters. Keep the same activity.",
+    "quietSpotWhy": "Moving the work position may provide relief without building work. The result depends on the noise path.",
+    "quietSpotCheck": "Can you work or talk with less effort? Repeat when outdoor noise is similar.",
+    "noisePathTitle": "Check the entry path before choosing an improvement",
+    "noisePathAction": "During a steady noise, compare from your desk while closing doors and windows one at a time. If noise remains unchanged with everything closed or arrives as vibration, note where it is most noticeable.",
+    "noisePathWhy": "This helps decide whether to examine a closure, joint or transmission through the building.",
+    "noisePathCheck": "Does any closure clearly change the disturbance? The options below explain what to try or assess for each case.",
+
     guidedRecord: "Record of the guided layout experiment. Add a note to remember what you changed.",
     "today": "What to try today",
     "plan": "Room layout",
@@ -198,9 +242,9 @@ export const en: Translations = {
 
   landing: {
     // Hero
-    heroH1: "A first change for",
-    heroH1Highlight: "better listening in your space",
-    heroSubtitle: "Tell us what bothers you. Try a free experiment and compare whether it helps.",
+    heroH1: "A guide to improve",
+    heroH1Highlight: "your room’s acoustics",
+    heroSubtitle: "Echoes when talking, distracting noise at work or boomy bass? Get changes to try and concrete improvements to consider for your situation.",
 
     // Mode selector
     modeTitle: "Choose your mode",
@@ -223,7 +267,7 @@ export const en: Translations = {
     bulletWork3: "Daily acoustic comfort",
 
     // CTAs
-    ctaStart: "Find my first experiment",
+    ctaStart: "See what I can improve",
     ctaExample: "How it works",
 
     // Free vs Paid

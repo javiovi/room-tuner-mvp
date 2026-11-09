@@ -1,4 +1,31 @@
 export const es = {
+  noise: {
+    "source": "¿De dónde viene el ruido?",
+    "outside": "De la calle o del exterior",
+    "inside": "De un equipo dentro de la habitación",
+    "neighbors": "De vecinos u otra habitación",
+    "unknown": "No estoy seguro",
+    "entry": "¿Por dónde parece entrar?",
+    "window": "Ventana",
+    "door": "Puerta",
+    "wall": "Pared, techo o piso",
+    "options": "Qué mejoras podés considerar",
+    "free": "Con lo que ya tenés",
+    "budget": "Si encontrás una fuga",
+    "work": "Si sigue entrando con todo cerrado",
+    "freeAdvice": "Compará con la abertura bien cerrada. Si podés cambiar de lugar, probá una zona o habitación más resguardada, manteniendo la misma actividad. No tapes ventilaciones ni bloquees salidas.",
+    "sealAdvice": "Un burlete adecuado puede ayudar si hay holgura entre hoja y marco. Para una junta fija deteriorada, revisá un sellador compatible con esa unión. Comprá según el tipo de abertura y la rendija; no por una promesa genérica de insonorización.",
+    "workAdvice": "En una ventana puede hacer falta reparar el cierre, mejorar el conjunto o evaluar una segunda ventana interior. Si llega por paredes, techo o vibraciones, conviene evaluar esa vía antes de comprar materiales.",
+    "limit": "Las cortinas, alfombras y paneles absorbentes pueden reducir el eco interior; no sustituyen el aislamiento del ruido que entra. No podemos prometer una reducción en dB.",
+    "sources": "Fundamentos de estas opciones",
+    "when": "Cuándo tiene sentido",
+    "sealWhen": "Solo si comprobaste una holgura o junta deteriorada en esa puerta o ventana.",
+    "verify": "Después del cambio, compará desde el mismo puesto con una fuente de ruido parecida. No atribuyas a la mejora que haya pasado menos tráfico.",
+    "unknownAdvice": "Todavía no sabemos la vía de entrada. Primero compará los cierres; no elegimos materiales de aislamiento con esta información.",
+    "wallAdvice": "Si llega por pared, techo, piso o como vibración, una solución fiable requiere revisar el conjunto y sus uniones. Un burlete o un panel absorbente no resuelve por sí solo esa transmisión. Pedí una evaluación antes de hacer obra o comprar un revestimiento.",
+    "doorWorkAdvice": "Si el cierre y las juntas están bien y el ruido sigue, evaluá el conjunto de puerta, marco y sellos. Cambiar una pieza aislada puede dejar otras vías de entrada.",
+    "basis": "Estas son opciones respaldadas por guías de control de ruido; no están verificadas en tu habitación. No calculamos cuánto mejorarán."
+},
   journey: {
     "start": "Empezá por esta prueba",
     "problem": "Tu prioridad",
@@ -121,6 +148,23 @@ export const es = {
     "preview": "Ver el plano y probar otra distribución"
 },
   experiments: {
+    "windowCloseTitle": "Compará con la ventana bien cerrada",
+    "windowCloseAction": "Si está abierta o entreabierta, cerrala y accioná su cierre normal. Escuchá desde tu puesto sin cambiar el volumen de música ni apagar otros equipos. Si ya estaba cerrada, verificá que la hoja asiente correctamente sin forzarla.",
+    "windowCloseWhy": "La abertura y sus juntas pueden ser una vía de entrada del ruido exterior.",
+    "windowCloseCheck": "Compará mientras el ruido exterior sea parecido. ¿Las voces o el tráfico se perciben menos molestos? Si pasa un vehículo distinto, repetí antes de concluir.",
+    "doorCloseTitle": "Compará con la puerta cerrada",
+    "doorCloseAction": "Cerrá la puerta que separa tu puesto del ruido y volvé a escuchar desde el mismo lugar. Dejá las demás aberturas como estaban.",
+    "doorCloseWhy": "Puede reducir la entrada directa de ruido si la puerta queda entre la fuente y tu puesto.",
+    "doorCloseCheck": "¿Se entiende mejor una conversación o te distrae menos el ruido? Compará con una fuente similar y sin cambiar el volumen.",
+    "quietSpotTitle": "Probá un puesto más resguardado",
+    "quietSpotAction": "Si podés cambiar de lugar, compará tu puesto con otra zona o habitación alejada de la abertura o pared por donde llega el ruido. Mantené la misma actividad.",
+    "quietSpotWhy": "Cambiar el lugar de trabajo puede dar alivio sin modificar la construcción. El resultado depende del recorrido del ruido.",
+    "quietSpotCheck": "¿Podés trabajar o conversar con menos esfuerzo? Repetí cuando el ruido exterior sea similar.",
+    "noisePathTitle": "Revisá la vía de entrada antes de elegir una mejora",
+    "noisePathAction": "Durante un ruido estable, compará desde tu puesto con puertas y ventanas cerradas de a una. Si se oye igual con todo cerrado o llega como vibración, anotá la zona donde es más perceptible.",
+    "noisePathWhy": "Esto orienta si conviene revisar un cierre, una junta o una transmisión por la construcción.",
+    "noisePathCheck": "¿Algún cierre cambia claramente la molestia? Las opciones de abajo explican qué probar o evaluar en cada caso.",
+
     guidedRecord: "Registro de la prueba guiada del plano. Agregá una nota para recordar lo que cambiaste.",
     "today": "Qué probar hoy",
     "plan": "Plano",
@@ -196,9 +240,9 @@ export const es = {
 
   landing: {
     // Hero
-    heroH1: "Un primer cambio para",
-    heroH1Highlight: "escuchar mejor en tu espacio",
-    heroSubtitle: "Contanos qué te molesta. Elegí una prueba sin costo y compará si te ayuda.",
+    heroH1: "Una guía para mejorar",
+    heroH1Highlight: "la acústica de tu habitación",
+    heroSubtitle: "¿Hay eco al hablar, ruido que distrae al trabajar o graves que retumban? Te proponemos cambios para probar y mejoras concretas para evaluar según tu caso.",
 
     // Mode selector
     modeTitle: "Eleg\u00ed tu modo",
@@ -221,7 +265,7 @@ export const es = {
     bulletWork3: "Confort ac\u00fastico diario",
 
     // CTAs
-    ctaStart: "Encontrar mi primera prueba",
+    ctaStart: "Ver qué puedo mejorar",
     ctaExample: "Cómo funciona",
 
     // Free vs Paid
