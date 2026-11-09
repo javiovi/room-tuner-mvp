@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 import { readFileSync } from "node:fs"
 import { mockAnalysis } from "../lib/mockData"
 
-const photo = readFileSync(new URL("../public/placeholder.jpg", import.meta.url))
+const photo = readFileSync("public/placeholder.jpg")
 test.beforeEach(async ({ page })=>{
   await page.addInitScript(analysis=>{
     if (!sessionStorage.getItem("roomtuner-session")) sessionStorage.setItem("roomtuner-session",JSON.stringify({ version:1,state:{
