@@ -20,7 +20,7 @@ test("the report link wins over another room cached in the same tab", async ({ p
       analysis: { ...mockAnalysis, generatedAt: "2026-11-06T12:00:00Z", inputContext: { dimensionSource: "approximate", concern: "noise" } } },
   }))
   await page.goto(`/resultado?id=${newId}`)
-  await expect(page.getByText("Orientación rápida · dimensiones supuestas")).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Identificá una fuente de ruido" })).toBeVisible()
   await expect(page.getByRole("tab")).toHaveCount(2)
   const state = await page.evaluate(() => JSON.parse(sessionStorage.getItem("roomtuner-session")!).state)
   expect(state.projectId).toBe(newId)

@@ -8,7 +8,7 @@ export function LayoutComparison({ current, proposal, approximate, preview = fal
   const { t, locale } = useT()
   const c = t.layoutTrial
   const geometry = compareLayoutGeometry(current, proposal)
-  const format = (distance: number) => `${new Intl.NumberFormat(locale === "en" ? "en-US" : "es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(distance)} m`
+  const format = (distance: number) => `≈ ${new Intl.NumberFormat(locale === "en" ? "en-US" : "es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(distance)} m`
   const objectLabels = [c.left, c.right, c.listening]
   const wallLabels = { left: c.wallLeft, right: c.wallRight, top: c.wallTop, bottom: c.wallBottom }
   if (!geometry) return <p role="status" className="text-xs text-muted-foreground">{c.measurementsMissing}</p>

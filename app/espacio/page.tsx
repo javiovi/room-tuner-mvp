@@ -23,7 +23,7 @@ export default function EspacioPage() {
   const hydrated = useRoomHydrated()
   const { t } = useT()
   const [concern, setConcern] = useState<"clarity" | "echo" | "bass" | "noise">("clarity")
-  const [mode, setMode] = useState<"measured" | "approximate">("measured")
+  const [mode, setMode] = useState<"measured" | "approximate">("approximate")
   const [size, setSize] = useState<"small" | "medium" | "large">("medium")
   const [shape, setShape] = useState<"square" | "rectangle">("rectangle")
   const [formData, setFormData] = useState({
@@ -41,7 +41,7 @@ export default function EspacioPage() {
     if (!hydrated || seeded.current) return
     seeded.current = true
     setConcern(project.concern ?? "clarity")
-    setMode(new URLSearchParams(window.location.search).get("precision") === "1" ? "measured" : project.dimensionSource ?? "measured")
+    setMode(new URLSearchParams(window.location.search).get("precision") === "1" ? "measured" : project.dimensionSource ?? "approximate")
     setSize(project.roomSize ?? "medium")
     setShape(project.roomShape ?? "rectangle")
     setFormData((prev) => ({
@@ -68,8 +68,7 @@ export default function EspacioPage() {
     formData.largo !== "" && largoNum > 0 &&
     formData.ancho !== "" && anchoNum > 0 &&
     formData.altura !== "" && alturaNum > 0)) &&
-    formData.tipoPiso !== "" &&
-    formData.tipoParedes !== ""
+    (mode === "approximate" || (formData.tipoPiso !== "" && formData.tipoParedes !== ""))
 
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,12 +79,12 @@ export default function EspacioPage() {
       lengthM: formData.largo ? Number(formData.largo) : undefined,
       widthM: formData.ancho ? Number(formData.ancho) : undefined,
       heightM: formData.altura ? Number(formData.altura) : undefined,
-      floorType: formData.tipoPiso as RoomProject["floorType"],
-      wallType: formData.tipoParedes as RoomProject["wallType"],
-      ...(mode === "approximate" ? approximateDimensions(size, shape) : {}),
+      floorType: (formData.tipoPiso || undefined) as RoomProject["floorType"],
+      wallType: (formData.tipoParedes || undefined) as RoomProject["wallType"],
+      ...(mode === "approximate" ? { ...approximateDimensions(size, shape), noiseMeasurement: undefined, measuredRT60: undefined } : {}),
     })
 
-    router.push("/disposicion")
+    router.push(mode === "approximate" ? "/analizando" : "/disposicion")
   }
 
   return (
@@ -108,7 +107,6 @@ export default function EspacioPage() {
       </div>
 
       <form className="space-y-4" onSubmit={handleContinue}>
-        <label className="block text-sm">{t.layoutTrial.problem}<select className="block w-full border border-border bg-background p-3 mt-2" value={concern} onChange={e => setConcern(e.target.value as typeof concern)}>{(["clarity", "echo", "bass", "noise"] as const).map(value => <option key={value} value={value}>{t.layoutTrial[value]}</option>)}</select></label>
         <div className="flex gap-2" role="group" aria-label={t.espacio.dimensions}>
           {(["measured", "approximate"] as const).map(value => <button key={value} type="button" aria-pressed={mode === value} onClick={() => setMode(value)} className={`flex-1 border p-3 rounded-sm text-sm ${mode === value ? "border-primary text-primary" : "border-border"}`}>{value === "measured" ? t.layoutTrial.exact : t.layoutTrial.quick}</button>)}
         </div>
@@ -178,6 +176,7 @@ export default function EspacioPage() {
 
         </>}
         {/* Materiales */}
+        <details open={mode === "measured"}><summary className="cursor-pointer min-h-11 text-sm">{t.journey.optional}</summary>
         <div className="space-y-3">
           <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
             {t.espacio.materials}
@@ -238,7 +237,7 @@ export default function EspacioPage() {
           </div>
 
           <InfoCallout label={t.common.info}>{t.espacio.materialsInfo}</InfoCallout>
-        </div>
+        </div></details>
 
         <Button type="submit" disabled={!isValid} className="w-full">{t.common.next}</Button>
       </form>

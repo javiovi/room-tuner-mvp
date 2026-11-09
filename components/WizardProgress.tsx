@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { WIZARD_STEPS } from "@/lib/wizardSteps"
 import { useT } from "@/lib/i18n"
+import { useRoomStore } from "@/lib/roomStore"
 import { cn } from "@/lib/utils"
 
 /** Blueprint grammar: a dimension line with tick marks, not a segmented pill bar.
@@ -10,11 +11,13 @@ import { cn } from "@/lib/utils"
 export function WizardProgress() {
   const pathname = usePathname()
   const { locale } = useT()
-  const index = WIZARD_STEPS.findIndex((step) => step.path === pathname)
+  const source = useRoomStore(s => s.project.dimensionSource)
+  const steps = source !== "measured" && (pathname === "/objetivo" || pathname === "/espacio") ? WIZARD_STEPS.slice(0, 2) : WIZARD_STEPS
+  const index = steps.findIndex((step) => step.path === pathname)
 
   if (index === -1) return null
 
-  const total = WIZARD_STEPS.length
+  const total = steps.length
 
   return (
     <div className="pb-1">
@@ -28,7 +31,7 @@ export function WizardProgress() {
         aria-valuemax={total}
         className="relative h-3 border-t border-muted-foreground/30"
       >
-        {WIZARD_STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const left = (i / (total - 1)) * 100
           const isCurrent = i === index
           const isDone = i < index

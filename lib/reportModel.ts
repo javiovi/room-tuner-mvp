@@ -4,7 +4,7 @@ import type { Layout, MoveConstraints } from "@/lib/layoutTrial"
 import type { ExperimentRecords } from "@/lib/reportExperiments"
 
 export interface ReportPersonalization {
-  layout?: { current: Layout; proposal: Layout; moves: MoveConstraints; view: "current" | "proposal"; source: "user" | "schematic" }
+  layout?: { confirmed?: boolean; current: Layout; proposal: Layout; moves: MoveConstraints; view: "current" | "proposal"; source: "user" | "schematic" }
   experiments?: ExperimentRecords
 }
 export function surfaceAbsorption(project: RoomProject) {

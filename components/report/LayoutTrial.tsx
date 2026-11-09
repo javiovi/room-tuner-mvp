@@ -8,26 +8,24 @@ import { DEFAULT_MOVES, clampPoint, initialLayout, proposeLayout, type Layout, t
 import { roomDiagramSchema } from "@/lib/validation/schemas"
 import { useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
-import { getReportExperiments, type ExperimentRecord } from "@/lib/reportExperiments"
+import { getReportExperiments } from "@/lib/reportExperiments"
 import { PlanObject } from "./PlanObject"
 import { LayoutComparison } from "./LayoutComparison"
 
 const savedSchema = z.object({
   current: roomDiagramSchema.shape.floorPlan,
   proposal: roomDiagramSchema.shape.floorPlan,
+  confirmed: z.boolean().optional(),
   moves: z.object({ speakers: z.boolean(), listening: z.boolean(), furniture: z.boolean() }),
 })
 
-export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equilibrada" }: { reportKey: string; project: RoomProject; diagram: RoomDiagram; roomCharacter?: "viva" | "equilibrada" | "seca" }) {
+export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equilibrada", experimentId }: { reportKey: string; project: RoomProject; diagram: RoomDiagram; roomCharacter?: "viva" | "equilibrada" | "seca"; experimentId?: string }) {
   const { t } = useT()
   const setReportLayout = useRoomStore(s => s.setReportLayout)
   const updateProject = useRoomStore(s => s.updateProject)
   const c = t.layoutTrial
   const arrowId = useId().replace(/:/g, "")
-  const records = useRoomStore(s => s.reportPersonalization.experiments)
-  const setReportExperiments = useRoomStore(s => s.setReportExperiments)
-  const [recordingId, setRecordingId] = useState<string | null>(null)
-  const [recordStorageError, setRecordStorageError] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
   const [previewRun, setPreviewRun] = useState(0)
   const [previewAtTarget, setPreviewAtTarget] = useState(false)
   const [seed] = useState(() => initialLayout(project, diagram.floorPlan))
@@ -49,6 +47,7 @@ export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equi
     try {
       const parsed = savedSchema.safeParse(JSON.parse(localStorage.getItem(storageKey) ?? "null"))
       if (parsed.success) {
+        setConfirmed(parsed.data.confirmed === true)
         setCurrent(parsed.data.current)
         setProposal(parsed.data.proposal)
         setSource("user")
@@ -66,35 +65,29 @@ export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equi
     return () => window.clearTimeout(timer)
   }, [previewRun])
 
-  const experiment = getReportExperiments({ ...project, moveConstraints: moves }, roomCharacter, t.experiments)[0]
+  const available = getReportExperiments({ ...project, moveConstraints: moves }, roomCharacter, t.experiments)
+  const experiment = available.find(item => item.id === experimentId) ?? available[0]
+  const spatial = experiment?.id === "position" || experiment?.id === "symmetry"
+  useEffect(() => { setPreviewRun(0); setPreviewAtTarget(false) }, [experimentId])
   const preview = previewRun > 0
   // Preview only the change described in this experiment. It never mutates saved layouts.
-  const previewLayout = experiment.id === "position" ? { ...current, listeningPosition: proposal.listeningPosition }
-    : experiment.id === "symmetry" ? { ...current, speakerPositions: proposal.speakerPositions } : current
+  const previewLayout = experiment?.id === "position" ? { ...current, listeningPosition: proposal.listeningPosition }
+    : experiment?.id === "symmetry" ? { ...current, speakerPositions: proposal.speakerPositions } : current
   const startPreview = () => {
     dragRef.current = null
     setPreviewAtTarget(false)
-    trackPilot("trial_started", { trial: experiment.id })
+    trackPilot("trial_started", { trial: experiment?.id })
     setPreviewRun(run => run + 1)
   }
-  const recordExperiment = (patch: Partial<ExperimentRecord>) => {
-    const existing = useRoomStore.getState().reportPersonalization.experiments ?? {}
-    const next = { ...existing, [experiment.id]: { ...(existing[experiment.id] ?? { tried: false, note: "" }), ...patch, tried: true } }
-    setReportExperiments(next)
-    if (patch.outcome) trackPilot("trial_result", { trial: experiment.id, outcome: patch.outcome })
-    try {
-      localStorage.setItem(`roomtuner-experiments-v1:${reportKey}`, JSON.stringify(next))
-      setRecordStorageError(false)
-    } catch { setRecordStorageError(true) }
-  }
-
   const save = (nextCurrent: Layout, nextProposal: Layout, nextMoves: MoveConstraints) => {
+    const nextConfirmed = view === "proposal" && confirmed
+    setConfirmed(nextConfirmed)
     setSource("user")
-    setReportLayout({ current: nextCurrent, proposal: nextProposal, moves: nextMoves, view, source: "user" })
+    setReportLayout({ current: nextCurrent, proposal: nextProposal, moves: nextMoves, view, source: "user", confirmed: nextConfirmed })
     updateProject({ moveConstraints: nextMoves })
     setCurrent(nextCurrent); setProposal(nextProposal); setMoves(nextMoves)
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ current: nextCurrent, proposal: nextProposal, moves: nextMoves }))
+      localStorage.setItem(storageKey, JSON.stringify({ current: nextCurrent, proposal: nextProposal, moves: nextMoves, confirmed: nextConfirmed }))
       setStorageError(false)
     } catch { setStorageError(true) }
   }
@@ -127,34 +120,25 @@ export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equi
   const speakerChanged = JSON.stringify(current.speakerPositions) !== JSON.stringify(proposal.speakerPositions)
   const furnitureChanged = JSON.stringify(current.furnitureLayout) !== JSON.stringify(proposal.furnitureLayout)
   const listenerChanged = JSON.stringify(current.listeningPosition) !== JSON.stringify(proposal.listeningPosition)
-  const previewHasMove = experiment.id === "position" ? listenerChanged : experiment.id === "symmetry" ? speakerChanged : false
-  const guideRecord = records?.[experiment.id]
+  const previewHasMove = experiment?.id === "position" ? listenerChanged : experiment?.id === "symmetry" ? speakerChanged : false
 
   return (
     <section id="layout-trial" className="border border-primary/30 bg-card rounded-sm p-4 space-y-3" aria-label={c.title}>
       <h2 className="text-base font-semibold">{c.title}</h2>
       <p className="text-sm text-muted-foreground">{c.layoutIntro}</p>
       <p className="text-xs text-muted-foreground">{c.layoutNote}</p>
-      <div className="border-l-2 border-primary bg-primary/5 p-3 space-y-2" aria-label={c.guide}>
-        <p className="text-[10px] font-mono uppercase tracking-widest text-primary">01 / {c.guide}</p>
-        <h3 className="font-semibold text-sm">{experiment.title}</h3>
-        <p className="text-sm">{experiment.action}</p>
-        <p className="text-xs text-muted-foreground">{experiment.why}</p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <button type="button" disabled={!ready} onClick={startPreview} className="min-h-11 rounded-sm bg-primary text-primary-foreground px-4 text-sm font-medium">{preview ? c.replay : c.showChange}</button>
-          <button type="button" disabled={!ready} onClick={() => { setRecordingId(experiment.id); recordExperiment({ tried: true }) }} className="min-h-11 rounded-sm border border-primary/40 px-4 text-sm text-primary">{c.triedGuide}</button>
-        </div>
-        {(recordingId === experiment.id || guideRecord?.tried) && <fieldset className="space-y-2 pt-2">
-          <legend className="text-xs font-medium">{t.experiments.result}</legend>
-          <div className="flex flex-wrap gap-2">{(["better", "same", "worse"] as const).map(outcome => <label key={outcome} className={`flex items-center gap-2 min-h-11 px-3 text-xs border rounded-sm cursor-pointer ${guideRecord?.outcome === outcome ? "border-primary text-primary" : "border-border"}`}>
-            <input type="radio" name={`guided-outcome-${arrowId}`} checked={guideRecord?.outcome === outcome} onChange={() => recordExperiment({ outcome })} />{t.experiments[outcome]}
-          </label>)}</div>
-          {guideRecord?.outcome && <p className="text-xs" role="status">{guideRecord.outcome === "better" ? c.nextBetter : guideRecord.outcome === "same" ? c.nextSame : c.nextWorse}</p>}
-          <p className="text-xs text-muted-foreground" role="status">{recordStorageError ? t.experiments.storageError : c.resultSaved}</p>
-        </fieldset>}
-      </div>
+      {!confirmed ? <div className="space-y-2 border-l-2 border-primary pl-3">
+        <p className="text-sm">{t.journey.confirmHint}</p>
+        <button type="button" disabled={!ready} className="min-h-11 px-4 border border-primary text-primary" onClick={() => {
+          setSource("user")
+          setConfirmed(true)
+          setReportLayout({ current, proposal, moves, view, source: "user", confirmed: true })
+          try { localStorage.setItem(storageKey, JSON.stringify({ current, proposal, moves, confirmed: true })) } catch { setStorageError(true) }
+        }}>{t.journey.confirm}</button>
+      </div> : <p className="text-xs text-primary">{t.journey.confirmed}</p>}
+      {confirmed && spatial && <button type="button" onClick={startPreview} className="min-h-11 px-4 bg-primary text-primary-foreground">{preview ? c.replay : c.showChange}</button>}
       <div role="group" aria-label={c.title} className="flex gap-2">
-        {(["current", "proposal"] as const).map(v => <button type="button" key={v} disabled={!ready} aria-pressed={!preview && view === v} onClick={() => { setPreviewRun(0); setView(v); setReportLayout({ current, proposal, moves, view: v, source }) }} className={`flex-1 min-h-11 border rounded-sm text-sm ${!preview && view === v ? "border-primary text-primary" : "border-border"}`}>{c[v]}</button>)}
+        {(["current", "proposal"] as const).filter(v=>v === "current" || spatial).map(v => <button type="button" key={v} disabled={!ready || (v === "proposal" && !confirmed)} aria-pressed={!preview && view === v} onClick={() => { setPreviewRun(0); setView(v); setReportLayout({ current, proposal, moves, view: v, source, confirmed }) }} className={`flex-1 min-h-11 border rounded-sm text-sm ${!preview && view === v ? "border-primary text-primary" : "border-border"}`}>{c[v]}</button>)}
       </div>
       {preview && <div className="flex gap-2 items-center justify-between"><span className="font-mono text-xs text-primary">{c.previewLabel}</span><button type="button" onClick={() => setPreviewRun(0)} className="text-xs underline min-h-11">{c.endPreview}</button></div>}
       <svg ref={svgRef} role="img" aria-label={`${c.title}: ${preview ? c.previewLabel : c[view]}`} viewBox={`0 0 ${width + pad * 2} ${height + pad * 2}`} className="w-full bg-secondary/20 rounded-sm touch-none"
@@ -169,9 +153,9 @@ export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equi
         <defs><marker id={arrowId} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" className="stroke-primary" strokeWidth="1" /></marker></defs>
         {Array.from({ length: 9 }, (_, i) => <g key={i} className="stroke-border" strokeWidth=".5"><line x1={pad + width * (i + 1) / 10} y1={pad} x2={pad + width * (i + 1) / 10} y2={pad + height} /><line x1={pad} y1={pad + height * (i + 1) / 10} x2={pad + width} y2={pad + height * (i + 1) / 10} /></g>)}
         <rect x={pad} y={pad} width={width} height={height} fill="none" className="stroke-muted-foreground" strokeWidth="2" />
-        {preview && ["echo", "dry"].includes(experiment.id) && <rect x={pad + 5} y={pad + 5} width={width - 10} height={height - 10} fill="none" className="stroke-primary" strokeDasharray="6 5" strokeWidth="2" />}
+        {preview && ["echo", "dry"].includes(experiment?.id ?? "") && <rect x={pad + 5} y={pad + 5} width={width - 10} height={height - 10} fill="none" className="stroke-primary" strokeDasharray="6 5" strokeWidth="2" />}
         {project.dimensionSource !== "approximate" && <text x={pad + width / 2} y={17} textAnchor="middle" className="fill-muted-foreground" fontSize="11">{shown.width.toFixed(1)} × {shown.length.toFixed(1)} m</text>}
-        {showDistances && shown.speakerPositions.length === 2 && <path data-distance-triangle="true" d={`M${pad + shown.listeningPosition.x * width} ${pad + shown.listeningPosition.y * height} L${pad + shown.speakerPositions[0].x * width} ${pad + shown.speakerPositions[0].y * height} L${pad + shown.speakerPositions[1].x * width} ${pad + shown.speakerPositions[1].y * height} Z`} fill="none" className="stroke-success" strokeWidth="1.2" opacity=".7" pointerEvents="none" />}
+        {confirmed && showDistances && shown.speakerPositions.length === 2 && <path data-distance-triangle="true" d={`M${pad + shown.listeningPosition.x * width} ${pad + shown.listeningPosition.y * height} L${pad + shown.speakerPositions[0].x * width} ${pad + shown.speakerPositions[0].y * height} L${pad + shown.speakerPositions[1].x * width} ${pad + shown.speakerPositions[1].y * height} Z`} fill="none" className="stroke-success" strokeWidth="1.2" opacity=".7" pointerEvents="none" />}
         {(preview || view === "proposal") && objects.map(o => {
           const original = o.id.startsWith("speaker") ? current.speakerPositions[Number(o.id.split("-")[1])] : o.id === "listening" ? current.listeningPosition : current.furnitureLayout[Number(o.id.split("-")[1])]
           const target = preview ? o.id.startsWith("speaker") ? previewLayout.speakerPositions[Number(o.id.split("-")[1])] : o.id === "listening" ? previewLayout.listeningPosition : original : o
@@ -187,7 +171,7 @@ export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equi
             svgRef.current?.setPointerCapture(e.pointerId)
           }}>
           <title>{o.label}</title>
-          {preview && (experiment.id === "symmetry" ? o.kind === "speaker" : !["echo", "dry"].includes(experiment.id) && o.kind === "listening") && <circle cx={0} cy={0} r={23} className="fill-primary/10 stroke-primary" strokeWidth="1" pointerEvents="none" />}
+          {preview && (experiment?.id === "symmetry" ? o.kind === "speaker" : !["echo", "dry"].includes(experiment?.id ?? "") && o.kind === "listening") && <circle cx={0} cy={0} r={23} className="fill-primary/10 stroke-primary" strokeWidth="1" pointerEvents="none" />}
           <PlanObject kind={o.kind} type={o.type} width={o.width * width} height={o.length * height} />
           {o.kind === "speaker" && <text x={0} y={-18} textAnchor="middle" fontSize="9" className="fill-primary" pointerEvents="none">{o.id === "speaker-0" ? "L" : "R"}</text>}
           <circle cx={0} cy={0} r={22} fill="transparent" />
@@ -198,11 +182,11 @@ export function LayoutTrial({ reportKey, project, diagram, roomCharacter = "equi
       <label className="flex items-center gap-2 text-xs min-h-11"><input type="checkbox" checked={showDistances} onChange={e => setShowDistances(e.target.checked)} />{c.triangle}</label>
       {showDistances && <p className="text-[10px] text-muted-foreground">{c.triangleNote}</p>}
       {preview && <div className="space-y-2 border-l-2 border-primary pl-3" role="status">
-        <p className="text-sm">{experiment.check}</p>
-        {!previewHasMove && <p className="text-xs text-primary">{experiment.id === "echo" ? c.textileHere : experiment.id === "dry" ? c.dryHere : experiment.id === "quiet" ? c.quietHere : c.noVisualMove}</p>}
+        <p className="text-sm">{experiment?.check}</p>
+        {!previewHasMove && <p className="text-xs text-primary">{experiment?.id === "echo" ? c.textileHere : experiment?.id === "dry" ? c.dryHere : experiment?.id === "quiet" ? c.quietHere : c.noVisualMove}</p>}
         <p className="text-xs text-muted-foreground">{c.previewNote}</p>
       </div>}
-      <LayoutComparison current={current} proposal={preview ? previewLayout : proposal} approximate={project.dimensionSource === "approximate"} preview={preview} />
+      {confirmed && spatial && <details className="border-t border-border pt-3"><summary className="cursor-pointer min-h-11 text-sm">{t.journey.geometry}</summary><LayoutComparison current={current} proposal={preview ? previewLayout : proposal} approximate={project.dimensionSource === "approximate"} preview={preview} /></details>}
       <details className="border-t border-border pt-3">
       <summary className="cursor-pointer text-sm min-h-11">{c.editPlan}</summary>
       <div className="space-y-3 pb-2">

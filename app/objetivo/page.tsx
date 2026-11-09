@@ -8,11 +8,12 @@ import { Button } from "@/components/Button"
 import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { useT } from "@/lib/i18n"
 
-const VALID_MODES = ["music", "instrument", "work"] as const
+
 
 export default function ObjetivoPage() {
   const router = useRouter()
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<string | null>(null)
+  const updateProject = useRoomStore(s => s.updateProject)
   const setGoal = useRoomStore((s) => s.setGoal)
   const project = useRoomStore((s) => s.project)
   const hydrated = useRoomHydrated()
@@ -26,19 +27,6 @@ export default function ObjetivoPage() {
     seeded.current = true
     if (project.goal) setSelectedObjectiveId((prev) => prev ?? project.goal)
   }, [hydrated, project])
-
-  // Pre-set goal from landing page mode selection (stored in localStorage)
-  useEffect(() => {
-    const stored = localStorage.getItem("roomtuner_mode")
-    if (stored && (VALID_MODES as readonly string[]).includes(stored) && !selectedObjectiveId) {
-      setSelectedObjectiveId(stored)
-      setGoal(stored as "music" | "instrument" | "work")
-      localStorage.removeItem("roomtuner_mode")
-    }
-    // Intentionally runs once on mount to consume a value set by the landing page;
-    // `!selectedObjectiveId` is a guard against re-applying it, not a dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const objectives = [
     { id: "music", title: t.objetivo.musicTitle, description: t.objetivo.musicDesc },
@@ -55,12 +43,14 @@ export default function ObjetivoPage() {
     <CenteredLayout>
       <div className="space-y-3 text-center">
         <h1 className="text-lg md:text-xl font-semibold text-foreground leading-snug">
-          {t.objetivo.title}
+          {t.layoutTrial.problem}
         </h1>
-        <p className="text-sm text-muted-foreground">{t.objetivo.subtitle}</p>
+        <p className="text-sm text-muted-foreground">{t.landing.step2Desc}</p>
       </div>
 
+      <label className="block text-sm">{t.journey.problem}<select value={project.concern ?? "clarity"} onChange={e => updateProject({ concern: e.target.value as "clarity" | "echo" | "bass" | "noise" })} className="block w-full mt-2 border border-border bg-background p-3">{(["clarity", "echo", "bass", "noise"] as const).map(value => <option key={value} value={value}>{t.layoutTrial[value]}</option>)}</select></label>
       <div>
+        <h2 className="text-sm font-medium mb-3">{t.journey.context}</h2>
         {objectives.map((objective) => (
           <OptionCard
             key={objective.id}
@@ -76,6 +66,9 @@ export default function ObjetivoPage() {
         ))}
       </div>
 
+      <details className="border border-border p-3"><summary className="cursor-pointer min-h-11 text-sm">{t.layoutTrial.restrictions}</summary>
+        <fieldset>{(["speakers", "listening", "furniture"] as const).map(key => <label key={key} className="flex gap-2 items-center min-h-11 text-sm"><input type="checkbox" checked={project.moveConstraints?.[key] ?? true} onChange={e => updateProject({ moveConstraints: { speakers: true, listening: true, furniture: true, ...project.moveConstraints, [key]: e.target.checked } })} />{t.layoutTrial[key]}</label>)}</fieldset>
+      </details>
       <Button onClick={handleContinue} disabled={!selectedObjectiveId} className="w-full">
         {t.common.next}
       </Button>

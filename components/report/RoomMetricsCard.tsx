@@ -3,7 +3,6 @@
 import type { EnhancedAnalysisResponse } from "@/app/types/room"
 import { InfoTooltip } from "@/components/InfoTooltip"
 import { useT } from "@/lib/i18n"
-import { Check, AlertTriangle, AlertCircle } from "lucide-react"
 
 interface RoomMetricsCardProps {
   metrics: EnhancedAnalysisResponse["roomMetrics"]
@@ -63,7 +62,7 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
           <RT60Badge label={t.report.metrics.mid} value={metrics.rt60Estimate.mid} tooltip={t.tooltips.rt60Mid} />
           <RT60Badge label={t.report.metrics.high} value={metrics.rt60Estimate.high} tooltip={t.tooltips.rt60High} />
         </div>
-        <EvaluationBadge evaluation={metrics.rt60Evaluation} />
+
 
         <p className="text-xs text-muted-foreground">{t.experiments.geometry}</p>
         {/* Exploratory clap estimate, not a band measurement */}
@@ -117,29 +116,11 @@ export function RoomMetricsCard({ metrics, roomCharacter }: RoomMetricsCardProps
           metrics.ratios.rating === "acceptable" ? "text-warning" :
           "text-destructive"
         }`}>
-          {metrics.ratios.message}
+          {t.experiments.geometry}
         </div>
       </div>
 
-      {metrics.roomModes.filter(m => m.severity === "high" && m.frequency < 300).length > 0 && (
-        <div className="border-t border-border pt-3 mt-3 space-y-2">
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-xs font-medium text-destructive">{t.report.metrics.problematicModes}</h3>
-            <InfoTooltip text={t.tooltips.problematicModes} />
-          </div>
-          <div className="space-y-1">
-            {metrics.roomModes
-              .filter(m => m.severity === "high" && m.frequency < 300)
-              .slice(0, 5)
-              .map((mode, i) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{mode.description}</span>
-                  <span className="text-destructive font-medium font-mono">{mode.frequency.toFixed(0)} Hz</span>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }
@@ -154,12 +135,6 @@ function MetricItem({ label, value }: { label: string; value: string }) {
 }
 
 function RT60Badge({ label, value, tooltip }: { label: string; value: number; tooltip?: string }) {
-  const getColor = (rt60: number) => {
-    if (rt60 < 0.2) return "text-chart-3"
-    if (rt60 < 0.6) return "text-primary"
-    if (rt60 < 0.8) return "text-warning"
-    return "text-destructive"
-  }
 
   return (
     <div className="text-center space-y-1 border border-border rounded-sm p-2">
@@ -167,25 +142,7 @@ function RT60Badge({ label, value, tooltip }: { label: string; value: number; to
         {label}
         {tooltip && <InfoTooltip text={tooltip} />}
       </div>
-      <div className={`text-sm font-semibold font-mono ${getColor(value)}`}>{value.toFixed(2)}s</div>
-    </div>
-  )
-}
-
-function EvaluationBadge({ evaluation }: { evaluation: { rating: string; message: string } }) {
-  const colors = {
-    good: "bg-primary/10 text-primary border-primary/20",
-    acceptable: "bg-warning/10 text-warning border-warning/20",
-    problematic: "bg-destructive/10 text-destructive border-destructive/20",
-  }
-  const icons = { good: Check, acceptable: AlertCircle, problematic: AlertTriangle }
-  const colorClass = colors[evaluation.rating as keyof typeof colors] || colors.acceptable
-  const Icon = icons[evaluation.rating as keyof typeof icons] || AlertCircle
-
-  return (
-    <div className={`${colorClass} border rounded-sm p-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium`}>
-      <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-      {evaluation.message}
+      <div className="text-sm font-semibold font-mono text-foreground">≈ {value.toFixed(1)} s</div>
     </div>
   )
 }

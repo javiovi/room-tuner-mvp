@@ -8,7 +8,7 @@ type PilotProperties = {
   mode?: string
   persisted?: boolean
   trial?: string
-  outcome?: "better" | "same" | "worse"
+  outcome?: "better" | "same" | "worse" | "unable"
 }
 
 // Only categorical facts: never send room dimensions, report ids or personal notes.

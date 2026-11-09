@@ -1,69 +1,26 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Music, Guitar, Briefcase, ChevronDown, Ruler, BarChart3, FileText, Lock } from "lucide-react"
+import { ChevronDown, Ruler, BarChart3, FileText, Lock } from "lucide-react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { LanguageToggle } from "@/components/LanguageToggle"
-import { ReportPreview } from "@/components/ReportPreview"
 import { Button } from "@/components/Button"
 import { StandingWaveMotif } from "@/components/motifs/StandingWaveMotif"
 import { useT } from "@/lib/i18n"
 import { PAYWALL_ENABLED } from "@/lib/paywall"
 
-type Mode = "music" | "instrument" | "work"
-
-const MODE_MAP: Record<Mode, { icon: typeof Music; goalKey: Mode }> = {
-  music: { icon: Music, goalKey: "music" },
-  instrument: { icon: Guitar, goalKey: "instrument" },
-  work: { icon: Briefcase, goalKey: "work" },
-}
-
 export default function LandingPage() {
   const { t } = useT()
   const router = useRouter()
-  const [selectedMode, setSelectedMode] = useState<Mode>("music")
   const [methodOpen, setMethodOpen] = useState(false)
-  const previewRef = useRef<HTMLDivElement>(null)
-
-  // Restore mode from localStorage if previously selected
-  useEffect(() => {
-    const stored = localStorage.getItem("roomtuner_mode")
-    if (stored && (stored === "music" || stored === "instrument" || stored === "work")) {
-      setSelectedMode(stored)
-    }
-  }, [])
-
-  const modes: { key: Mode; label: string; desc: string; bullets: string[] }[] = [
-    {
-      key: "music",
-      label: t.landing.modeMusic,
-      desc: t.landing.modeMusicDesc,
-      bullets: [t.landing.bulletMusic1, t.landing.bulletMusic2, t.landing.bulletMusic3],
-    },
-    {
-      key: "instrument",
-      label: t.landing.modeStudio,
-      desc: t.landing.modeStudioDesc,
-      bullets: [t.landing.bulletStudio1, t.landing.bulletStudio2, t.landing.bulletStudio3],
-    },
-    {
-      key: "work",
-      label: t.landing.modeWork,
-      desc: t.landing.modeWorkDesc,
-      bullets: [t.landing.bulletWork1, t.landing.bulletWork2, t.landing.bulletWork3],
-    },
-  ]
-
-  const current = modes.find((m) => m.key === selectedMode)!
 
   const handleStart = () => {
-    localStorage.setItem("roomtuner_mode", selectedMode)
     router.push("/objetivo")
   }
 
   const scrollToPreview = () => {
-    previewRef.current?.scrollIntoView({ behavior: "smooth" })
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
@@ -88,57 +45,6 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Bullets (change per mode) */}
-        <div className="flex justify-center gap-2 mt-6 flex-wrap">
-          {current.bullets.map((b, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground border border-border px-2.5 py-1"
-            >
-              <span aria-hidden className="h-1.5 w-1.5 border border-primary shrink-0" />
-              {b}
-            </span>
-          ))}
-        </div>
-
-        {/* ── MODE SELECTOR ── */}
-        <div className="mt-8">
-          <p className="text-[10px] text-muted-foreground text-center mb-3 font-mono uppercase tracking-widest">
-            {t.landing.modeTitle}
-          </p>
-          <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
-            {modes.map((m) => {
-              const Icon = MODE_MAP[m.key].icon
-              const isActive = selectedMode === m.key
-              return (
-                <button
-                  key={m.key}
-                  onClick={() => setSelectedMode(m.key)}
-                  className={`relative flex flex-col items-center gap-2.5 p-4 border transition-colors duration-100 ${
-                    isActive ? "border-primary" : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  {isActive && (
-                    <>
-                      <span aria-hidden className="absolute -top-[3px] -left-[3px] h-1.5 w-1.5 border-t border-l border-primary" />
-                      <span aria-hidden className="absolute -bottom-[3px] -right-[3px] h-1.5 w-1.5 border-b border-r border-primary" />
-                    </>
-                  )}
-                  <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.5} />
-                  <span className={`text-[11px] font-mono uppercase tracking-wide ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                    {m.label}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Mode description */}
-          <p className="text-sm text-muted-foreground text-center mt-4 max-w-sm mx-auto">
-            {current.desc}
-          </p>
-        </div>
-
         {/* ── CTAs ── */}
         <div className="flex flex-col items-center gap-3 mt-8">
           <Button onClick={handleStart} className="w-full max-w-xs">
@@ -158,7 +64,7 @@ export default function LandingPage() {
           the PDF are free for everyone, so a locked tier here would misdescribe the
           product. Comes back with the paywall. */}
       {PAYWALL_ENABLED && (
-      <section className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
+      <section id="how-it-works" className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
         <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-2">
           {t.landing.freeVsPaidTitle}
         </h2>
@@ -225,15 +131,6 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* ── REPORT PREVIEW ── */}
-      <section ref={previewRef} className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
-        <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-3">
-          {t.landing.reportExample}
-        </h2>
-        <p className="text-sm text-muted-foreground text-center mb-6">{t.landing.reportExampleDesc}</p>
-        <ReportPreview />
       </section>
 
       {/* ── METHODOLOGY (collapsible) ── */}
