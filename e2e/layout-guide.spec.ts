@@ -5,7 +5,7 @@ const project = { goal: "music", concern: "bass", dimensionSource: "measured", l
 test.beforeEach(async ({ page }, testInfo) => {
   await page.addInitScript(({ project, analysis }) => {
     if (!sessionStorage.getItem("roomtuner-session")) sessionStorage.setItem("roomtuner-session", JSON.stringify({ version: 1, state: { project, analysis, projectId: null, analysisPersisted: false, reportPersonalization: {} } }))
-  }, { project: { ...project, concern: testInfo.title.startsWith("unable") ? "clarity" : project.concern }, analysis: mockAnalysis })
+  }, { project: { ...project, concern: testInfo.title.startsWith("structural") ? "noise" : testInfo.title.startsWith("unable") ? "clarity" : project.concern, ...(testInfo.title.startsWith("structural") ? { noiseSource: "neighbors", noiseEntry: "wall" } : {}) }, analysis: mockAnalysis })
 })
 
 test("one record, explicit layout confirmation and a preview that preserves both plans", async ({ page }) => {
@@ -68,4 +68,16 @@ test("technical estimates do not prescribe treatment and English stays usable", 
   await page.getByRole("tab",{name:"What to try today"}).click()
   await expect(page.getByRole("heading",{name:"Compare two listening positions"})).toBeVisible()
   await expect(page.getByLabel("I could not try it",{exact:true})).toBeVisible()
+})
+
+
+test("structural noise does not prescribe seals or absorptive products", async ({ page }) => {
+  await page.goto("/resultado")
+  await expect(page.getByRole("heading", {name:"Revisá la vía de entrada antes de elegir una mejora"})).toBeVisible()
+  await expect(page.getByRole("heading", {name:"Identificá una fuente de ruido"})).toHaveCount(0)
+  await page.getByText("Qué mejoras podés considerar",{exact:true}).click()
+  await expect(page.getByText(/una solución fiable requiere revisar el conjunto/)).toBeVisible()
+  await expect(page.getByRole("heading", {name:"Si encontrás una fuga"})).toHaveCount(0)
+  await page.getByRole("tab",{name:"Quiero entender más"}).click()
+  await expect(page.getByText("Tratamientos y costos",{exact:true})).toHaveCount(0)
 })
