@@ -19,6 +19,6 @@ export function getReportExperiments(project: RoomProject, character: "viva" | "
     ...(project.moveConstraints?.listening !== false ? [position] : []),
     ...(project.goal === "music" && project.moveConstraints?.speakers !== false ? [symmetry] : []),
   ]
-  if (project.concern === "bass") return movable
+  if (project.concern === "bass") return movable.filter(item => item.id === "position")
   return [...(project.goal === "music" ? [...movable].reverse() : []), character === "seca" ? dry : echo]
 }

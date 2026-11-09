@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test"
 import { mockAnalysis } from "../lib/mockData"
 
 const project = { goal: "music", concern: "bass", dimensionSource: "measured", lengthM: 5, widthM: 4, heightM: 3, floorType: "madera", wallType: "desnudas", furniture: ["sofa"], speakerPlacement: "esquina", listeningPosition: "sillon-pared-posterior", moveConstraints: { speakers: true, listening: true, furniture: false } }
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
   await page.addInitScript(({ project, analysis }) => {
     if (!sessionStorage.getItem("roomtuner-session")) sessionStorage.setItem("roomtuner-session", JSON.stringify({ version: 1, state: { project, analysis, projectId: null, analysisPersisted: false, reportPersonalization: {} } }))
-  }, { project, analysis: mockAnalysis })
+  }, { project: { ...project, concern: testInfo.title.startsWith("unable") ? "clarity" : project.concern }, analysis: mockAnalysis })
 })
 
 test("one record, explicit layout confirmation and a preview that preserves both plans", async ({ page }) => {
@@ -48,13 +48,13 @@ test("unable is not counted as tried and another option retains the earlier note
   await page.getByLabel("¿Qué cambiaste? (opcional)").fill("No puedo mover el asiento hoy")
   await page.getByRole("button",{name:"Probar otra alternativa"}).click()
   await expect(page.getByRole("article")).toHaveCount(1)
-  await expect(page.getByRole("heading",{name:"Probá una escucha simétrica"})).toBeVisible()
+  await expect(page.getByRole("heading",{name:"Compará dos lugares de escucha"})).toBeVisible()
   await page.reload()
-  await expect(page.getByRole("heading",{name:"Probá una escucha simétrica"})).toBeVisible()
+  await expect(page.getByRole("heading",{name:"Compará dos lugares de escucha"})).toBeVisible()
   await page.getByRole("button",{name:"Volver a la prueba anterior"}).click()
   await expect(page.getByLabel("No pude probarlo",{exact:true})).toBeChecked()
   await expect(page.getByLabel("¿Qué cambiaste? (opcional)")).toHaveValue("No puedo mover el asiento hoy")
-  const record = await page.evaluate(()=>JSON.parse(sessionStorage.getItem("roomtuner-session")!).state.reportPersonalization.experiments.position)
+  const record = await page.evaluate(()=>JSON.parse(sessionStorage.getItem("roomtuner-session")!).state.reportPersonalization.experiments.symmetry)
   expect(record.tried).toBe(false)
 })
 
