@@ -39,7 +39,11 @@ export function RoomPhoto({ reportKey, goal }: { reportKey: string; goal: string
       const value: RoomEvidence = { version: 1, reportKey, goal, photo, zones: [], updatedAt: new Date().toISOString() }
       await saveEvidence(value)
       if (mounted.current) { setData(value); setDirty(false) }
-    } catch { if (mounted.current) setError(true) }
+    } catch (cause) {
+      // Only a browser error category/message: never log image content or observations.
+      console.warn("[RoomPhoto] Local operation failed", cause instanceof Error ? `${cause.name}: ${cause.message}` : "unknown")
+      if (mounted.current) setError(true)
+    }
     finally { if (mounted.current) setBusy(false) }
   }
   function change(zones: Zone[]) { if (data) { setData({ ...data, zones }); setDirty(true) } }
@@ -52,7 +56,11 @@ export function RoomPhoto({ reportKey, goal }: { reportKey: string; goal: string
       if (remove) await deleteEvidence(reportKey)
       else await saveEvidence({ ...data, updatedAt: new Date().toISOString() })
       if (mounted.current) { if (remove) setData(undefined); setDirty(false) }
-    } catch { if (mounted.current) setError(true) }
+    } catch (cause) {
+      // Only a browser error category/message: never log image content or observations.
+      console.warn("[RoomPhoto] Local operation failed", cause instanceof Error ? `${cause.name}: ${cause.message}` : "unknown")
+      if (mounted.current) setError(true)
+    }
     finally { if (mounted.current) setBusy(false) }
   }
   return <details className="border border-border bg-card rounded-sm p-4 space-y-3">

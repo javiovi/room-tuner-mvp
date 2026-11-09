@@ -4,6 +4,7 @@ import { mockAnalysis } from "../lib/mockData"
 
 const photo = readFileSync("public/placeholder.jpg")
 test.beforeEach(async ({ page })=>{
+  page.on("console", message=>{ if (message.text().includes("[RoomPhoto]")) console.log(message.text()) })
   await page.addInitScript(analysis=>{
     if (!sessionStorage.getItem("roomtuner-session")) sessionStorage.setItem("roomtuner-session",JSON.stringify({ version:1,state:{
       project:{ goal:"work",concern:"noise",noiseSource:"outside",noiseEntry:"window",dimensionSource:"approximate",lengthM:5,widthM:4,heightM:3,floorType:"madera",wallType:"desnudas",furniture:[] },
