@@ -48,6 +48,7 @@ export async function saveEvidence(value: RoomEvidence): Promise<void> {
       tx.onabort = ()=>reject(tx.error ?? new Error("limit"))
       tx.onerror = ()=>reject(tx.error)
     })
+    window.dispatchEvent(new CustomEvent("roomtuner-photo-changed", { detail: value.reportKey }))
   } finally { db.close() }
 }
 export async function deleteEvidence(reportKey: string): Promise<void> {
@@ -59,6 +60,7 @@ export async function deleteEvidence(reportKey: string): Promise<void> {
       tx.oncomplete = ()=>resolve()
       tx.onabort = ()=>reject(tx.error)
     })
+    window.dispatchEvent(new CustomEvent("roomtuner-photo-changed", { detail: reportKey }))
   } finally { db.close() }
 }
 
