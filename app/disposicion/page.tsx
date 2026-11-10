@@ -1,5 +1,6 @@
 "use client"
 
+import { instrumentCopy } from "@/lib/acoustics/instrumentCopy"
 import { DEFAULT_MOVES } from "@/lib/layoutTrial"
 
 import Link from "next/link"
@@ -19,7 +20,8 @@ export default function DisposicionPage() {
   const updateProject = useRoomStore((s) => s.updateProject)
   const project = useRoomStore((s) => s.project)
   const hydrated = useRoomHydrated()
-  const { t } = useT()
+  const { t,locale } = useT()
+  const instrument=project.goal==="instrument",ic=instrumentCopy[locale]
   const [moves, setMoves] = useState(DEFAULT_MOVES)
   const [formData, setFormData] = useState({
     ubicacionEquipo: "",
@@ -79,19 +81,19 @@ export default function DisposicionPage() {
       </Link>
 
       <div className="space-y-3">
-        <h1 className="text-base md:text-lg font-semibold text-foreground leading-snug">{t.disposicion.title}</h1>
+        <h1 className="text-base md:text-lg font-semibold text-foreground leading-snug">{instrument?ic.placementTitle:t.disposicion.title}</h1>
         <p className="text-xs md:text-sm text-muted-foreground">{t.disposicion.subtitle}</p>
       </div>
 
       <fieldset className="border border-border p-4 space-y-2">
         <legend className="text-sm font-medium">{t.layoutTrial.restrictions}</legend>
-        {(["speakers", "listening", "furniture"] as const).map(key => <label key={key} className="flex items-center gap-2 min-h-10 text-sm"><input type="checkbox" checked={moves[key]} onChange={e => setMoves(prev => ({ ...prev, [key]: e.target.checked }))} />{t.layoutTrial[key]}</label>)}
+        {(["speakers", "listening", "furniture"] as const).map(key => <label key={key} className="flex items-center gap-2 min-h-10 text-sm"><input type="checkbox" checked={moves[key]} onChange={e => setMoves(prev => ({ ...prev, [key]: e.target.checked }))} />{instrument?(key==="speakers"?ic.source:key==="listening"?ic.receiver:t.layoutTrial[key]):t.layoutTrial[key]}</label>)}
         <p className="text-xs text-muted-foreground">{t.layoutTrial.constraintsHint}</p>
       </fieldset>
       <div className="space-y-8">
         <div className="space-y-2">
           <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
-            {t.disposicion.speakerTitle}
+            {instrument?ic.sourceTitle:t.disposicion.speakerTitle}
           </h2>
           <div>
             {speakerOptions.map((option) => (
@@ -101,7 +103,7 @@ export default function DisposicionPage() {
                 selected={formData.ubicacionEquipo === option.value}
                 onSelect={() => setFormData((prev) => ({ ...prev, ubicacionEquipo: option.value }))}
                 title={option.label}
-                description={option.desc}
+                description={instrument?ic.sourceHint:option.desc}
               />
             ))}
           </div>
@@ -111,7 +113,7 @@ export default function DisposicionPage() {
 
         <div className="space-y-2">
           <h2 className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground pb-1 border-b border-dotted border-border">
-            {t.disposicion.listeningTitle}
+            {instrument?ic.receiverTitle:t.disposicion.listeningTitle}
           </h2>
           <div>
             {listeningOptions.map((option) => (
@@ -121,12 +123,12 @@ export default function DisposicionPage() {
                 selected={formData.dondeSientas === option.value}
                 onSelect={() => setFormData((prev) => ({ ...prev, dondeSientas: option.value }))}
                 title={option.label}
-                description={option.desc}
+                description={instrument?ic.receiverHint:option.desc}
               />
             ))}
           </div>
 
-          <InfoCallout label={t.common.info}>{t.disposicion.listeningInfo}</InfoCallout>
+          <InfoCallout label={t.common.info}>{instrument?ic.receiverHint:t.disposicion.listeningInfo}</InfoCallout>
         </div>
 
         <Button onClick={handleContinue} disabled={!isValid} className="w-full">{t.common.next}</Button>

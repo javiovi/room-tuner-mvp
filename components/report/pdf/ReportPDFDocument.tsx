@@ -1,10 +1,11 @@
+import { initialScene } from "@/lib/acoustics/scene"
 import { noiseGuidance } from "@/lib/noiseGuidance"
 import React from "react"
 import { Document, Page, Text, View, StyleSheet, Link, Svg, Rect, Circle, Line, Polyline } from "@react-pdf/renderer"
 import type { EnhancedAnalysisResponse, RoomProject, ProductRecommendation } from "@/app/types/room"
 import { es } from "@/lib/translations/es"
 import { en } from "@/lib/translations/en"
-import { initialLayout, proposeLayout, DEFAULT_MOVES, type Layout } from "@/lib/layoutTrial"
+import { proposeLayout, DEFAULT_MOVES, type Layout } from "@/lib/layoutTrial"
 import { experimentCatalog, getReportExperiments } from "@/lib/reportExperiments"
 import { surfaceAbsorption, rt60Reference, rt60ChartMaximum, budgetTotal, type ReportPersonalization } from "@/lib/reportModel"
 
@@ -46,7 +47,7 @@ function RoomSketch({ layout, title, furnitureLabels, ghost }: { layout: Layout;
         <Rect x={sx(f) - f.width * w / 2} y={sy(f) - f.length * h / 2} width={f.width * w} height={f.length * h} fill="#e3eaf0" stroke={c.muted} strokeWidth={.5} />
         <Label x={sx(f)} y={sy(f) + 2} textAnchor="middle" fill={c.text} fontSize={5}>{furnitureLabels[f.type] ?? f.type}</Label>
       </React.Fragment>)}
-      {layout.speakerPositions.map((p, i) => <React.Fragment key={`s-${i}`}><Rect x={sx(p) - 5} y={sy(p) - 5} width={10} height={10} fill={c.cyan} /><Label x={sx(p)} y={sy(p) - 9} textAnchor="middle" fill={c.cyan} fontSize={7}>{i === 0 ? "L" : "R"}</Label></React.Fragment>)}
+      {layout.speakerPositions.map((p, i) => <React.Fragment key={`s-${i}`}><Rect x={sx(p) - 5} y={sy(p) - 5} width={10} height={10} fill={c.cyan} /><Label x={sx(p)} y={sy(p) - 9} textAnchor="middle" fill={c.cyan} fontSize={7}>{layout.speakerPositions.length===1?"S":i === 0 ? "L" : "R"}</Label></React.Fragment>)}
       <Circle cx={sx(layout.listeningPosition)} cy={sy(layout.listeningPosition)} r={6} fill={c.green} />
     </Svg>
   </View>
@@ -91,10 +92,11 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
   const english = locale === "en"
   const t = english ? en : es
   const say = (spanish: string, eng: string) => english ? eng : spanish
-  const layouts = personalization.layout ?? (() => {
-    const current = initialLayout(project, analysis.roomDiagram.floorPlan)
+  const compatibleLayout=personalization.layout && (project.goal!=="instrument" || (personalization.layout.current.speakerPositions.length===1&&personalization.layout.proposal.speakerPositions.length===1)) ? personalization.layout : undefined
+  const layouts = compatibleLayout ?? (() => {
+    const current = initialScene(project, analysis.roomDiagram.floorPlan)
     const moves = project.moveConstraints ?? DEFAULT_MOVES
-    return { confirmed: false, current, proposal: proposeLayout(current, moves), moves, view: "current" as const, source: "schematic" as const }
+    return { confirmed: false, current, proposal: project.goal==="instrument"?current:proposeLayout(current, moves), moves, view: "current" as const, source: "schematic" as const }
   })()
   const effectiveProject = { ...project, moveConstraints: layouts.moves }
   const experiments = getReportExperiments(effectiveProject, analysis.roomCharacter, t.experiments)
@@ -137,22 +139,23 @@ export function ReportPDFDocument({ project, analysis, personalization = {}, loc
         <RoomSketch layout={layouts.current} title={t.layoutTrial.current} furnitureLabels={t.report.furniture} />
         <RoomSketch layout={layouts.proposal} title={t.layoutTrial.proposal} furnitureLabels={t.report.furniture} ghost={layouts.current} />
       </View>
-      <Text style={s.small}>{say("Azul L/R: parlantes. Verde: lugar de escucha. Gris: muebles. Línea punteada: movimiento entre esquemas. Ambas vistas usan la misma escala.", "Blue L/R: speakers. Green: listening spot. Grey: furniture. Dashed lines: movement between layouts. Both views use the same scale.")}</Text>
+      <Text style={s.small}>{project.goal==="instrument"?say("Azul S: instrumento o amplificador. Verde: escucha o micrófono. Gris: muebles. No se calculan orientación del micrófono ni umbrales de acople.","Blue S: instrument or amplifier. Green: listener or microphone. Grey: furniture. Microphone orientation and feedback thresholds are not calculated."):say("Azul L/R: parlantes. Verde: lugar de escucha. Gris: muebles. Línea punteada: movimiento entre esquemas. Ambas vistas usan la misma escala.", "Blue L/R: speakers. Green: listening spot. Grey: furniture. Dashed lines: movement between layouts. Both views use the same scale.")}</Text>
       <Text style={s.body}>{say("Vista seleccionada al exportar", "Selected view when exported")}: {t.layoutTrial[layouts.view]}</Text>
       {layouts.confirmed ? <>
       <Text style={s.sub}>{say("Movimientos a evaluar", "Movements to evaluate")}</Text>
-      {([...layouts.current.speakerPositions.map((p, i) => ({ label: i === 0 ? t.layoutTrial.left : t.layoutTrial.right, from: p, to: layouts.proposal.speakerPositions[i] })), { label: t.layoutTrial.listening, from: layouts.current.listeningPosition, to: layouts.proposal.listeningPosition }]).map((item, i) => {
+      {([...layouts.current.speakerPositions.map((p, i) => ({ label: project.goal==="instrument"?say("Fuente sonora","Sound source"):i === 0 ? t.layoutTrial.left : t.layoutTrial.right, from: p, to: layouts.proposal.speakerPositions[i] })), { label: project.goal==="instrument"?say("Escucha / micrófono","Listener / microphone"):t.layoutTrial.listening, from: layouts.current.listeningPosition, to: layouts.proposal.listeningPosition }]).map((item, i) => {
         const dx = (item.to.x - item.from.x) * layouts.current.width, dy = (item.to.y - item.from.y) * layouts.current.length
         return <View key={i} style={s.row}><Text style={s.cell}>{item.label}</Text><Text style={s.cell}>{Math.abs(dx) < .005 && Math.abs(dy) < .005 ? say("Sin cambio", "Unchanged") : say(`Horizontal ${dx.toFixed(2)} m / vertical ${dy.toFixed(2)} m`, `Horizontal ${dx.toFixed(2)} m / vertical ${dy.toFixed(2)} m`)}</Text></View>
       })}
       <Text style={s.small}>{say("Signos positivos: hacia la derecha y abajo en la planta. Las distancias dependen de las dimensiones ingresadas y de posiciones estimadas.", "Positive signs: right and down in the plan. Distances depend on entered room dimensions and estimated positions.")}</Text>
       </> : <Text style={s.body}>{t.journey.confirmHint}</Text>}
-      <Text style={s.body}>{t.layoutTrial.proposalNote}</Text><Text style={s.body}>{t.layoutTrial.layoutNote}</Text>
+      <Text style={s.body}>{project.goal==="instrument"?say("La propuesta es una comparación de posiciones, no una predicción de comodidad ni de ganancia antes del acople. Confirmá el resultado tocando o grabando la misma frase.","The proposal compares positions, not comfort or gain-before-feedback. Confirm it by playing or recording the same phrase."):t.layoutTrial.proposalNote}</Text><Text style={s.body}>{t.layoutTrial.layoutNote}</Text>
       <Text style={s.small}>{say("El plano no calcula una mejora de respuesta en dB. No se añadieron tratamientos genéricos ni se llamó óptima a una posición sin verificarla.", "The layout does not calculate a dB improvement. No generic treatments were added and no unverified position is labelled optimal.")}</Text><Footer english={english} />
     </Page>
     <Page size="A4" style={s.page}>
       <Text style={s.title}>{say("Reverberación: cómo leer la estimación", "Reverberation: reading the estimate")}</Text>
       <Text style={s.body}>{say("RT60 expresa cuánto tarda en decaer el sonido. Aquí se estima por bandas representativas a partir de absorción y volumen. Un valor mayor puede orientar una prueba para reducir reflexiones.", "RT60 describes sound decay time. Here it is estimated at representative bands using absorption and volume. A larger value can guide a reflection-reduction experiment.")}</Text>
+      {project.goal==="instrument"&&<Text style={s.small}>{say("La referencia de instrumento es general: práctica, grabación y amplificación tienen necesidades distintas. No es un objetivo universal ni un criterio de aislamiento.","The instrument reference is general: practice, recording and amplification have different needs. It is not a universal target or sound insulation criterion.")}</Text>}
       <ReverbChart values={[rt.low, rt.mid, rt.high]} range={range} labels={bands} seconds={say("Tiempo estimado (segundos)", "Estimated time (seconds)")} />
       <Text style={s.small}>{say(`Azul: estimación ${analysis.roomMetrics.rt60Method ?? "Sabine/Eyring"}. Verde: referencia interna de RoomTuner de ${range.min}-${range.max} s para medios y el uso elegido. La misma escala se usa en las tres bandas. No es una norma ni un objetivo validado para graves o agudos.`, `Blue: ${analysis.roomMetrics.rt60Method ?? "Sabine/Eyring"} estimate. Green: RoomTuner's internal ${range.min}-${range.max} s mid-frequency reference for the selected use. All bands share one scale. Not a standard or a validated bass/treble target.`)}</Text>
       <Text style={s.body}>{source}</Text>
