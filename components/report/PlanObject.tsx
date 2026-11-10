@@ -4,6 +4,8 @@ export function PlanObject({ kind, type, width, height }: { kind: string; type?:
     <rect x={-9} y={-13} width={18} height={26} rx={2} />
     <circle cx={0} cy={4} r={5} className="fill-primary/15" /><circle cx={0} cy={-7} r={2} />
   </g>
+  if (kind === "microphone") return <g className="fill-card stroke-success" strokeWidth="1.4"><rect x={-4} y={-12} width={8} height={13} rx={4}/><path d="M-7 -5 v4 Q-7 5 0 5 Q7 5 7 -1 v-4 M0 5 v8 M-6 13 h12" fill="none"/></g>
+  if (kind === "instrument") return <g className="fill-card stroke-primary" strokeWidth="1.4"><circle r={10}/><path d="M-3 4 v-10 l8 -2 v9 M-3 -4 l8 -2" fill="none"/><ellipse cx={-5} cy={5} rx={3} ry={2} className="fill-primary"/><ellipse cx={3} cy={2} rx={3} ry={2} className="fill-primary"/></g>
   if (kind === "listening") return <g className="fill-card stroke-success" strokeWidth="1.5">
     <circle cx={0} cy={-5} r={5} /><path d="M-9 11 Q-9 2 0 2 Q9 2 9 11 Z" />
   </g>

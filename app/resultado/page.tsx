@@ -229,7 +229,7 @@ function ResultadoContent() {
   const planner = <LayoutTrial key={`layout-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} />
   const refine = <div className="space-y-3 border border-primary/30 p-4 rounded-sm"><p className="text-sm">{t.layoutTrial.needDimensions}</p><Link className="inline-block text-sm text-primary underline min-h-11" href="/espacio?precision=1">{t.layoutTrial.refine}</Link></div>
 
-  const visualFirst = project.goal === "music" && project.concern !== "noise"
+  const visualFirst = (project.goal === "music" || project.goal === "instrument") && project.concern !== "noise"
   const experiments = <TodayExperiments key={`experiments-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} visualFirst={visualFirst} />
   const resumenContent = visualFirst ? <div className="space-y-4"><AcousticWorkspace key={`live-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram}/><details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{acousticCopy[locale].noteSummary}</summary>{experiments}</details></div> : experiments
 
