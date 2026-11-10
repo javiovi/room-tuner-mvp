@@ -35,7 +35,7 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
  const selectedPaths=reflections.filter(r=>r.wall===wall)
  const valid=reflections.length>0&&current.speakerPositions.length===2
  const approximate=project.dimensionSource==="approximate"
- const fingerprint=JSON.stringify([current.speakerPositions,current.listeningPosition,heights,wall,view,view==="trial"?proposal:null])
+ const fingerprint=JSON.stringify([current.speakerPositions,current.listeningPosition,current.furnitureLayout,heights,wall,view,view==="trial"?proposal:null])
  const outcome=feedback[fingerprint]
  useEffect(()=>{
   try{const result=storedSchema.safeParse(JSON.parse(localStorage.getItem(storageKey)??"null"));if(result.success){setCurrent(result.data.current);setConfirmed(result.data.confirmed);setHeights(result.data.heights);setHeightsConfirmed(result.data.heightsConfirmed);setMoves(result.data.moves);setFeedback(result.data.feedback);setUndoLayout(result.data.undoLayout)}}catch{setStorageError(true)}
@@ -84,8 +84,8 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
   <details className="space-y-3"><summary className="cursor-pointer min-h-11 text-sm text-primary">{c.settings}</summary>
    <p className="text-xs text-muted-foreground">{c.hint}</p>
    <label className="block text-sm">{c.object}<select className={`${control} block w-full mt-2`} value={active?.id} onChange={e=>setSelected(e.target.value)}>{objects.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
-   {active&&<div className="grid grid-cols-2 gap-2">{([{axis:"x",label:c.fromLeft,size:current.width},{axis:"y",label:c.fromFront,size:current.length}] as const).map(({axis,label,size})=><label key={axis} className="block text-xs">{label}<input type="number" min=".05" max={size-.05} step=".05" value={Number((active[axis]*size).toFixed(2))} disabled={view!=="current"} className={`${control} block mt-1 w-full`} onChange={e=>move(active.id,{x:active.x,y:active.y,[axis]:Number(e.target.value)/size})}/></label>)}</div>}
-   {active?.kind==="furniture"&&<div className="grid grid-cols-2 gap-2">{([{key:"width",label:c.objectWidth,size:current.width},{key:"length",label:c.objectLength,size:current.length}] as const).map(({key,label,size})=><label key={key} className="text-xs">{label}<input type="number" min=".1" max={size*.9} step=".05" value={Number(((active[key]??.1)*size).toFixed(2))} disabled={view!=="current"} className={`${control} block mt-1 w-full`} onChange={e=>{const dimension=Math.max(.1/size,Math.min(.9,Number(e.target.value)/size));setUndoLayout(undefined);setCurrent(prev=>({...prev,furnitureLayout:prev.furnitureLayout.map((f,i)=>{if(active.id!==`furniture-${i}`)return f;const next={...f,[key]:dimension};return {...next,...clampPoint(next,next.width,next.length)}})}))}}/></label>)}</div>}
+   {active&&<div className="grid grid-cols-2 gap-2">{([{axis:"x",label:c.fromLeft,size:current.width},{axis:"y",label:c.fromFront,size:current.length}] as const).map(({axis,label,size})=><MetreInput key={`${active.id}-${axis}`} label={label} value={active[axis]*size} min={.05} max={size-.05} disabled={view!=="current"} onCommit={value=>move(active.id,{x:active.x,y:active.y,[axis]:value/size})}/>)}</div>}
+   {active?.kind==="furniture"&&<div className="grid grid-cols-2 gap-2">{([{key:"width",label:c.objectWidth,size:current.width},{key:"length",label:c.objectLength,size:current.length}] as const).map(({key,label,size})=><MetreInput key={`${active.id}-${key}`} label={label} value={(active[key]??.1)*size} min={.1} max={size*.9} disabled={view!=="current"} onCommit={value=>{const dimension=Math.min(.9,Math.max(.1/size,value/size));setUndoLayout(undefined);setCurrent(prev=>({...prev,furnitureLayout:prev.furnitureLayout.map((f,i)=>{if(active.id!==`furniture-${i}`)return f;const next={...f,[key]:dimension};return {...next,...clampPoint(next,next.width,next.length)}})}))}}/>)}</div>}
    <div className="grid grid-cols-4 gap-2">{([{label:c.moveLeft,dx:-.1/current.width,dy:0,icon:"←"},{label:c.up,dx:0,dy:-.1/current.length,icon:"↑"},{label:c.down,dx:0,dy:.1/current.length,icon:"↓"},{label:c.moveRight,dx:.1/current.width,dy:0,icon:"→"}]).map(b=><button key={b.label} type="button" aria-label={b.label} className={control} disabled={!ready||view!=="current"} onClick={()=>active&&move(active.id,{x:active.x+b.dx,y:active.y+b.dy})}>{b.icon}</button>)}</div>
    <p className="text-xs">{c.heightHint}</p>
    <div className="space-y-2">{([{key:"room",label:c.roomHeight},{key:"speaker",label:c.speakerHeight},{key:"ear",label:c.earHeight}] as const).map(({key,label})=><label key={key} className="block text-xs">{label}<input className={`${control} block w-full mt-1`} type="number" min=".1" max={key==="room"?10:heights.room} step=".1" value={heights[key]||""} onChange={e=>{setHeightsConfirmed(false);setHeights({...heights,[key]:Number(e.target.value)})}}/></label>)}</div>
@@ -105,4 +105,10 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
   </>}
   <p role="status" className="text-xs text-muted-foreground">{storageError?c.storageError:c.saved}</p>
  </section>
+}
+
+function MetreInput({label,value,min,max,disabled,onCommit}:{label:string;value:number;min:number;max:number;disabled:boolean;onCommit:(value:number)=>void}) {
+ const [draft,setDraft]=useState(String(Number(value.toFixed(2))))
+ useEffect(()=>setDraft(String(Number(value.toFixed(2)))),[value])
+ return <label className="block text-xs">{label}<input type="number" min={min} max={max} step=".05" value={draft} disabled={disabled} className="min-h-11 border border-border bg-background px-3 rounded-sm text-sm block mt-1 w-full disabled:opacity-40" onChange={e=>setDraft(e.target.value)} onBlur={()=>{const next=Number(draft);if(!draft.trim()||!Number.isFinite(next)){setDraft(String(Number(value.toFixed(2))));return}onCommit(next)}} onKeyDown={e=>{if(e.key==="Enter")e.currentTarget.blur()}}/></label>
 }
