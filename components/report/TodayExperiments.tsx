@@ -6,6 +6,7 @@ import { useRoomStore } from "@/lib/roomStore"
 import { experimentCatalog, getReportExperiments, type ExperimentRecord, type ExperimentRecords } from "@/lib/reportExperiments"
 import type { RoomProject, RoomDiagram } from "@/app/types/room"
 import { useT } from "@/lib/i18n"
+import { RoomPhoto } from "./RoomPhoto"
 import { NoiseOptions } from "./NoiseOptions"
 import { LayoutTrial } from "./LayoutTrial"
 
@@ -78,6 +79,7 @@ export function TodayExperiments({ reportKey, project, diagram, roomCharacter }:
       {index > 0 && <button type="button" className="text-xs underline min-h-11" onClick={()=>choose(items[index-1].id)}>{t.journey.previous}</button>}
     </article> : <p className="border border-border p-4 text-sm">{t.journey.noTrial}</p>}
     {project.concern === "noise" && project.noiseSource !== "inside" && <NoiseOptions project={project} />}
+    {project.concern === "noise" && project.noiseSource !== "inside" && <RoomPhoto key={reportKey} reportKey={reportKey} goal={project.goal ?? "work"} />}
     <details className="text-xs text-muted-foreground"><summary className="cursor-pointer min-h-11">{t.journey.why}</summary><p>{t.journey.basis}</p><p className="mt-2">{t.experiments.protocol}</p></details>
     {Object.keys(records).length>0 && <details><summary className="cursor-pointer min-h-11 text-sm">{t.journey.history}</summary><ul className="space-y-3 text-sm">{Object.entries(records).map(([id, record]) => <li key={id} className="border-t border-border pt-2"><p>{experimentCatalog(t.experiments).find(item=>item.id === id)?.title ?? id}: {record.outcome ? labels[record.outcome] : t.experiments.tried}</p>{record.note && <p className="text-muted-foreground">{record.note}</p>}</li>)}</ul></details>}
     <p role="status" className="text-xs text-muted-foreground">{error ? t.experiments.storageError : t.journey.storage}</p>
