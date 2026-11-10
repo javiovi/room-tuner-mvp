@@ -61,3 +61,21 @@ export async function deleteEvidence(reportKey: string): Promise<void> {
     })
   } finally { db.close() }
 }
+
+export async function attachCapture(draft: string, reportKey: string, goal: string) {
+  const db = await openDB()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("rooms", "readwrite")
+      const store = tx.objectStore("rooms")
+      const request = store.get(draft)
+      request.onsuccess = () => {
+        if (!request.result) return
+        store.add({ ...request.result, reportKey, goal })
+        store.delete(draft)
+      }
+      tx.oncomplete = () => resolve()
+      tx.onabort = () => reject(tx.error)
+    })
+  } finally { db.close() }
+}

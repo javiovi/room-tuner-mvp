@@ -265,7 +265,7 @@ export const es = {
     bulletWork3: "Confort ac\u00fastico diario",
 
     // CTAs
-    ctaStart: "Ver qué puedo mejorar",
+    ctaStart: "Fotografiar mi espacio",
     ctaExample: "Cómo funciona",
 
     // Free vs Paid
@@ -287,12 +287,12 @@ export const es = {
 
     // How it works
     howItWorks: "C\u00f3mo funciona",
-    step1Title: "Contanos qué te molesta",
-    step1Desc: "Elegí una prioridad y qué podés cambiar. Podés empezar sin medidas.",
-    step2Title: "Probá un cambio",
-    step2Desc: "Una acción por vez, con una explicación y una forma de comparar.",
-    step3Title: "Decidí cómo seguir",
-    step3Desc: "Registrá lo que notaste. Conservá el cambio o probá otra alternativa.",
+    step1Title: "Fotografiá tu espacio",
+    step1Desc: "Encuadrá tu puesto y la pared de enfrente.",
+    step2Title: "Agregá las medidas",
+    step2Desc: "Elegí el uso y describí el tamaño del espacio.",
+    step3Title: "Ubicá los objetos",
+    step3Desc: "Indicá dónde escuchás o trabajás para elegir una prueba.",
 
     // Report example
     reportExample: "Ejemplo de informe",

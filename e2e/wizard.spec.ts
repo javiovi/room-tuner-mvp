@@ -76,10 +76,7 @@ test.describe("wizard", () => {
     // The analysis runs, then the report. Generous timeout: this is real computation.
     await expect(page).toHaveURL(/\/resultado/, { timeout: 60_000 })
 
-    await expect(page.getByRole("tab", { name: "Qué probar hoy" })).toBeVisible({ timeout: 30_000 })
-    await expect(page.getByRole("tab")).toHaveCount(2)
-    await expect(page.getByRole("tab", { name: "Quiero entender más" })).toBeVisible()
-
+    await expect(page.getByRole("tab")).toHaveCount(0)
     await page.getByText("Registrar la prueba y ver otras opciones",{exact:true}).click()
     const firstAction = page.getByRole("article").first()
     await firstAction.getByLabel("Mejoró", { exact: true }).check()
@@ -99,10 +96,7 @@ test.describe("wizard", () => {
     await expect.poll(() => pdfPayload).toBeTruthy()
     const exported = pdfPayload?.personalization as { experiments: Record<string, { note: string; outcome: string }> }
     expect(exported.experiments.symmetry).toMatchObject({ outcome: "better", note: "Moví los parlantes" })
-    await page.getByRole("tab", { name: "Qué probar hoy" }).focus()
-    await page.keyboard.press("ArrowRight")
-    await expect(page.getByRole("tab", { name: "Quiero entender más", exact: true })).toHaveAttribute("aria-selected", "true")
-    await expect(page.getByRole("tabpanel")).toBeVisible()
+
 
   })
 })
@@ -157,7 +151,31 @@ test("quick route needs no measurements, furniture or microphone", async ({ page
   await page.getByLabel("No pude probarlo", { exact: true }).check()
   await page.reload()
   await expect(page.getByLabel("No pude probarlo", { exact: true })).toBeChecked()
-  await page.getByRole("tab", { name: "Quiero entender más" }).click()
   await page.getByRole("link", { name: "Agregar medidas para afinar la propuesta" }).click()
   await expect(page.locator('input[name="largo"]')).toHaveValue("")
+})
+
+test("carries a local room photo and a suspected noise entry through the short journey", async ({page}) => {
+  await page.goto("/")
+  await page.getByRole("button", {name:"Fotografiar mi espacio"}).first().click()
+  await page.locator('input[capture="environment"]').setInputFiles("public/placeholder.jpg")
+  await expect(page).toHaveURL(/\/medidas/)
+  await expect(page.getByRole("img", {name:"Tu habitación"})).toBeVisible()
+  await page.locator("select").filter({has: page.locator('option[value="work"]')}).selectOption("work")
+  await fillSpaceFields(page)
+  await page.getByRole("button",{name:"Continuar", exact:true}).click()
+  await expect(page).toHaveURL(/\/objetos/)
+  await page.getByRole("combobox", { name: "Tu prioridad" }).selectOption("noise")
+  await page.getByRole("combobox", { name: "¿De dónde viene el ruido?" }).selectOption("outside")
+  await page.getByRole("combobox", { name: "¿Por dónde parece entrar?" }).selectOption("window")
+  await page.getByRole("button", {name:"Marcar entrada sospechada"}).click()
+  const request = page.waitForRequest(req => req.url().endsWith("/api/analyze-room"))
+  await page.getByRole("button",{name:"Analizar mi espacio"}).click()
+  const body = (await request).postDataJSON()
+  expect(body).toMatchObject({goal:"work", concern:"noise", noiseEntry:"window", lengthM:4.2})
+  expect(JSON.stringify(body)).not.toMatch(/photo|data:image|photoBytes|zones/)
+  await expect(page).toHaveURL(/\/resultado/, {timeout:60000})
+  await page.reload()
+  await expect(page.getByRole("img",{name:"Tu habitación",exact:true})).toBeVisible()
+  await expect(page.getByRole("heading",{name:"Compará con la ventana bien cerrada"})).toBeVisible()
 })
