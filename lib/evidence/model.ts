@@ -1,6 +1,6 @@
 export type ZoneKind = "window" | "door" | "wall" | "desk"
 export type Zone = { id: string; kind: ZoneKind; x: number; y: number; note: string; outcome: "untested" | "better" | "same" | "worse" }
-export type RoomEvidence = { version: 1; reportKey: string; goal: string; photo: Blob; zones: Zone[]; updatedAt: string }
+export type RoomEvidence = { version: 1; reportKey: string; goal: string; photo: Blob; zones: Zone[]; updatedAt: string; projection?: { wall: "left" | "right" | "front" | "back"; corners: Array<{x:number;y:number}> } }
 export const MAX_FILE_BYTES = 12 * 1024 * 1024
 export const MAX_STORED_BYTES = 2 * 1024 * 1024
 export function imageFormat(bytes: Uint8Array): boolean {

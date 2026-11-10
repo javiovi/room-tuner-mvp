@@ -11,8 +11,8 @@ import { NoiseOptions } from "./NoiseOptions"
 import { LayoutTrial } from "./LayoutTrial"
 
 const EMPTY: ExperimentRecords = {}
-export function TodayExperiments({ reportKey, project, diagram, roomCharacter }: {
-  reportKey: string; project: RoomProject; diagram: RoomDiagram; roomCharacter: "viva" | "equilibrada" | "seca"
+export function TodayExperiments({ reportKey, project, diagram, roomCharacter, visualFirst = false }: {
+  visualFirst?: boolean; reportKey: string; project: RoomProject; diagram: RoomDiagram; roomCharacter: "viva" | "equilibrada" | "seca"
 }) {
   const { t } = useT()
   const records = useRoomStore(s => s.reportPersonalization.experiments) ?? EMPTY
@@ -64,7 +64,7 @@ export function TodayExperiments({ reportKey, project, diagram, roomCharacter }:
       <p className="text-base leading-relaxed">{experiment.action}</p>
       <p className="text-sm text-muted-foreground">{experiment.why}</p>
       <div className="border-l-2 border-primary pl-3 space-y-1"><h3 className="text-sm font-medium">{t.journey.check}</h3><p className="text-sm">{experiment.check}</p></div>
-      {(["position", "symmetry"].includes(experiment.id)) && <details className="border-t border-border pt-2" key={experiment.id}>
+      {(!visualFirst && ["position", "symmetry"].includes(experiment.id)) && <details className="border-t border-border pt-2" key={experiment.id}>
         <summary className="cursor-pointer min-h-11 text-sm text-primary">{t.journey.plan}</summary>
         <LayoutTrial reportKey={reportKey} project={project} diagram={diagram} roomCharacter={roomCharacter} experimentId={experiment.id} />
       </details>}

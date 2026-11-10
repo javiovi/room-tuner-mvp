@@ -1,3 +1,4 @@
+import { reflectionSites } from "@/lib/acoustics/reflections"
 import { rt60Reference } from "@/lib/rt60Reference"
 // Room Acoustics Calculations
 // Based on established acoustic physics formulas
@@ -805,31 +806,7 @@ export function recalculateForPositions(
     }
   })
 
-  // 2. Recalculate treatment plan (first reflection points depend on positions)
-  const avgSpeakerY = (positions.speakers[0].y + positions.speakers[1].y) / 2
-  const reflectionY = (avgSpeakerY + listenerY) / 2
-
-  const treatmentPlan: Array<{
-    type: "absorber" | "diffuser" | "bass_trap"
-    position: { x: number; y: number }
-    wall: "front" | "back" | "left" | "right" | "ceiling"
-    priority: "high" | "medium" | "low"
-  }> = [
-    // Corner bass traps (always fixed)
-    { type: "bass_trap", position: { x: 0, y: 0 }, wall: "front", priority: "high" },
-    { type: "bass_trap", position: { x: 1, y: 0 }, wall: "front", priority: "high" },
-    { type: "bass_trap", position: { x: 0, y: 1 }, wall: "back", priority: "high" },
-    { type: "bass_trap", position: { x: 1, y: 1 }, wall: "back", priority: "high" },
-    // First reflection points (move with speaker/listener positions)
-    { type: "absorber", position: { x: 0, y: reflectionY }, wall: "left", priority: "high" },
-    { type: "absorber", position: { x: 1, y: reflectionY }, wall: "right", priority: "high" },
-  ]
-
-  if (roomCharacter !== "seca") {
-    treatmentPlan.push(
-      { type: "diffuser", position: { x: 0.5, y: 1 }, wall: "back", priority: "medium" }
-    )
-  }
-
+  // Only locate geometric side-wall sites; no automatic corner products or diffusion prescription.
+  const treatmentPlan = reflectionSites({ width: roomWidth, length: roomLength, speakerPositions: positions.speakers, listeningPosition: positions.listeningPosition, furnitureLayout: positions.furnitureLayout ?? [] })
   return { frequencyResponse: modifiedResponse, treatmentPlan }
 }
