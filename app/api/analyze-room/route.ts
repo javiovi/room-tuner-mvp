@@ -1,3 +1,4 @@
+import { reflectionSites } from "@/lib/acoustics/reflections"
 import { correctedMaterials } from "@/lib/reportModel"
 import { NextResponse } from "next/server"
 import type { RoomProject, EnhancedAnalysisResponse, ProductRecommendation } from "@/app/types/room"
@@ -294,7 +295,7 @@ async function generateLocalAnalysis(project: RoomProject, locale: string = "es"
       listeningPosition: positions.listeningPosition,
       furnitureLayout: generateFurnitureLayout(project.furniture || [], widthM, lengthM),
     },
-    treatmentPlan: generateTreatmentPlan(roomCharacter),
+    treatmentPlan: reflectionSites({ width: widthM, length: lengthM, speakerPositions: positions.speakers, listeningPosition: positions.listeningPosition, furnitureLayout: [] }),
   }
 
   // === STEP 11: Count priorities ===
@@ -583,48 +584,6 @@ function generateFurnitureLayout(
   })
 
   return layout
-}
-
-/**
- * Generate treatment plan for diagram
- */
-function generateTreatmentPlan(
-  roomCharacter: "viva" | "equilibrada" | "seca"
-): Array<{
-  type: "absorber" | "diffuser" | "bass_trap"
-  position: { x: number; y: number }
-  wall: "front" | "back" | "left" | "right" | "ceiling"
-  priority: "high" | "medium" | "low"
-}> {
-  const plan: Array<{
-    type: "absorber" | "diffuser" | "bass_trap"
-    position: { x: number; y: number }
-    wall: "front" | "back" | "left" | "right" | "ceiling"
-    priority: "high" | "medium" | "low"
-  }> = []
-
-  // Always recommend corner bass traps
-  plan.push(
-    { type: "bass_trap", position: { x: 0, y: 0 }, wall: "front", priority: "high" },
-    { type: "bass_trap", position: { x: 1, y: 0 }, wall: "front", priority: "high" },
-    { type: "bass_trap", position: { x: 0, y: 1 }, wall: "back", priority: "high" },
-    { type: "bass_trap", position: { x: 1, y: 1 }, wall: "back", priority: "high" }
-  )
-
-  // First reflection points (side walls)
-  plan.push(
-    { type: "absorber", position: { x: 0, y: 0.3 }, wall: "left", priority: "high" },
-    { type: "absorber", position: { x: 1, y: 0.3 }, wall: "right", priority: "high" }
-  )
-
-  // Rear diffusion (if not too dead)
-  if (roomCharacter !== "seca") {
-    plan.push(
-      { type: "diffuser", position: { x: 0.5, y: 1 }, wall: "back", priority: "medium" }
-    )
-  }
-
-  return plan
 }
 
 /**

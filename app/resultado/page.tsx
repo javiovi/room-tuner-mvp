@@ -16,6 +16,8 @@ import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
 import { FrequencyResponseChart } from "@/components/report/FrequencyResponseChart"
 import { RoomModesChart } from "@/components/report/RoomModesChart"
 import { ProductTable } from "@/components/report/ProductTable"
+import { AcousticWorkspace } from "@/components/report/AcousticWorkspace"
+import { acousticCopy } from "@/lib/acoustics/copy"
 import { LayoutTrial } from "@/components/report/LayoutTrial"
 import { TodayExperiments } from "@/components/report/TodayExperiments"
 import { BudgetCalculator } from "@/components/report/BudgetCalculator"
@@ -40,7 +42,7 @@ function ResultadoContent() {
   const [unlockNotice, setUnlockNotice] = useState(false)
   const [rehydrating, setRehydrating] = useState(false)
   const [rehydrateFailed, setRehydrateFailed] = useState(false)
-  const { t } = useT()
+  const { t, locale } = useT()
 
   // The URL identifies the report even if this tab has a different report cached.
   // Replace its answers rather than merging in fields from the previous room.
@@ -227,7 +229,9 @@ function ResultadoContent() {
   const planner = <LayoutTrial key={`layout-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} />
   const refine = <div className="space-y-3 border border-primary/30 p-4 rounded-sm"><p className="text-sm">{t.layoutTrial.needDimensions}</p><Link className="inline-block text-sm text-primary underline min-h-11" href="/espacio?precision=1">{t.layoutTrial.refine}</Link></div>
 
-  const resumenContent = <TodayExperiments key={`experiments-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} />
+  const visualFirst = project.goal === "music" && project.concern !== "noise"
+  const experiments = <TodayExperiments key={`experiments-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram} roomCharacter={roomCharacter} visualFirst={visualFirst} />
+  const resumenContent = visualFirst ? <div className="space-y-4"><AcousticWorkspace key={`live-${projectId ?? analysis.generatedAt}`} reportKey={projectId ?? analysis.generatedAt} project={project} diagram={roomDiagram}/><details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{acousticCopy[locale].noteSummary}</summary>{experiments}</details></div> : experiments
 
   // ── Locked "Informe completo" tab content ──
   const lockedReportContent = (
@@ -283,7 +287,7 @@ function ResultadoContent() {
     { id: "resumen", label: t.experiments.today, content: resumenContent },
     { id: "detalles", label: t.journey.details, content: <div className="space-y-4">
       {approximate && refine}
-      <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.plan}</summary>{planner}</details>
+      {!visualFirst && <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.plan}</summary>{planner}</details>}
       {!approximate && isUnlocked && <>
         <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.metrics.title}</summary><RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} /></details>
         <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.modes.title}</summary><RoomModesChart modes={roomMetrics.roomModes} /></details>

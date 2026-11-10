@@ -1,0 +1,58 @@
+import {expect,test} from "@playwright/test"
+import {readFileSync} from "node:fs"
+import {mockAnalysis} from "../lib/mockData"
+const photo=readFileSync("public/placeholder.jpg")
+test.beforeEach(async({page},testInfo)=>{
+ await page.addInitScript(({analysis,approximate})=>{
+  if(!sessionStorage.getItem("roomtuner-session"))sessionStorage.setItem("roomtuner-session",JSON.stringify({version:1,state:{project:{goal:"music",concern:"clarity",dimensionSource:approximate?"approximate":"measured",widthM:4,lengthM:5,heightM:3,speakerPlacement:"pared-corta-centrado",listeningPosition:"centro-sala",furniture:[]},analysis:{...analysis,generatedAt:"2026-11-10T12:00:00Z"},projectId:null,analysisPersisted:false,reportPersonalization:{}}}))
+ },{analysis:mockAnalysis,approximate:testInfo.title.startsWith("approximate")})
+})
+test("photo sites require confirmed geometry, follow live positions and survive reload locally",async({page})=>{
+ const errors:string[]=[],posts:string[]=[]
+ page.on("pageerror",e=>errors.push(e.message));page.on("request",r=>{if(r.method()==="POST")posts.push(r.url())})
+ await page.goto("/resultado")
+ const workspace=page.getByRole("region",{name:"Tu espacio, en vivo"})
+ await workspace.getByRole("button",{name:"El plano representa mi habitación"}).click()
+ const panel=workspace.getByTestId("reflection-photo-panel")
+ await panel.locator("summary").click()
+ await expect(panel.getByText("Primero confirmá el plano, las medidas reales y las alturas.",{exact:true})).toBeVisible()
+ await expect(panel.getByLabel("Elegir foto de una pared")).toHaveCount(0)
+ await workspace.getByText("Ajustar posiciones y alturas",{exact:true}).click()
+ await workspace.getByLabel("Confirmo estas alturas",{exact:true}).check()
+ await panel.getByLabel("Elegir foto de una pared").setInputFiles({name:"wall.jpg",mimeType:"image/jpeg",buffer:photo})
+ await expect(panel.getByTestId("reflection-photo")).toBeVisible()
+ const names=["arriba, extremo A","arriba, extremo B","abajo, extremo B","abajo, extremo A"]
+ for(const [i,[x,y]] of [[10,10],[90,10],[90,90],[10,90]].entries()){
+  await panel.getByLabel("X (%)",{exact:true}).fill(String(x));await panel.getByLabel("Y (%)",{exact:true}).fill(String(y))
+  await panel.getByRole("button",{name:`Marcá ${names[i]}`,exact:true}).click()
+ }
+ await expect(panel.locator("[data-reflection-photo]")).toHaveCount(2)
+ await expect(panel.getByRole("status").last()).toHaveText("Guardado en este navegador")
+ const marker=panel.locator('[data-reflection-photo="0-left"]'),before=await marker.getAttribute("style")
+ await workspace.getByRole("button",{name:"Mover a la derecha",exact:true}).click()
+ await expect.poll(()=>marker.getAttribute("style")).not.toBe(before)
+ const current=await marker.getAttribute("style")
+ const session=await page.evaluate(()=>sessionStorage.getItem("roomtuner-session"))
+ expect(session).not.toContain("photoBytes")
+ expect(session).not.toContain("corners")
+ await page.reload()
+ await panel.locator("summary").click()
+ await expect(panel.locator("[data-reflection-photo]")).toHaveCount(2)
+ await expect(marker).toHaveAttribute("style",current!)
+ await panel.getByRole("button",{name:"Volver a marcar las esquinas"}).click()
+ await expect(panel.locator("[data-reflection-photo]")).toHaveCount(0)
+ await panel.getByRole("button",{name:"Eliminar foto y referencias"}).click()
+ await expect(panel.getByLabel("Elegir foto de una pared")).toBeEnabled()
+ expect(posts).toEqual([]);expect(errors).toEqual([])
+})
+test("approximate rooms never project precise sites onto a photo",async({page})=>{
+ await page.goto("/resultado")
+ const workspace=page.getByRole("region",{name:"Tu espacio, en vivo"})
+ await workspace.getByRole("button",{name:"El plano representa mi habitación"}).click()
+ await workspace.getByText("Ajustar posiciones y alturas",{exact:true}).click()
+ await workspace.getByLabel("Confirmo estas alturas",{exact:true}).check()
+ await workspace.getByTestId("reflection-photo-panel").locator("summary").click()
+ await expect(page.getByLabel("Elegir foto de una pared")).toHaveCount(0)
+ await expect(workspace.locator("[data-path-metric]")).toHaveCount(0)
+ await expect(workspace.getByRole("link",{name:"Agregar medidas reales"})).toBeVisible()
+})

@@ -80,10 +80,12 @@ test.describe("wizard", () => {
     await expect(page.getByRole("tab")).toHaveCount(2)
     await expect(page.getByRole("tab", { name: "Quiero entender más" })).toBeVisible()
 
+    await page.getByText("Registrar la prueba y ver otras opciones",{exact:true}).click()
     const firstAction = page.getByRole("article").first()
     await firstAction.getByLabel("Mejoró", { exact: true }).check()
     await firstAction.getByLabel("¿Qué cambiaste? (opcional)").fill("Moví los parlantes")
     await page.reload()
+    await page.getByText("Registrar la prueba y ver otras opciones",{exact:true}).click()
     const restored = page.getByRole("article").first()
     await expect(restored.getByLabel("Mejoró", { exact: true })).toBeChecked()
     await expect(restored.getByLabel("¿Qué cambiaste? (opcional)")).toHaveValue("Moví los parlantes")
