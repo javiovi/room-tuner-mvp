@@ -13,12 +13,14 @@ import { useT } from "@/lib/i18n"
 import { PlanObject } from "./PlanObject"
 import { ReflectionPhoto } from "./ReflectionPhoto"
 
-const storedSchema=z.object({current:roomDiagramSchema.shape.floorPlan.refine(p=>p.width>0&&p.length>0&&[...p.speakerPositions,p.listeningPosition].every(v=>v.x>0&&v.x<1&&v.y>0&&v.y<1)),confirmed:z.boolean(),heights:z.object({room:z.number().positive(),speaker:z.number().positive(),ear:z.number().positive()}),heightsConfirmed:z.boolean(),moves:z.object({speakers:z.boolean(),listening:z.boolean(),furniture:z.boolean()}),feedback:z.record(z.enum(["better","same","worse"]))})
+const layoutSchema=roomDiagramSchema.shape.floorPlan.refine(p=>p.width>0&&p.length>0&&p.speakerPositions.length===2&&[...p.speakerPositions,p.listeningPosition].every(v=>v.x>0&&v.x<1&&v.y>0&&v.y<1))
+const storedSchema=z.object({current:layoutSchema,confirmed:z.boolean(),heights:z.object({room:z.number().positive(),speaker:z.number().positive(),ear:z.number().positive()}),heightsConfirmed:z.boolean(),moves:z.object({speakers:z.boolean(),listening:z.boolean(),furniture:z.boolean()}),feedback:z.record(z.enum(["better","same","worse"])),undoLayout:layoutSchema.optional()})
 type Outcome="better"|"same"|"worse"
 export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;project:RoomProject;diagram:RoomDiagram}) {
  const {locale}=useT(),c=acousticCopy[locale]
  const setReportLayout=useRoomStore(s=>s.setReportLayout)
  const [current,setCurrent]=useState<Layout>(()=>initialLayout(project,{...diagram.floorPlan,width:project.widthM??diagram.floorPlan.width,length:project.lengthM??diagram.floorPlan.length}))
+ const [undoLayout,setUndoLayout]=useState<Layout>()
  const [confirmed,setConfirmed]=useState(false),[ready,setReady]=useState(false),[storageError,setStorageError]=useState(false)
  const [heights,setHeights]=useState<Heights>({room:project.heightM??2.5,speaker:1.2,ear:1.2}),[heightsConfirmed,setHeightsConfirmed]=useState(false)
  const [moves,setMoves]=useState<MoveConstraints>(project.moveConstraints??DEFAULT_MOVES)
@@ -36,19 +38,20 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
  const fingerprint=JSON.stringify([current.speakerPositions,current.listeningPosition,heights,wall,view,view==="trial"?proposal:null])
  const outcome=feedback[fingerprint]
  useEffect(()=>{
-  try{const result=storedSchema.safeParse(JSON.parse(localStorage.getItem(storageKey)??"null"));if(result.success){setCurrent(result.data.current);setConfirmed(result.data.confirmed);setHeights(result.data.heights);setHeightsConfirmed(result.data.heightsConfirmed);setMoves(result.data.moves);setFeedback(result.data.feedback)}}catch{setStorageError(true)}
+  try{const result=storedSchema.safeParse(JSON.parse(localStorage.getItem(storageKey)??"null"));if(result.success){setCurrent(result.data.current);setConfirmed(result.data.confirmed);setHeights(result.data.heights);setHeightsConfirmed(result.data.heightsConfirmed);setMoves(result.data.moves);setFeedback(result.data.feedback);setUndoLayout(result.data.undoLayout)}}catch{setStorageError(true)}
   setReady(true)
  },[storageKey])
  useEffect(()=>{
   if(!ready)return
-  try{localStorage.setItem(storageKey,JSON.stringify({current,confirmed,heights,heightsConfirmed,moves,feedback}));setStorageError(false)}catch{setStorageError(true)}
+  try{localStorage.setItem(storageKey,JSON.stringify({current,confirmed,heights,heightsConfirmed,moves,feedback,undoLayout}));setStorageError(false)}catch{setStorageError(true)}
   setReportLayout({current,proposal,moves,confirmed:confirmed&&valid,view:view==="trial"?"proposal":"current",source:confirmed?"user":"schematic"})
- },[ready,storageKey,current,proposal,confirmed,valid,heights,heightsConfirmed,moves,feedback,view,setReportLayout])
+ },[ready,storageKey,current,proposal,confirmed,valid,heights,heightsConfirmed,moves,feedback,undoLayout,view,setReportLayout])
  const objects=[...shown.speakerPositions.map((p,i)=>({id:`speaker-${i}`,label:i===0?c.speaker0:c.speaker1,kind:"speaker",...p})),{id:"listening",label:c.listener,kind:"listening",...shown.listeningPosition}]
  const active=objects.find(o=>o.id===selected)??objects[objects.length-1]
  const move=(id:string,p:{x:number;y:number})=>{
   if(!ready||view!=="current")return
   const point=clampPoint(p,.06,.06)
+  setUndoLayout(undefined)
   setCurrent(prev=>id==="listening"?{...prev,listeningPosition:point}:{...prev,speakerPositions:prev.speakerPositions.map((s,i)=>id===`speaker-${i}`?point:s)})
  }
  const scale=Math.min(280/current.width,340/current.length),w=current.width*scale,h=current.length*scale,pad=27
@@ -59,7 +62,8 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
  return <section className="space-y-4 border border-primary/40 rounded-sm bg-card p-4" aria-label={c.title}>
   <div className="space-y-1"><h2 className="text-lg font-semibold">{c.title}</h2><p className="text-sm text-muted-foreground">{c.intro}</p></div>
   {approximate&&<div className="border-l-2 border-primary pl-3 text-xs space-y-1"><p>{c.approximate}</p><Link href="/espacio?precision=1" className="inline-flex items-center underline text-primary min-h-11">{c.refine}</Link></div>}
-  <div className="flex gap-2"><button type="button" className={`${control} flex-1 ${view==="current"?"border-primary text-primary":""}`} aria-pressed={view==="current"} onClick={()=>{drag.current=null;setView("current")}}>{c.before}</button><button type="button" className={`${control} flex-1 ${view==="trial"?"border-primary text-primary":""}`} disabled={!confirmed||!valid||!hasMove} aria-pressed={view==="trial"} onClick={()=>{drag.current=null;setView("trial")}}>{c.after}</button></div>
+  <div className="flex gap-2"><button type="button" className={`${control} flex-1 ${view==="current"?"border-primary text-primary":""}`} aria-pressed={view==="current"} onClick={()=>{drag.current=null;setView("current")}}>{c.before}</button><button type="button" className={`${control} flex-1 ${view==="trial"?"border-primary text-primary":""}`} disabled={!confirmed||!valid||!hasMove} aria-pressed={view==="trial"} onClick={()=>{drag.current=null;setView("trial");setPatch(false)}}>{c.after}</button></div>
+  {undoLayout&&<button type="button" className="text-xs underline min-h-11" onClick={()=>{setCurrent(undoLayout);setUndoLayout(undefined);setView("current")}}>{c.undo}</button>}
   <svg ref={svg} role="img" aria-label={c.title} viewBox={`0 0 ${w+pad*2} ${h+pad*2}`} className="w-full bg-secondary/20 rounded-sm touch-none" data-testid="live-room-plan" onPointerMove={e=>{if(!drag.current||!svg.current)return;const m=svg.current.getScreenCTM();if(!m)return;const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());move(drag.current,{x:(p.x-pad)/w,y:(p.y-pad)/h})}} onPointerUp={()=>{drag.current=null}} onPointerCancel={()=>{drag.current=null}}>
    <text x={pad+w/2} y={14} textAnchor="middle" fontSize="9" className="fill-muted-foreground">{c.front}</text>
    <text x={pad+w/2} y={pad+h+19} textAnchor="middle" fontSize="9" className="fill-muted-foreground">{c.back}</text>
@@ -89,10 +93,10 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
   {!confirmed?<button type="button" className={`${control} border-primary text-primary w-full`} disabled={!ready||!valid} onClick={()=>setConfirmed(true)}>{c.confirm}</button>:<>
    <p className="text-xs text-primary">{c.confirmed}</p>
    <div className="grid grid-cols-2 gap-2" role="group" aria-label={c.calculated}>{(["left","right","front","back","floor","ceiling"] as const).map(s=><button key={s} type="button" className={`${control} text-xs ${wall===s?"border-primary text-primary":""}`} aria-pressed={wall===s} onClick={()=>{setWall(s);setPatch(false)}}>{c[s]}</button>)}</div>
-   <div className="space-y-3 border-l-2 border-primary pl-3"><h3 className="text-sm font-medium">{c.calculated}: {c[wall]}</h3><p className="text-sm">{wall==="floor"?c.floorTest:wall==="ceiling"?c.ceilingTest:c.surfaceTest}</p>{wall!=="floor"&&wall!=="ceiling"&&<details><summary className="cursor-pointer min-h-11 text-xs text-primary">{locale==="es"?"Confirmar el punto con un espejo":"Check the site with a mirror"}</summary><p className="text-xs text-muted-foreground">{c.verify}</p></details>}{wall!=="ceiling"&&<button type="button" className={control} aria-pressed={patch} onClick={()=>setPatch(!patch)}>{patch?c.hidePatch:c.showPatch}</button>}</div>
+   {view==="current"&&<div className="space-y-3 border-l-2 border-primary pl-3"><h3 className="text-sm font-medium">{c.calculated}: {c[wall]}</h3><p className="text-sm">{wall==="floor"?c.floorTest:wall==="ceiling"?c.ceilingTest:c.surfaceTest}</p>{wall!=="floor"&&wall!=="ceiling"&&<details><summary className="cursor-pointer min-h-11 text-xs text-primary">{locale==="es"?"Confirmar el punto con un espejo":"Check the site with a mirror"}</summary><p className="text-xs text-muted-foreground">{c.verify}</p></details>}{wall!=="ceiling"&&<button type="button" className={control} aria-pressed={patch} onClick={()=>setPatch(!patch)}>{patch?c.hidePatch:c.showPatch}</button>}</div>}
    {view==="trial"?<div className="grid grid-cols-2 gap-2 text-xs border border-primary/30 p-3"><span>{c.movement}<strong className="block text-primary font-mono text-lg">{approximate?"≤ 30 cm":`${fmt(movement*100,0)} ${c.cm}`}</strong></span><span>{c.difference}<strong className="block font-mono">{approximate?"≈":`${fmt(stereoMismatch(current,heights)*100,0)} → ${fmt(stereoMismatch(proposal,heights)*100,0)} ${c.cm}`}</strong></span><p className="col-span-2 text-muted-foreground">{c.trialNote}</p></div>:!hasMove&&<p className="text-xs text-muted-foreground">{c.noMove}</p>}
    <fieldset className="space-y-2"><legend className="text-sm mb-2">{c.result}</legend><div className="grid grid-cols-3 gap-2">{(["better","same","worse"] as const).map(result=><button type="button" key={result} aria-pressed={outcome===result} className={`${control} text-xs ${outcome===result?"border-primary text-primary":""}`} onClick={()=>setFeedback(prev=>Object.fromEntries([...Object.entries(prev).filter(([key])=>key!==fingerprint),[fingerprint,result]].slice(-20)))}>{c[result]}</button>)}</div></fieldset>
-   {outcome&&<div role="status" className="text-sm space-y-2 border border-border p-3"><p>{outcome==="better"?c.keep:view==="trial"?c.retryMove:c.retry}</p>{outcome==="better"&&view==="current"&&wall!=="ceiling"&&<p className="text-xs text-muted-foreground">{c.buy}</p>}{outcome!=="better"&&<button type="button" className={control} onClick={()=>{setView("current");setWall(wall==="left"?"right":"left");setPatch(false)}}>{c.other}</button>}</div>}
+   {outcome&&<div role="status" className="text-sm space-y-2 border border-border p-3"><p>{outcome==="better"?c.keep:view==="trial"?c.retryMove:c.retry}</p>{outcome==="better"&&view==="trial"&&<button type="button" className={control} onClick={()=>{setUndoLayout(current);setCurrent(proposal);setView("current");setPatch(false)}}>{c.adopt}</button>}{outcome==="better"&&view==="current"&&wall!=="ceiling"&&<p className="text-xs text-muted-foreground">{c.buy}</p>}{outcome!=="better"&&<button type="button" className={control} onClick={()=>{setView("current");setWall(wall==="left"?"right":"left");setPatch(false)}}>{c.other}</button>}</div>}
    <ReflectionPhoto key={reportKey} reportKey={reportKey} reflections={reflections} allowed={confirmed&&valid&&!approximate&&heightsConfirmed} wall={wall==="floor"||wall==="ceiling"?"left":wall}/>
    <details className="text-xs text-muted-foreground space-y-2"><summary className="cursor-pointer min-h-11">{c.details}</summary><p>{c.notMeasured}</p>{!approximate&&<ul className="space-y-2">{selectedPaths.map(r=><li key={r.id} data-path-metric={r.id}>{r.speaker===0?"L":"R"} · {c.path}: ≈ {fmt(r.pathM,2)} m · {c.delay}: ≈ {fmt(r.excessMs,2)} ms</li>)}</ul>}<a className="block underline min-h-11" href="https://www.genelec.com/improving-room-acoustics" target="_blank" rel="noreferrer">{c.sources}: Genelec</a></details>
   </>}
