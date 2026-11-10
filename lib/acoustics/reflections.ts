@@ -46,7 +46,7 @@ export function smallStereoTrial(layout: Layout, moves: MoveConstraints, heights
     const index=target==="speaker-0" ? 0 : 1, origin=target==="listener" ? layout.listeningPosition : layout.speakerPositions[index]
     for (const cm of [10,20,30]) for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
       const p={x:origin.x+dx*cm/100/layout.width,y:origin.y+dy*cm/100/layout.length}
-      if (p.x<.05 || p.x>.95 || p.y<.05 || p.y>.95 || occupied(p)) continue
+      if (p.x<.05/layout.width || p.x>1-.05/layout.width || p.y<.05/layout.length || p.y>1-.05/layout.length || occupied(p)) continue
       const candidate={...layout,speakerPositions:layout.speakerPositions.map((s,i)=>target!=="listener" && i===index ? p : s),listeningPosition:target==="listener" ? p : layout.listeningPosition}
       if (candidate.speakerPositions.some(s=>Math.hypot((s.x-candidate.listeningPosition.x)*layout.width,(s.y-candidate.listeningPosition.y)*layout.length)<.35)) continue
       if (Math.hypot((candidate.speakerPositions[0].x-candidate.speakerPositions[1].x)*layout.width,(candidate.speakerPositions[0].y-candidate.speakerPositions[1].y)*layout.length)<.35) continue
