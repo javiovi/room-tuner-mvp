@@ -57,6 +57,10 @@ describe("small reversible stereo trials",()=>{
   expect(smallStereoTrial(asymmetric,{speakers:false,listening:false,furniture:false})).toBe(asymmetric)
   expect(smallStereoTrial(room,{speakers:true,listening:true,furniture:false})).toBe(room)
  })
+ it("keeps the baseline when the useful short moves are blocked or would bring speakers too close",()=>{
+  const constrained:Layout={width:4,length:5,speakerPositions:[{x:.2,y:.12},{x:.28,y:.12}],listeningPosition:{x:.5,y:.85},furnitureLayout:[{type:"sofa",x:.39,y:.78,width:.47,length:.2},{type:"escritorio",x:.05,y:.04,width:.32,length:.13},{type:"estanteria",x:.92,y:.22,width:.08,length:.44}]}
+  expect(smallStereoTrial(constrained,{speakers:true,listening:true,furniture:false})).toBe(constrained)
+ })
  it("does not move the seat into a marked obstacle",()=>{
   const blocked={...asymmetric,furnitureLayout:[{type:"mesa",x:.75,y:.7,width:.4,length:.4}]}
   const next=smallStereoTrial(blocked,{speakers:false,listening:true,furniture:false})
