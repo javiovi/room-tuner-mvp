@@ -43,6 +43,7 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
  const hasMove=proposal!==current
  const shown=view==="trial"?proposal:current
  const reflections=useMemo(()=>firstReflections(shown,heights),[shown,heights])
+ const baselineReflections=useMemo(()=>firstReflections(current,heights),[current,heights])
  const selectedPaths=reflections.filter(r=>r.wall===wall)
  const geometryValid=reflections.length>0&&current.speakerPositions.length===(instrument?1:2)
  const valid=geometryValid&&(!instrument||instrumentMode!==null)
@@ -142,7 +143,7 @@ export function AcousticWorkspace({reportKey,project,diagram}:{reportKey:string;
 
    <details className="text-xs text-muted-foreground space-y-2"><summary className="cursor-pointer min-h-11">{c.details}</summary><p>{c.notMeasured}</p>{!approximate&&heightsConfirmed&&<ul className="space-y-2">{selectedPaths.map(r=><li key={r.id} data-path-metric={r.id}>{instrument?"S":r.speaker===0?"L":"R"} · {c.path}: ≈ {fmt(r.pathM,2)} m · {c.delay}: ≈ {fmt(r.excessMs,2)} ms</li>)}</ul>}<a className="block underline min-h-11" href="https://www.genelec.com/improving-room-acoustics" target="_blank" rel="noreferrer">{c.sources}: Genelec</a></details>
   </>}
-   <ReflectionPhoto key={reportKey} reportKey={reportKey} reflections={reflections} goal={project.goal??"music"} mono={instrument} onSetup={() => { if (!confirmed && valid) {setConfirmed(true); return} setShowHeightSetup(true); if(settings.current){settings.current.open=true;settings.current.scrollIntoView({block:"center"})} }} approximate={approximate} setupLabel={!confirmed && valid ? (es ? "Confirmar este plano para la foto" : "Confirm this plan for the photo") : (es ? "Revisar alturas y configuración" : "Review heights and setup")} allowed={confirmed&&valid&&!approximate&&heightsConfirmed} wall={wall==="floor"||wall==="ceiling"?"left":wall}/>
+   <ReflectionPhoto key={reportKey} reportKey={reportKey} reflections={reflections} baseline={baselineReflections} trial={view==="trial"} canCompare={confirmed&&valid&&hasMove} compare={()=>setView(view==="trial"?"current":"trial")} goal={project.goal??"music"} mono={instrument} onSetup={() => { if (!confirmed && valid) {setConfirmed(true); return} setShowHeightSetup(true); if(settings.current){settings.current.open=true;settings.current.scrollIntoView({block:"center"})} }} approximate={approximate} setupLabel={!confirmed && valid ? (es ? "Confirmar este plano para la foto" : "Confirm this plan for the photo") : (es ? "Revisar alturas y configuración" : "Review heights and setup")} allowed={confirmed&&valid&&!approximate&&heightsConfirmed} wall={wall==="floor"||wall==="ceiling"?"left":wall}/>
   {(!instrument||instrumentMode)&&<ReverbComfort reportKey={reportKey} project={{...project,widthM:current.width,lengthM:current.length,heightM:heights.room}} mode={instrumentMode}/>}
   {instrument&&instrumentMode==="reinforcement"&&<a className="text-xs underline text-primary block min-h-11" href="https://service.shure.com/articles/en_US/Knowledge/how-do-i-fix-my-feedback-problem" target="_blank" rel="noreferrer">{ic.feedbackSource}</a>}
   <p role="status" className="text-xs text-muted-foreground">{storageError?c.storageError:c.saved}</p>

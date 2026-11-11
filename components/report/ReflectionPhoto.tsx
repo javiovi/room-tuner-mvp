@@ -11,7 +11,7 @@ import { preparePhoto } from "@/lib/evidence/photos"
 import { loadEvidence, saveEvidence, deleteEvidence } from "@/lib/evidence/storage"
 
 type PhotoWall = "left"|"right"|"front"|"back"
-export function ReflectionPhoto({reportKey,reflections,allowed,wall,onSetup,setupLabel,approximate,goal="music",mono=false}:{reportKey:string;reflections:Reflection[];allowed:boolean;onSetup:()=>void;setupLabel:string;approximate:boolean;wall:PhotoWall;goal?:string;mono?:boolean}) {
+export function ReflectionPhoto({reportKey,reflections,baseline,trial,canCompare,compare,allowed,wall,onSetup,setupLabel,approximate,goal="music",mono=false}:{reportKey:string;reflections:Reflection[];baseline:Reflection[];trial:boolean;canCompare:boolean;compare:()=>void;allowed:boolean;onSetup:()=>void;setupLabel:string;approximate:boolean;wall:PhotoWall;goal?:string;mono?:boolean}) {
  const {locale}=useT(),c=acousticCopy[locale]
  const [data,setData]=useState<RoomEvidence>(),[url,setUrl]=useState(""),[busy,setBusy]=useState(true),[error,setError]=useState(false)
  const [corners,setCorners]=useState<ImagePoint[]>([]),[photoWall,setPhotoWall]=useState<PhotoWall>(wall),[point,setPoint]=useState({x:.5,y:.5})
@@ -37,7 +37,7 @@ export function ReflectionPhoto({reportKey,reflections,allowed,wall,onSetup,setu
    {!data?(allowed && <label className="block text-sm">{c.upload}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} className="block w-full mt-2 text-xs" onChange={async e=>{const input=e.currentTarget;await upload(input.files?.[0]);input.value=""}}/></label>):<fieldset disabled={busy} className="min-w-0 space-y-3">
     <label className="block text-sm">{c.calculated}<select aria-label={locale==="es"?"Pared de la foto":"Photo wall"} value={wallChosen?photoWall:""} onChange={e=>void reset(e.target.value as PhotoWall)} className={`${control} block w-full mt-2`}><option value="" disabled>{locale==="es"?"Elegí la pared que se ve en la foto":"Choose the wall visible in the photo"}</option>{(["left","right","front","back"] as const).map(w=><option key={w} value={w}>{c[w]}</option>)}</select></label>
     {wallChosen && <p className="text-xs">{photoWall==="left"||photoWall==="right"?c.sideAB:c.endAB}</p>}
-    {wallChosen&&corners.length<4&&<p className="text-sm text-primary">{c.nextCorner} {corners.length+1}/4: {labels[corners.length]}</p>}
+    {wallChosen&&!windowMode&&corners.length<4&&<p className="text-sm text-primary">{c.nextCorner} {corners.length+1}/4: {labels[corners.length]}</p>}
     <button type="button" className={control} aria-pressed={windowMode} onClick={()=>setWindowMode(!windowMode)}>{locale==="es"?"Marcar una ventana en la foto":"Mark a window in the photo"}</button>
     {windowMode&&<p className="text-sm">{locale==="es"?"Tocá el centro de la ventana visible. Queda como referencia visual.":"Tap the centre of the visible window to keep it as a visual reference."}</p>}
     <div className="relative overflow-hidden border border-border" data-testid="reflection-photo" onClick={e=>{const r=e.currentTarget.getBoundingClientRect();void add({x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height})}}>
@@ -46,9 +46,18 @@ export function ReflectionPhoto({reportKey,reflections,allowed,wall,onSetup,setu
      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{corners.length>1&&<polygon points={corners.map(p=>`${p.x*100},${p.y*100}`).join(" ")} className="fill-primary/10 stroke-primary" strokeWidth=".5"/>}</svg>
      {corners.map((p,i)=><span key={i} className="absolute -translate-x-1/2 -translate-y-1/2 bg-background text-primary border border-primary px-1 text-xs" style={{left:`${p.x*100}%`,top:`${p.y*100}%`}}>{i+1}</span>)}
      {data.zones.filter(z=>z.kind==="window").map(z=><span key={z.id} className="absolute -translate-x-1/2 bg-background border px-1 text-xs pointer-events-none" style={{left:`${z.x*100}%`,top:`${z.y*100}%`}}>{locale==="es"?"Ventana":"Window"}</span>)}
+     {trial && projection && markers.map(m=>{
+       const before=baseline.find(r=>r.id===m.id)
+       const p=before && projection(before.u,before.v)
+       if(!p || Math.hypot(p.x-m.x,p.y-m.y)<.001) return null
+       return <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1={p.x*100} y1={p.y*100} x2={m.x*100} y2={m.y*100} strokeWidth=".8" className="stroke-primary"/><circle cx={p.x*100} cy={p.y*100} r="2.5" fill="none" strokeDasharray="1 1" className="stroke-primary"/></svg>
+     })}
      {markers.map(m=><span key={m.id} data-reflection-photo={m.id} className="absolute -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full border-2 border-primary bg-background text-primary flex items-center justify-center text-xs" style={{left:`${m.x*100}%`,top:`${m.y*100}%`}} title={c.calculated}>{mono?"S":m.speaker===0?"L":"R"}</span>)}
     </div>
-    {wallChosen&&corners.length<4&&<div className="grid grid-cols-2 gap-2 text-xs"><label>X (%)<input aria-label="X (%)" type="number" min="0" max="100" value={Math.round(point.x*100)} onChange={e=>setPoint({...point,x:Math.max(0,Math.min(1,Number(e.target.value)/100))})} className={`${control} w-full`}/></label><label>Y (%)<input aria-label="Y (%)" type="number" min="0" max="100" value={Math.round(point.y*100)} onChange={e=>setPoint({...point,y:Math.max(0,Math.min(1,Number(e.target.value)/100))})} className={`${control} w-full`}/></label><button type="button" className={`${control} col-span-2`} onClick={()=>void add(point)}>{c.nextCorner} {labels[corners.length]}</button></div>}
+    {wallChosen&&!windowMode&&corners.length<4&&<div className="grid grid-cols-2 gap-2 text-xs"><label>X (%)<input aria-label="X (%)" type="number" min="0" max="100" value={Math.round(point.x*100)} onChange={e=>setPoint({...point,x:Math.max(0,Math.min(1,Number(e.target.value)/100))})} className={`${control} w-full`}/></label><label>Y (%)<input aria-label="Y (%)" type="number" min="0" max="100" value={Math.round(point.y*100)} onChange={e=>setPoint({...point,y:Math.max(0,Math.min(1,Number(e.target.value)/100))})} className={`${control} w-full`}/></label><button type="button" className={`${control} col-span-2`} onClick={()=>void add(point)}>{c.nextCorner} {labels[corners.length]}</button></div>}
+    {allowed && projection && canCompare && <div className="space-y-1"><button type="button" className={control} onClick={compare}>{trial ? (locale==="es"?"Volver a la foto actual":"Show current photo layout") : (locale==="es"?"Ver el movimiento propuesto en la foto":"Preview the move on the photo")}</button>
+      {trial && <p className="text-xs">{locale==="es"?"El círculo punteado indica la reflexión anterior cuando cambia de lugar. L y R muestran la propuesta.":"A dashed circle shows the previous reflection where it moved. L and R show the proposal."}</p>}
+    </div>}
     {corners.length===4&&<p role="status" className="text-xs">{projection?(allowed?c.photoApprox:c.photoGate):c.invalidPhoto}</p>}
     <div className="flex gap-2 flex-wrap"><button type="button" className={control} disabled={!wallChosen} onClick={()=>void reset()}>{c.resetPhoto}</button><button type="button" className={control} onClick={async()=>{setBusy(true);try{await deleteEvidence(reportKey);if(alive.current){setData(undefined);setCorners([]);setWallChosen(false);setWindowMode(false)}}catch{setError(true)}finally{if(alive.current)setBusy(false)}}}>{c.photoDelete}</button></div>
    </fieldset>}
