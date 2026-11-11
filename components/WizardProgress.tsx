@@ -12,7 +12,8 @@ export function WizardProgress() {
   const pathname = usePathname()
   const { locale } = useT()
   const source = useRoomStore(s => s.project.dimensionSource)
-  const steps = source !== "measured" && (pathname === "/objetivo" || pathname === "/espacio") ? WIZARD_STEPS.slice(0, 2) : WIZARD_STEPS
+  const captureSteps = ["/captura", "/medidas", "/objetos"].map(path => ({path}))
+  const steps = captureSteps.some(step => step.path === pathname) ? captureSteps : source !== "measured" && (pathname === "/objetivo" || pathname === "/espacio") ? WIZARD_STEPS.slice(0, 2) : WIZARD_STEPS
   const index = steps.findIndex((step) => step.path === pathname)
 
   if (index === -1) return null

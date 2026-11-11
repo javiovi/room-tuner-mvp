@@ -16,7 +16,7 @@ export default function LandingPage() {
   const [methodOpen, setMethodOpen] = useState(false)
 
   const handleStart = () => {
-    router.push("/objetivo")
+    router.push("/captura")
   }
 
   const scrollToPreview = () => {
@@ -64,7 +64,7 @@ export default function LandingPage() {
           the PDF are free for everyone, so a locked tier here would misdescribe the
           product. Comes back with the paywall. */}
       {PAYWALL_ENABLED && (
-      <section id="how-it-works" className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
+      <section className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
         <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-2">
           {t.landing.freeVsPaidTitle}
         </h2>
@@ -113,7 +113,7 @@ export default function LandingPage() {
       )}
 
       {/* ── HOW IT WORKS ── */}
-      <section className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
+      <section id="how-it-works" className="container max-w-4xl mx-auto px-4 py-10 border-t border-border">
         <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-8">
           {t.landing.howItWorks}
         </h2>

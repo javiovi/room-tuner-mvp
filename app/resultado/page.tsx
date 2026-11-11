@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation"
 import { ChevronLeft, RefreshCw, Download, Lock, BarChart3, Layout, ShoppingCart, Calculator, ListChecks, FileDown, X, AlertTriangle } from "lucide-react"
 import { CenteredLayout } from "@/components/CenteredLayout"
 import { Button } from "@/components/Button"
-import { Tabs } from "@/components/Tabs"
+import { LocalRoomImage } from "@/components/LocalRoomImage"
 import { useRoomHydrated, useRoomStore } from "@/lib/roomStore"
 import { logError } from "@/lib/logger"
 import { RoomMetricsCard } from "@/components/report/RoomMetricsCard"
@@ -283,11 +283,9 @@ function ResultadoContent() {
   )
 
   const tried = Object.values(personalization.experiments ?? {}).some(record => record.tried)
-  const tabs = [
-    { id: "resumen", label: t.experiments.today, content: resumenContent },
-    { id: "detalles", label: t.journey.details, content: <div className="space-y-4">
+  const detailsContent = <div className="space-y-4">
       {approximate && refine}
-      {!visualFirst && <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.plan}</summary>{planner}</details>}
+      {!visualFirst && !approximate && <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.plan}</summary>{planner}</details>}
       {!approximate && isUnlocked && <>
         <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.metrics.title}</summary><RoomMetricsCard metrics={roomMetrics} roomCharacter={roomCharacter} /></details>
         <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.report.modes.title}</summary><RoomModesChart modes={roomMetrics.roomModes} /></details>
@@ -296,8 +294,7 @@ function ResultadoContent() {
       </>}
       {!approximate && !isUnlocked && lockedReportContent}
       <details className="border border-border rounded-sm p-4"><summary className="cursor-pointer min-h-11 text-sm">{t.experiments.sources}</summary><p className="text-sm">{t.experiments.geometry}</p><p className="text-sm mt-2">{t.experiments.illustration}</p></details>
-    </div> },
-  ]
+    </div>
 
   return (
     <CenteredLayout>
@@ -330,7 +327,10 @@ function ResultadoContent() {
       )}
 
       {/* Tabs */}
-      <Tabs tabs={tabs} defaultTab="resumen" />
+      <LocalRoomImage reportKey={projectId ?? analysis.generatedAt} />
+      {typeof window !== "undefined" && sessionStorage.getItem("roomtuner-photo-error") === (projectId ?? analysis.generatedAt) && <p role="alert">{locale === "es" ? "No se pudo adjuntar la foto al informe." : "Could not attach the photo to this report."}</p>}
+      {resumenContent}
+      {detailsContent}
 
       {/* Unlock notice banner */}
       {unlockNotice && (
@@ -377,7 +377,7 @@ function ResultadoContent() {
 
         <div className="text-center pt-2 space-y-2">
           <Link
-            href="/objetivo"
+            href="/captura"
             className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />

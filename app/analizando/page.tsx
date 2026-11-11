@@ -1,5 +1,6 @@
 "use client"
 
+import { attachCapture } from "@/lib/evidence/storage"
 import { trackPilot } from "@/lib/analytics"
 import { readLocale } from "@/lib/locale"
 
@@ -56,6 +57,16 @@ export default function AnalizandoPage() {
       }
 
       trackPilot("analysis_completed", { goal: project.goal ?? "unknown", mode: project.dimensionSource ?? "measured", persisted: Boolean(data.persisted) })
+      const draft = sessionStorage.getItem("roomtuner-capture")
+      if (draft) {
+        try {
+          await attachCapture(draft, data.projectId ?? data.generatedAt, project.goal ?? "work")
+          sessionStorage.removeItem("roomtuner-capture")
+        } catch {
+          sessionStorage.removeItem("roomtuner-capture")
+          sessionStorage.setItem("roomtuner-photo-error", data.projectId ?? data.generatedAt)
+        }
+      }
       setAnalysis(data, {
         projectId: data.projectId ?? null,
         persisted: Boolean(data.persisted),

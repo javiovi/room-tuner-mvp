@@ -267,7 +267,7 @@ export const en: Translations = {
     bulletWork3: "Daily acoustic comfort",
 
     // CTAs
-    ctaStart: "See what I can improve",
+    ctaStart: "Photograph my room",
     ctaExample: "How it works",
 
     // Free vs Paid
@@ -289,12 +289,12 @@ export const en: Translations = {
 
     // How it works
     howItWorks: "How it works",
-    step1Title: "Tell us what bothers you",
-    step1Desc: "Choose a priority and what you can change. Measurements are optional to start.",
-    step2Title: "Try one change",
-    step2Desc: "One action at a time, with an explanation and a way to compare.",
-    step3Title: "Choose the next step",
-    step3Desc: "Record what you noticed. Keep the change or try another option.",
+    step1Title: "Photograph your room",
+    step1Desc: "Frame your usual spot and the wall ahead.",
+    step2Title: "Add dimensions",
+    step2Desc: "Choose a use and describe the room size.",
+    step3Title: "Locate the objects",
+    step3Desc: "Tell us where you listen or work to choose a trial.",
 
     // Report example
     reportExample: "Report example",
