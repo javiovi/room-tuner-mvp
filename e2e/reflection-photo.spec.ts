@@ -21,6 +21,7 @@ test("photo sites require confirmed geometry, follow live positions and survive 
  await workspace.getByLabel("Confirmo estas alturas",{exact:true}).check()
  await panel.getByLabel("Elegir foto de una pared").setInputFiles({name:"wall.jpg",mimeType:"image/jpeg",buffer:photo})
  await expect(panel.getByTestId("reflection-photo")).toBeVisible()
+ await panel.getByRole("combobox",{name:"Pared de la foto"}).selectOption("left")
  const names=["arriba, extremo A","arriba, extremo B","abajo, extremo B","abajo, extremo A"]
  for(const [i,[x,y]] of [[10,10],[90,10],[90,90],[10,90]].entries()){
   await panel.getByLabel("X (%)",{exact:true}).fill(String(x));await panel.getByLabel("Y (%)",{exact:true}).fill(String(y))
@@ -36,7 +37,6 @@ test("photo sites require confirmed geometry, follow live positions and survive 
  expect(session).not.toContain("photoBytes")
  expect(session).not.toContain("corners")
  await page.reload()
- await panel.locator("summary").click()
  await expect(panel.locator("[data-reflection-photo]")).toHaveCount(2)
  await expect(marker).toHaveAttribute("style",current!)
  await panel.getByRole("button",{name:"Volver a marcar las esquinas"}).click()
@@ -55,4 +55,17 @@ test("approximate rooms never project precise sites onto a photo",async({page})=
  await expect(page.getByLabel("Elegir foto de una pared")).toHaveCount(0)
  await expect(workspace.locator("[data-path-metric]")).toHaveCount(0)
  await expect(workspace.getByRole("link",{name:"Agregar medidas reales"})).toBeVisible()
+})
+
+test("listener faces the speaker wall and fixed seat distances follow the actual plan",async({page})=>{
+ await page.goto("/resultado")
+ const workspace=page.getByRole("region",{name:"Tu espacio, en vivo"})
+ await workspace.getByRole("combobox",{name:/Qué pared tenés enfrente/}).selectOption("right")
+ await workspace.getByLabel("Escucho desde un sillón fijo").check()
+ await workspace.getByRole("button",{name:"El plano representa mi habitación",exact:true}).click()
+ await expect(workspace.getByTestId("seat-distances")).toContainText("Distancia horizontal")
+ const layout=await page.evaluate(()=>JSON.parse(sessionStorage.getItem("roomtuner-session")!).state.reportPersonalization.layout)
+ expect(layout.current.speakerPositions.every((p:{x:number})=>p.x>layout.current.listeningPosition.x)).toBe(true)
+ expect(layout.proposal.listeningPosition).toEqual(layout.current.listeningPosition)
+ expect(layout.moves.listening).toBe(false)
 })

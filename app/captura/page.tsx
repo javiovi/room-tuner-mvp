@@ -39,7 +39,7 @@ export default function CapturePage() {
   }
   return <CenteredLayout>
     <h1 className="text-xl font-semibold">{es ? "Fotografiá tu habitación" : "Photograph your room"}</h1>
-    <p className="text-sm">{es ? "Desde una esquina, encuadrá tu puesto y la pared que tenés enfrente. La foto queda en este navegador." : "From a corner, frame your usual spot and the wall ahead. The photo stays in this browser."}</p>
+    <p className="text-sm">{es ? "Para escuchar música, sacá la foto desde tu asiento mirando hacia los parlantes. Incluí las cuatro esquinas de la pared si podés. Para ruido, encuadrá la entrada que querés revisar. La foto queda en este navegador." : "For music, photograph the speakers from your listening seat. Include all four corners of the wall if possible. For noise, frame the suspected entry. The photo stays in this browser."}</p>
     <fieldset disabled={busy} className="space-y-4">
       <label className="relative flex items-center justify-center gap-2 bg-primary text-primary-foreground p-3 cursor-pointer"><Camera size={18}/>{es ? "Abrir cámara" : "Open camera"}<input className="absolute inset-0 opacity-0 w-full cursor-pointer" type="file" accept="image/*" capture="environment" onChange={e => { const file = e.target.files?.[0]; e.target.value = ""; if (file) void start(file) }}/></label>
       <label className="block text-sm">{es ? "Elegir una foto guardada" : "Choose a saved photo"}<input className="block mt-2 w-full" type="file" accept="image/jpeg,image/png,image/webp" onChange={e => { const file = e.target.files?.[0]; e.target.value = ""; if (file) void start(file) }}/></label>

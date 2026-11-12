@@ -327,7 +327,7 @@ function ResultadoContent() {
       )}
 
       {/* Tabs */}
-      <LocalRoomImage reportKey={projectId ?? analysis.generatedAt} />
+      {!visualFirst && <LocalRoomImage reportKey={projectId ?? analysis.generatedAt} />}
       {typeof window !== "undefined" && sessionStorage.getItem("roomtuner-photo-error") === (projectId ?? analysis.generatedAt) && <p role="alert">{locale === "es" ? "No se pudo adjuntar la foto al informe." : "Could not attach the photo to this report."}</p>}
       {resumenContent}
       {detailsContent}

@@ -10,6 +10,17 @@ export function approximateDimensions(size: keyof typeof ROOM_SIZES, shape: "squ
   return { widthM: Math.round(width * 10) / 10, lengthM: Math.round(width * ratio * 10) / 10, heightM: 2.5 }
 }
 
+export type VerticalWall = "front" | "back" | "left" | "right"
+
+export function facingWall(point: {x: number; y: number}, wall: VerticalWall) {
+  switch (wall) {
+    case "back": return {x: 1 - point.x, y: 1 - point.y}
+    case "left": return {x: point.y, y: 1 - point.x}
+    case "right": return {x: 1 - point.y, y: point.x}
+    default: return point
+  }
+}
+
 /** A schematic starting point from the answers, never a scan of the actual room. */
 export function initialLayout(project: RoomProject, diagram: Layout): Layout {
   const speakers = project.speakerPlacement === "esquina" ? [{ x: .12, y: .12 }, { x: .28, y: .12 }]
@@ -19,6 +30,15 @@ export function initialLayout(project: RoomProject, diagram: Layout): Layout {
   const listening = project.listeningPosition === "sillon-pared-posterior" ? { x: .5, y: .85 }
     : project.listeningPosition === "escritorio-pared" ? { x: .5, y: .2 }
     : project.listeningPosition === "esquina" ? { x: .85, y: .85 } : { x: .5, y: .5 }
+  if (project.goal === "music") {
+    const wide = diagram.width > diagram.length
+    const side = project.speakerPlacement === "pared-lateral" ||
+      (project.speakerPlacement === "pared-larga-centrado" && !wide) ||
+      (project.speakerPlacement === "pared-corta-centrado" && wide)
+    const pair = project.speakerPlacement === "esquina" ? speakers : [{x:.3,y:.12},{x:.7,y:.12}]
+    const wall = side ? "left" : "front"
+    return { ...diagram, speakerPositions: pair.map(p => facingWall(p, wall)), listeningPosition: facingWall(listening, wall) }
+  }
   return { ...diagram, speakerPositions: speakers, listeningPosition: listening }
 }
 
